@@ -9,7 +9,10 @@ import java.io.IOException;
  */
 
 public interface Storage {
-	
+	/**
+	 * The size of a block
+	 */
+	public static final int BLOCK_SIZE = 128;
 	// The size of data file
 	public static final int DATA_SIZE = 4096000;
 	// The size of metadata file
