@@ -2,8 +2,6 @@ package project;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.List;
-
 /**
  * @title: Storage data management interface
  * @author wangqian
@@ -46,6 +44,7 @@ public interface Storage {
 	 * read indexes from metadata
 	 * @param fileName
 	 * @return index list
+	 * @throws IOException 
 	 */
-	public List<Index> readMetaData(String fileName);
+	public byte[] readMetaData(String fileName) throws IOException;
 }

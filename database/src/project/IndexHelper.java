@@ -1,10 +1,14 @@
 package project;
 
-import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 
 public interface IndexHelper {
+	/**
+	 * The index start sign in the metad ata file
+	 */
+	public static final byte START_SIGN = -1;
+	
 	/**
 	 * find the indexes list of free spaces based on the data size get all free space based on the delete sign and 
 		 * amount blocks to find some enough space to save the data.
@@ -26,12 +30,12 @@ public interface IndexHelper {
 	 * @param indexes
 	 * @return the meta data byte array
 	 */
-	public byte[] indexToBytes(Hashtable<Integer, Index> indexes);
+	public byte[] indexToBytes(Map<Integer, Index> indexes);
 	
 	/**
 	 * convert the meta data to the index Hashtable
 	 * @param metadata
 	 * @return The Hashtable of indexes, key is the index key, value is the index object
 	 */
-	public Hashtable<Integer, Index> bytesToIndex(byte[] metadata);
+	public Map<Integer, Index> bytesToIndex(byte[] metadata);
 }

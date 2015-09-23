@@ -1,6 +1,5 @@
 package project;
 
-import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 
@@ -45,15 +44,23 @@ public class IndexHelperImpl implements IndexHelper {
 		 */
 		return null;
 	}
-	
 	@Override
-	public byte[] indexToBytes(Hashtable<Integer, Index> indexes) {
+	public byte[] indexToBytes(Map<Integer, Index> indexes) {
 		return null;
 	}
 	
+	/**
+	 * An index start sign
+	 * 1. Delete Sign
+	 * 2. Key
+	 * 3. Total number of the indexes
+	 * 4. The index in the data array
+	 * 5. The amount of bytes of this index in the data array
+	 */
 	@Override
-	public Hashtable<Integer, Index> bytesToIndex(byte[] metadata) {
+	public Map<Integer, Index> bytesToIndex(byte[] metadata) {
 		return null;
 	}
+	
 
 }

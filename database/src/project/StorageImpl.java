@@ -4,7 +4,6 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.List;
 
 import org.apache.commons.io.IOUtils;
 
@@ -60,11 +59,31 @@ public class StorageImpl implements Storage {
 		// Verify the data size cannot exceed the METADATA_SIZE
 		if (metadata.length > METADATA_SIZE)
 			throw new Exception("The metadata size is exceed the requirement!");
+		FileOutputStream fos = null;
+		try{
+			fos = new FileOutputStream(fileName);
+			fos.write(metadata);
+		}catch(Exception e){
+			e.printStackTrace();
+		}finally{
+			if(fos != null) fos.close();
+		}
 	}
 
 	@Override
-	public List<Index> readMetaData(String fileName) {
-		return null;
+	/**
+	 * An index start sign
+	 * 1. Delete Sign
+	 * 2. Key
+	 * 3. Total number of the indexes
+	 * 4. The index in the data array
+	 * 5. The amount of bytes of this index in the data array
+	 */
+	public byte[] readMetaData(String fileName) throws IOException {
+		InputStream inputstream = new FileInputStream(fileName);
+		byte[] data = IOUtils.toByteArray(inputstream);
+		
+		return data;
 	}
 
 }
