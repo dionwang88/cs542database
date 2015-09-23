@@ -1,7 +1,6 @@
 package project;
 
 import java.util.Hashtable;
-import org.apache.log4j.Logger;
 
 /**
  * DBManager is to manager database, including manage storage data and the indexes
@@ -11,7 +10,7 @@ import org.apache.log4j.Logger;
 public class DBManager {
 	
 	private static DBManager dbManager = null;
-
+	
 	// database is to be contain the data
 	private byte[] data;
 	 
@@ -23,7 +22,6 @@ public class DBManager {
 	private Hashtable<Integer, Index> indexes;
 	
 	protected DBManager(){
-		
 	}
 	
 	/**

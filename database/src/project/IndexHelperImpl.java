@@ -3,17 +3,22 @@ package project;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.core.Logger;
+
+
 /**
  * This class provides the methods of how to manipulate the index
  * @author wangqian
  *
  */
 public class IndexHelperImpl implements IndexHelper {
+	Logger logger = (Logger) LogManager.getLogger();
 	
 	private static IndexHelperImpl indexHelper = null;
 
 	protected IndexHelperImpl() {
-		
+		logger.info("Create IndexHelper Object.");
 	}
 	/**
 	 * Singleton Object
@@ -62,5 +67,8 @@ public class IndexHelperImpl implements IndexHelper {
 		return null;
 	}
 	
-
+	public static void main(String[] args){
+		IndexHelperImpl ih = new IndexHelperImpl();
+		
+	}
 }

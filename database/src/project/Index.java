@@ -12,9 +12,21 @@ import java.util.List;
  */
 
 public class Index {
+	/**
+	 * The index start sign in the meta data file
+	 */
 	private static final byte sign = '/';
+	/**
+	 * key: the key of the data
+	 */
 	private int key;
+	/**
+	 * index_num: how many blocks to save the data in the data file
+	 */
 	private int index_num;
+	/**
+	 * the pairs of (index, length) of the data blocks in the data file, ordered by index
+	 */
 	private List<Pair<Integer, Integer>> indexes;
 	
 	public Index(){}
