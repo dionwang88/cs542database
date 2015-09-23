@@ -1,6 +1,12 @@
 package project;
 
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
+
+import org.apache.commons.io.IOUtils;
 
 /**
  * Implementation of the Storage Interface.
@@ -21,19 +27,16 @@ import java.util.List;
  *
  */
 public class StorageImpl implements Storage {
-	
-	// The size of data file
-	public static final int DATA_SIZE = 4096000;
-	// The size of metadata file
-	public static final int METADATA_SIZE = 1024000;
 
 	public StorageImpl(){
 
 	}
 	
 	@Override
-	public List<byte[]> readData(String fileName) {
-		return null;
+	public byte[] readData(String fileName) throws IOException {
+		InputStream inputstream = new FileInputStream(fileName);
+		byte[] data = IOUtils.toByteArray(inputstream);
+		return data;
 	}
 	
 	@Override
@@ -41,8 +44,15 @@ public class StorageImpl implements Storage {
 		// Verify the data size cannot exceed the DATA_SIZE
 		if(data.length > DATA_SIZE) 
 			throw new Exception("The data size is exceed the requirement!");
-		
-		
+		FileOutputStream fos = null;
+		try{
+			fos = new FileOutputStream(fileName);
+			fos.write(data);
+		}catch(Exception e){
+			e.printStackTrace();
+		}finally{
+			if(fos != null) fos.close();
+		}
 	}
 
 	@Override
@@ -56,8 +66,5 @@ public class StorageImpl implements Storage {
 	public List<Index> readMetaData(String fileName) {
 		return null;
 	}
-
-
-	
 
 }

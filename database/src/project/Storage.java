@@ -1,5 +1,7 @@
 package project;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -9,6 +11,12 @@ import java.util.List;
  */
 
 public interface Storage {
+	
+	// The size of data file
+	public static final int DATA_SIZE = 4096000;
+	// The size of metadata file
+	public static final int METADATA_SIZE = 1024000;
+	
 	/**
 	 * write the data into file
 	 * @param fileName: data file name
@@ -21,8 +29,10 @@ public interface Storage {
 	 * read the data file into memory
 	 * @param fileName
 	 * @return data list
+	 * @throws FileNotFoundException 
+	 * @throws IOException 
 	 */
-	public List<byte[]> readData(String fileName);
+	public byte[] readData(String fileName) throws IOException;
 
 	/**
 	 * write the index into metadata
