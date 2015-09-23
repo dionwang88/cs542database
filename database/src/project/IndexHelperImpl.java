@@ -66,9 +66,5 @@ public class IndexHelperImpl implements IndexHelper {
 	public Map<Integer, Index> bytesToIndex(byte[] metadata) {
 		return null;
 	}
-	
-	public static void main(String[] args){
-		IndexHelperImpl ih = new IndexHelperImpl();
-		
-	}
+
 }
