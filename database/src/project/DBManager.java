@@ -1,6 +1,7 @@
 package project;
 
 import java.util.Hashtable;
+import org.apache.log4j.Logger;
 
 /**
  * DBManager is to manager database, including manage storage data and the indexes
