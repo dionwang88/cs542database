@@ -9,14 +9,13 @@ package project;
  */
 public class Block {
 	/**
-	 * The size of a block
-	 */
-	public static final int BLOCK_SIZE = 128;
-	/**
 	 * The key of the block
 	 */
-	private int Key;
-	
+	private int key;
+	/**
+	 * The start index of this block
+	 */
+	private int index;
 	/**
 	 * The data length of this block
 	 */
@@ -25,20 +24,26 @@ public class Block {
 	public Block(){}
 
 	public int getKey() {
-		return Key;
+		return this.key;
 	}
 
 	public void setKey(int key) {
-		Key = key;
+		this.key = key;
 	}
 
 	public int getData_length() {
-		return data_length;
+		return this.data_length;
 	}
 
 	public void setData_length(int data_length) {
 		this.data_length = data_length;
 	}
-	
+	public int getIndex() {
+		return index;
+	}
+
+	public void setIndex(int index) {
+		this.index = index;
+	}
 	
 }
