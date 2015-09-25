@@ -13,10 +13,6 @@ import java.util.List;
 
 public class Index {
 	/**
-	 * The index start sign in the meta data file
-	 */
-	private static final byte sign = '/';
-	/**
 	 * key: the key of the data
 	 */
 	private int key;
@@ -49,9 +45,6 @@ public class Index {
 	}
 	public void setIndexes(List<Pair<Integer, Integer>> l) {
 		this.indexes = l;
-	}
-	public byte getSign() {
-		return sign;
 	}
 	
 	@Override
