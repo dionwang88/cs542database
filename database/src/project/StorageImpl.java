@@ -72,8 +72,7 @@ public class StorageImpl implements Storage {
 
 	@Override
 	/**
-	 * An index start sign
-	 * 1. Delete Sign
+	 * 1. An index start sign
 	 * 2. Key
 	 * 3. Total number of the indexes
 	 * 4. The index in the data array
