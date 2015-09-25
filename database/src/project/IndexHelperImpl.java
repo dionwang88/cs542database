@@ -13,10 +13,22 @@ import org.apache.logging.log4j.core.Logger;
  *
  */
 public class IndexHelperImpl implements IndexHelper {
+	
 	Logger logger = (Logger) LogManager.getLogger();
 	
 	private static IndexHelperImpl indexHelper = null;
+	
+	/**
+	 * When load indexes from metadata, save indexes into indexBuffer object.
+	 */
+	private Map<Integer, List<Index>> indexBuffer = null;
 
+	public Map<Integer, List<Index>> getIndexBuffer() {
+		return indexBuffer;
+	}
+	public void setIndexBuffer(Map<Integer, List<Index>> indexBuffer) {
+		this.indexBuffer = indexBuffer;
+	}
 	protected IndexHelperImpl() {
 		logger.info("Create IndexHelper Object.");
 	}
@@ -32,13 +44,12 @@ public class IndexHelperImpl implements IndexHelper {
 	}
 
 	@Override
-	public List<Integer> findFreeSpaceIndex(int size) {
+	public List<Pair<Integer,Integer>> findFreeSpaceIndex(int size) {
 		/**
 		 * find the indexes list of free spaces based on the data size get all free space based on the delete sign and 
-		 * amount blocks to find some enough space to save the data. For example, if the indexes in meta data are (0,0,1,0,1000), 
-		 * (0,1,1,4001,1000), (0,1,1,8001,1000),then we can know that there has a 6000 bytes (1001-4000 and 5001-8000) free space 
-		 * between those two data. If the data size is greater than the free space, then return a not enough space error message.
+		 * amount blocks to find some enough space to save the data.
 		 */
+		
 		return null;
 	}
 
@@ -55,16 +66,28 @@ public class IndexHelperImpl implements IndexHelper {
 	}
 	
 	/**
-	 * An index start sign
-	 * 1. Delete Sign
+	 * 1. An index start sign
 	 * 2. Key
-	 * 3. Total number of the indexes
-	 * 4. The index in the data array
-	 * 5. The amount of bytes of this index in the data array
+	 * 3. The index in the data array
+	 * 4. The amount of bytes of this index in the data array
 	 */
 	@Override
-	public Map<Integer, Index> bytesToIndex(byte[] metadata) {
+	public Map<Integer, List<Index>> bytesToIndex(byte[] metadata) {
 		return null;
 	}
-
+	
+	@Override
+	public Map<Integer, List<Index>> getIndexesBuffer() {
+		return null;
+	}
+	
+	@Override
+	public void addIndex(Index index) {
+		
+	}
+	
+	@Override
+	public void removeIndex(Integer Key) {
+		
+	}
 }

@@ -14,8 +14,9 @@ public interface IndexHelper {
 		 * amount blocks to find some enough space to save the data.
 	 * @param size : the size of data that to be saved
 	 * @return The indexes list of data file
+	 * @throws Exception 
 	 */
-	public List<Integer> findFreeSpaceIndex(int size);
+	public List<Pair<Integer,Integer>> findFreeSpaceIndex(int size) ;
 	
 	/**
 	 * This method is to split the original data into pieces based on the findFreeSpaceIndex method in order to save a big data
@@ -37,5 +38,21 @@ public interface IndexHelper {
 	 * @param metadata
 	 * @return The Hashtable of indexes, key is the index key, value is the index object
 	 */
-	public Map<Integer, Index> bytesToIndex(byte[] metadata);
+	public Map<Integer, List<Index>> bytesToIndex(byte[] metadata);
+	
+	/**
+	 * Get the index buffer from memory
+	 * @return
+	 */
+	public Map<Integer, List<Index>> getIndexesBuffer();
+	
+	/**
+	 * Add a new index into indexes buffer
+	 */
+	public void addIndex(Index index);
+	/**
+	 * Remove an index from indexes buffer
+	 * @param Key
+	 */
+	public void removeIndex(Integer Key);
 }

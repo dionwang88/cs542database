@@ -11,7 +11,6 @@ public class TestIndex {
 	public static void main(String[] args){
 		Index index = new Index();
 		index.setKey(1);
-		index.setIndex_num(2);
 		Pair<Integer, Integer> p1 = new Pair<Integer, Integer>(1,2);
 		Pair<Integer, Integer> p2 = new Pair<Integer, Integer>(4,3);
 		List<Pair<Integer, Integer>> l = new ArrayList<Pair<Integer, Integer>>();
