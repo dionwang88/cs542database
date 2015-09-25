@@ -1,0 +1,6 @@
+defination:
+  indexMap: the memory form of metadata
+    1. key of indext 
+  byte: file storage from of metadata
+
+indextobytes

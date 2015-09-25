@@ -14,8 +14,11 @@ import java.util.List;
 public class Index {
 	/**
 	 * The index start sign in the meta data file
+	 * could be redundant
 	 */
-	private static final byte sign = '/';
+	private static final byte sign = -1;
+	public static final byte KEYSIZE = Integer.BYTES;
+	public static final byte INDEX_NUMBER_SIZE = 3;
 	/**
 	 * key: the key of the data
 	 */
