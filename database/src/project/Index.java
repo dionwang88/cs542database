@@ -17,10 +17,6 @@ public class Index {
 	 */
 	private int key;
 	/**
-	 * index_num: how many blocks to save the data in the data file
-	 */
-	private int index_num;
-	/**
 	 * the pairs of (index, length) of the data blocks in the data file, ordered by index
 	 */
 	private List<Pair<Integer, Integer>> indexes;
@@ -34,12 +30,7 @@ public class Index {
 	public void setKey(int key) {
 		this.key = key;
 	}
-	public int getIndex_num() {
-		return index_num;
-	}
-	public void setIndex_num(int index_num) {
-		this.index_num = index_num;
-	}
+
 	public List<Pair<Integer, Integer>> getIndexes() {
 		return indexes;
 	}
@@ -49,19 +40,20 @@ public class Index {
 	
 	@Override
 	public String toString() {
-		return "Index [key=" + key + ", index_num=" + index_num + ", indexes=" + indexes + "]";
+		return "Index [key=" + key + ", index_num=" + ", indexes=" + indexes + "]";
 	}
-	
+
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + index_num;
 		result = prime * result + ((indexes == null) ? 0 : indexes.hashCode());
 		result = prime * result + key;
 		return result;
 	}
-	
+
+
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj)
@@ -71,8 +63,6 @@ public class Index {
 		if (getClass() != obj.getClass())
 			return false;
 		Index other = (Index) obj;
-		if (index_num != other.index_num)
-			return false;
 		if (indexes == null) {
 			if (other.indexes != null)
 				return false;
@@ -82,4 +72,5 @@ public class Index {
 			return false;
 		return true;
 	}
+
 }
