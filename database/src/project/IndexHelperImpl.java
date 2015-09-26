@@ -18,10 +18,22 @@ import javax.lang.model.type.IntersectionType;
  *
  */
 public class IndexHelperImpl implements IndexHelper {
+	
 	Logger logger = (Logger) LogManager.getLogger();
 	
 	private static IndexHelperImpl indexHelper = null;
+	
+	/**
+	 * When load indexes from metadata, save indexes into indexBuffer object.
+	 */
+	private Map<Integer, List<Index>> indexBuffer = null;
 
+	public Map<Integer, List<Index>> getIndexBuffer() {
+		return indexBuffer;
+	}
+	public void setIndexBuffer(Map<Integer, List<Index>> indexBuffer) {
+		this.indexBuffer = indexBuffer;
+	}
 	protected IndexHelperImpl() {
 		logger.info("Create IndexHelper Object.");
 	}
@@ -37,13 +49,12 @@ public class IndexHelperImpl implements IndexHelper {
 	}
 
 	@Override
-	public List<Integer> findFreeSpaceIndex(int size) {
+	public List<Pair<Integer,Integer>> findFreeSpaceIndex(int size) {
 		/**
 		 * find the indexes list of free spaces based on the data size get all free space based on the delete sign and 
-		 * amount blocks to find some enough space to save the data. For example, if the indexes in meta data are (0,0,1,0,1000), 
-		 * (0,1,1,4001,1000), (0,1,1,8001,1000),then we can know that there has a 6000 bytes (1001-4000 and 5001-8000) free space 
-		 * between those two data. If the data size is greater than the free space, then return a not enough space error message.
+		 * amount blocks to find some enough space to save the data.
 		 */
+		
 		return null;
 	}
 
@@ -168,16 +179,30 @@ public class IndexHelperImpl implements IndexHelper {
 		 */
         return ByteBuffer.allocate(Integer.BYTES).putInt(intnumb).array();
     }
-	private static int bytestoint(byte[] b,int start_offset){
+	private static int bytestoint(byte[] b,int start_offset) {
 		/**
 		 * This function will, given a byte array and start,
 		 * convert 4 bytes number into ag integer, from start_offset to start_offset+3
 		 */
-		int numb=0;
-		for (int i=start_offset;i<start_offset+Index.getKeySize();i++){
-			numb<<=Byte.SIZE;
-			numb+=b[i];
+		int numb = 0;
+		for (int i = start_offset; i < start_offset + Index.getKeySize(); i++) {
+			numb <<= Byte.SIZE;
+			numb += b[i];
 		}
 		return numb;
+	}
+
+	@Override
+	public void addIndex(Index index) {
+
+	}
+
+	@Override
+	public void removeIndex(Integer Key) {
+
+	}
+
+	public Map<Integer, List<Index>> getIndexesBuffer(){
+		return null;
 	}
 }

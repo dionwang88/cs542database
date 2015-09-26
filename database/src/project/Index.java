@@ -52,6 +52,7 @@ public class Index {
 	public void setKey(int key) {
 		this.key = key;
 	}
+
 	public List<Pair<Integer, Integer>> getIndexes() {
 		return indexes;
 	}
@@ -66,17 +67,18 @@ public class Index {
 	public String toString() {
 		return "Index [key=" + key +", indexes=" + indexes + "]";
 	}
-	
+
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + index_num;
 		result = prime * result + ((indexes == null) ? 0 : indexes.hashCode());
 		result = prime * result + key;
 		return result;
 	}
-	
+
+
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj)
@@ -86,8 +88,6 @@ public class Index {
 		if (getClass() != obj.getClass())
 			return false;
 		Index other = (Index) obj;
-		if (index_num != other.index_num)
-			return false;
 		if (indexes == null) {
 			if (other.indexes != null)
 				return false;

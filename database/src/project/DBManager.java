@@ -8,6 +8,14 @@ import java.util.Hashtable;
  *
  */
 public class DBManager {
+	/**
+	 * The used index size in metadata file.
+	 */
+	private int INDEX_USED = 0;
+	/**
+	 * The used data size in data file.
+	 */
+	private int DATA_USED = 0;
 	
 	private static DBManager dbManager = null;
 	
@@ -83,6 +91,22 @@ public class DBManager {
 
 	public void setIndexes(Hashtable<Integer, Index> indexes) {
 		this.indexes = indexes;
+	}
+
+	public int getINDEX_USED() {
+		return INDEX_USED;
+	}
+
+	public void setINDEX_USED(int iNDEX_USED) {
+		INDEX_USED = iNDEX_USED;
+	}
+
+	public int getDATA_USED() {
+		return DATA_USED;
+	}
+
+	public void setDATA_USED(int dATA_USED) {
+		DATA_USED = dATA_USED;
 	}
 	
 }
