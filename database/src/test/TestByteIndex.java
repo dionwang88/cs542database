@@ -30,7 +30,7 @@ public class TestByteIndex extends IndexHelperImpl {
 
         //another index
         index = new Index();
-        index.setKey(10);
+        index.setKey(20);
         index.setIndexes(l);
         map.put(index.getKey(), index);
 
