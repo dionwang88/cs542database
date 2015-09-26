@@ -74,9 +74,8 @@ public class StorageImpl implements Storage {
 	/**
 	 * 1. An index start sign
 	 * 2. Key
-	 * 3. Total number of the indexes
-	 * 4. The index in the data array
-	 * 5. The amount of bytes of this index in the data array
+	 * 3. The index in the data array
+	 * 4. The amount of bytes of this index in the data array
 	 */
 	public byte[] readMetaData(String fileName) throws IOException {
 		InputStream inputstream = new FileInputStream(fileName);

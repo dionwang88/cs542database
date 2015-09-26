@@ -17,35 +17,33 @@ public class Index {
 	 * could be redundant
 	 */
 	private static final byte sign = -1;
-	public static final byte KEYSIZE = Integer.BYTES;
-	public static final byte INDEX_NUMBER_SIZE = 3;
+
+	private static final byte KEYSIZE = Integer.BYTES;
+	private static final byte RESERVED=3;
 	/**
 	 * key: the key of the data
 	 */
 	private int key;
-	/**
-	 * index_num: how many blocks to save the data in the data file
-	 */
-	private int index_num;
+
 	/**
 	 * the pairs of (index, length) of the data blocks in the data file, ordered by index
 	 */
 	private List<Pair<Integer, Integer>> indexes;
-	
+	private int index_num;
+
 	public Index(){}
 	
-	
+	public static int getReservedSize(){
+		return RESERVED;
+	}
+	public static int getKeySize(){
+		return KEYSIZE;
+	}
 	public int getKey() {
 		return key;
 	}
 	public void setKey(int key) {
 		this.key = key;
-	}
-	public int getIndex_num() {
-		return index_num;
-	}
-	public void setIndex_num(int index_num) {
-		this.index_num = index_num;
 	}
 	public List<Pair<Integer, Integer>> getIndexes() {
 		return indexes;
@@ -59,7 +57,7 @@ public class Index {
 	
 	@Override
 	public String toString() {
-		return "Index [key=" + key + ", index_num=" + index_num + ", indexes=" + indexes + "]";
+		return "Index [key=" + key +", indexes=" + indexes + "]";
 	}
 	
 	@Override

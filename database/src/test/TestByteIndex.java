@@ -5,20 +5,16 @@ import project.IndexHelper;
 import project.IndexHelperImpl;
 import project.Pair;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created by vincent on 9/25/15.
  */
-public class TestByteIndex {
+public class TestByteIndex extends IndexHelperImpl {
     public static void main(String args[]){
         //initial an index
         Index index = new Index();
-        index.setKey(256*256*256*127+256*256*127+256*127+127);//not max key; but max in form of byte[]
-        index.setIndex_num(3);
+        index.setKey(256 * 256 * 256 * 127 + 256 * 256 * 127 + 256 * 127 + 127);//not max key; but max in form of byte[]
         Pair<Integer, Integer> p1 = new Pair<Integer, Integer>(256,30);
         Pair<Integer, Integer> p2 = new Pair<Integer, Integer>(256*256,40);
         Pair<Integer, Integer> p3 = new Pair<Integer, Integer>(256*256*256,50);
@@ -29,16 +25,20 @@ public class TestByteIndex {
         index.setIndexes(l);
 
         //put index in map
-        Map<Integer,Index> map=new HashMap<>();
-        map.put(index.getKey(), index);
-        index.setKey(1);
+        Map<Integer,Index> map=new Hashtable<>();
         map.put(index.getKey(), index);
 
-        //modified IndexHelperImpl from protected to public
-        IndexHelper indexHelper = new IndexHelperImpl();
+        //another index
+        index = new Index();
+        index.setKey(10);
+        index.setIndexes(l);
+        map.put(index.getKey(), index);
+
+        //test print output byte[]
+        IndexHelper indexHelper = new TestByteIndex();
         byte[] bytecode =indexHelper.indexToBytes(map);
-        for (int i = 0; i <bytecode.length ; i++) {
-            System.out.print(bytecode[i]+" ");
+        for (byte aBytecode : bytecode) {
+            System.out.print(aBytecode + " ");
         }
         System.out.println();
         System.out.println("length of metadata is: "+bytecode.length);
