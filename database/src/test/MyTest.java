@@ -55,12 +55,11 @@ class MyTest {
 		for (Pair<Integer, Integer> pair : indexes){
 			int start = pair.getLeft();
 			int length = pair.getRight();
-			while(index_in_data_to_save < length){
+			for(int ind = 0; ind < length; ind++){
 				db_data[start] = data_to_save[index_in_data_to_save];
 				start = start + 1;
 				index_in_data_to_save = index_in_data_to_save + 1;
 			}
-			index_in_data_to_save = index_in_data_to_save + length;
 		}
 	}
 public static void main(String[] args) {
@@ -97,6 +96,7 @@ public static void main(String[] args) {
 	for(byte i : db_data){
 		System.out.print(i + " ");
 	}
+	
 	my.splitDataByIndex(db_data, data_to_save, mylist);
 	
 	System.out.println();

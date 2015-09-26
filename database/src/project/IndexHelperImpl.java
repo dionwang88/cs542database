@@ -104,24 +104,29 @@ public class IndexHelperImpl implements IndexHelper {
 	}
 
 	@Override
-	public List<Map<Integer, byte[]>> splitDataBasedOnIndex(byte[] data_to_save, List<Pair<Integer,Integer>> indexes) {
+	public void splitDataBasedOnIndex(byte[] data_to_save, List<Pair<Integer,Integer>> indexes) {
 		/**
 		 * Split the data into several parts based on the free indexes list
+		 * Then get the split data from data_to_save, and save the split data to the db_data file based on the indexes
 		 */
+		// load the database file from memory
 		byte[] db_data = dbmanager.getData();
 		int index_in_data_to_save = 0;
-		
+		// loop all the free space indexes
 		for (Pair<Integer, Integer> pair : indexes){
+			// get the start index on the db_data file
 			int start = pair.getLeft();
+			// The length of split data
 			int length = pair.getRight();
-			while(index_in_data_to_save < length){
+			// Get the split data from data_to_save and then save the data to the db_data file based on the free space index
+			for(int ind = 0; ind < length; ind++){
 				db_data[start] = data_to_save[index_in_data_to_save];
 				start = start + 1;
+				index_in_data_to_save = index_in_data_to_save + 1;
 			}
-			index_in_data_to_save = index_in_data_to_save + length;
 		}
-		return null;
 	}
+	
 	@Override
 	public byte[] indexToBytes(Map<Integer, Index> indexes) {
 		return null;

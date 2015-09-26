@@ -31,7 +31,7 @@ public interface IndexHelper {
 	 * @param indexes: the indexes indicate the free space can be used to save the data
 	 * @return the list of pieces of data. Key is the index, value is the data array
 	 */
-	public List<Map<Integer,byte[]>> splitDataBasedOnIndex(byte[] data_to_save, List<Pair<Integer,Integer>> indexes);
+	public void splitDataBasedOnIndex(byte[] data_to_save, List<Pair<Integer,Integer>> indexes);
 	
 	/**
 	 * convert the index Hashtable to byte array
