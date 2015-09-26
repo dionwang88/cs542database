@@ -71,6 +71,8 @@ public class IndexHelperImpl implements IndexHelper {
 		int offset=0;
 		for(int key:indexes.keySet()){
 			Index index=indexes.get(key);
+			//make sure pairs are sorted
+			index.sortpairs();
 			outbyte[offset++]=IndexHelper.START_SIGN;
             logger.info("converted #"+key+" start_sign");
 
@@ -152,8 +154,7 @@ public class IndexHelperImpl implements IndexHelper {
 
 				//add to map
 				returnmap.put(key_in_record,index);
-			}
-			else {
+			} else {
 				logger.info("test this line may not appear, so this else could be redundant");
 				offset += search_span;
 			}

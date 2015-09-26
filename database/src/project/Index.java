@@ -97,4 +97,18 @@ public class Index {
 			return false;
 		return true;
 	}
+
+	public void sortpairs(){
+		Pair<Integer,Integer> tmp=null;
+		for (int i = indexes.size(); i>0; i--) {
+			for (int j = 0; j < i-1 ; j++) {
+				if(indexes.get(j).getLeft()>indexes.get(j+1).getLeft()){
+					tmp=indexes.get(j+1);
+					indexes.set(j+1,indexes.get(j));
+					indexes.set(j,tmp);
+				}
+			}
+
+		}
+	}
 }

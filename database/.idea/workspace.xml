@@ -35,11 +35,12 @@
       <file leaf-file-name="IndexHelperImpl.java" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/project/IndexHelperImpl.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-9.703704">
-              <caret line="156" column="27" selection-start-line="156" selection-start-column="27" selection-end-line="156" selection-end-column="27" />
+            <state vertical-scroll-proportion="7.5185184">
+              <caret line="73" column="14" selection-start-line="73" selection-start-column="14" selection-end-line="73" selection-end-column="14" />
               <folding>
                 <element signature="e#572#573#0" expanded="true" />
                 <element signature="e#620#621#0" expanded="true" />
+                <element signature="method#bytesToIndex#0;class#IndexHelperImpl#0" expanded="false" />
                 <element signature="method#inttobytes#0;class#IndexHelperImpl#0" expanded="false" />
                 <element signature="method#bytestoint#0;class#IndexHelperImpl#0" expanded="false" />
               </folding>
@@ -60,8 +61,8 @@
       <file leaf-file-name="TestByteIndex.java" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/test/TestByteIndex.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.78957915">
-              <caret line="49" column="0" selection-start-line="49" selection-start-column="0" selection-end-line="49" selection-end-column="0" />
+            <state vertical-scroll-proportion="0.6993988">
+              <caret line="48" column="46" selection-start-line="48" selection-start-column="46" selection-end-line="48" selection-end-column="46" />
               <folding>
                 <element signature="imports" expanded="true" />
               </folding>
@@ -72,12 +73,13 @@
       <file leaf-file-name="Index.java" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/project/Index.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="60" column="18" selection-start-line="60" selection-start-column="18" selection-end-line="60" selection-end-column="18" />
+            <state vertical-scroll-proportion="-7.4814816">
+              <caret line="102" column="45" selection-start-line="102" selection-start-column="45" selection-end-line="102" selection-end-column="45" />
               <folding>
-                <element signature="e#1386#1387#0" expanded="true" />
-                <element signature="e#1404#1405#0" expanded="true" />
-                <element signature="method#hashCode#0;class#Index#0" expanded="false" />
+                <element signature="e#1032#1033#0" expanded="true" />
+                <element signature="e#1054#1055#0" expanded="true" />
+                <element signature="e#1445#1446#0" expanded="true" />
+                <element signature="e#1508#1509#0" expanded="true" />
                 <element signature="method#equals#0;class#Index#0" expanded="false" />
               </folding>
             </state>
@@ -595,10 +597,10 @@
         <state vertical-scroll-proportion="0.0">
           <caret line="38" column="18" selection-start-line="38" selection-start-column="18" selection-end-line="38" selection-end-column="18" />
           <folding>
-            <element signature="e#1087#1088#0" expanded="true" />
-            <element signature="e#1108#1109#0" expanded="true" />
-            <element signature="method#hashCode#0;class#Index#0" expanded="false" />
+            <element signature="e#1131#1132#0" expanded="true" />
+            <element signature="e#1148#1149#0" expanded="true" />
             <element signature="method#equals#0;class#Index#0" expanded="false" />
+            <element signature="method#sortpairs#0;class#Index#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -658,6 +660,7 @@
           <folding>
             <element signature="e#572#573#0" expanded="true" />
             <element signature="e#620#621#0" expanded="true" />
+            <element signature="method#bytesToIndex#0;class#IndexHelperImpl#0" expanded="false" />
             <element signature="method#inttobytes#0;class#IndexHelperImpl#0" expanded="false" />
             <element signature="method#bytestoint#0;class#IndexHelperImpl#0" expanded="false" />
           </folding>
@@ -669,10 +672,10 @@
         <state vertical-scroll-proportion="0.0">
           <caret line="93" column="5" selection-start-line="93" selection-start-column="5" selection-end-line="93" selection-end-column="5" />
           <folding>
-            <element signature="e#1087#1088#0" expanded="true" />
-            <element signature="e#1108#1109#0" expanded="true" />
-            <element signature="method#hashCode#0;class#Index#0" expanded="false" />
+            <element signature="e#1131#1132#0" expanded="true" />
+            <element signature="e#1148#1149#0" expanded="true" />
             <element signature="method#equals#0;class#Index#0" expanded="false" />
+            <element signature="method#sortpairs#0;class#Index#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -730,6 +733,7 @@
           <folding>
             <element signature="e#572#573#0" expanded="true" />
             <element signature="e#620#621#0" expanded="true" />
+            <element signature="method#bytesToIndex#0;class#IndexHelperImpl#0" expanded="false" />
             <element signature="method#inttobytes#0;class#IndexHelperImpl#0" expanded="false" />
             <element signature="method#bytestoint#0;class#IndexHelperImpl#0" expanded="false" />
           </folding>
@@ -759,10 +763,10 @@
         <state vertical-scroll-proportion="0.0">
           <caret line="5" column="14" selection-start-line="5" selection-start-column="14" selection-end-line="5" selection-end-column="14" />
           <folding>
-            <element signature="e#1087#1088#0" expanded="true" />
-            <element signature="e#1108#1109#0" expanded="true" />
-            <element signature="method#hashCode#0;class#Index#0" expanded="false" />
+            <element signature="e#1131#1132#0" expanded="true" />
+            <element signature="e#1148#1149#0" expanded="true" />
             <element signature="method#equals#0;class#Index#0" expanded="false" />
+            <element signature="method#sortpairs#0;class#Index#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -817,6 +821,7 @@
           <folding>
             <element signature="e#572#573#0" expanded="true" />
             <element signature="e#620#621#0" expanded="true" />
+            <element signature="method#bytesToIndex#0;class#IndexHelperImpl#0" expanded="false" />
             <element signature="method#inttobytes#0;class#IndexHelperImpl#0" expanded="false" />
             <element signature="method#bytestoint#0;class#IndexHelperImpl#0" expanded="false" />
           </folding>
@@ -846,10 +851,10 @@
         <state vertical-scroll-proportion="0.0">
           <caret line="5" column="14" selection-start-line="5" selection-start-column="14" selection-end-line="5" selection-end-column="14" />
           <folding>
-            <element signature="e#1087#1088#0" expanded="true" />
-            <element signature="e#1108#1109#0" expanded="true" />
-            <element signature="method#hashCode#0;class#Index#0" expanded="false" />
+            <element signature="e#1131#1132#0" expanded="true" />
+            <element signature="e#1148#1149#0" expanded="true" />
             <element signature="method#equals#0;class#Index#0" expanded="false" />
+            <element signature="method#sortpairs#0;class#Index#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -981,6 +986,34 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/src/project/Index.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-7.4814816">
+          <caret line="102" column="45" selection-start-line="102" selection-start-column="45" selection-end-line="102" selection-end-column="45" />
+          <folding>
+            <element signature="e#1032#1033#0" expanded="true" />
+            <element signature="e#1054#1055#0" expanded="true" />
+            <element signature="e#1445#1446#0" expanded="true" />
+            <element signature="e#1508#1509#0" expanded="true" />
+            <element signature="method#equals#0;class#Index#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/project/IndexHelperImpl.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="7.5185184">
+          <caret line="73" column="14" selection-start-line="73" selection-start-column="14" selection-end-line="73" selection-end-column="14" />
+          <folding>
+            <element signature="e#572#573#0" expanded="true" />
+            <element signature="e#620#621#0" expanded="true" />
+            <element signature="method#bytesToIndex#0;class#IndexHelperImpl#0" expanded="false" />
+            <element signature="method#inttobytes#0;class#IndexHelperImpl#0" expanded="false" />
+            <element signature="method#bytestoint#0;class#IndexHelperImpl#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/src/project/Pair.java">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -989,36 +1022,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/project/IndexHelperImpl.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-9.703704">
-          <caret line="156" column="27" selection-start-line="156" selection-start-column="27" selection-end-line="156" selection-end-column="27" />
-          <folding>
-            <element signature="e#572#573#0" expanded="true" />
-            <element signature="e#620#621#0" expanded="true" />
-            <element signature="method#inttobytes#0;class#IndexHelperImpl#0" expanded="false" />
-            <element signature="method#bytestoint#0;class#IndexHelperImpl#0" expanded="false" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/project/Index.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="60" column="18" selection-start-line="60" selection-start-column="18" selection-end-line="60" selection-end-column="18" />
-          <folding>
-            <element signature="e#1386#1387#0" expanded="true" />
-            <element signature="e#1404#1405#0" expanded="true" />
-            <element signature="method#hashCode#0;class#Index#0" expanded="false" />
-            <element signature="method#equals#0;class#Index#0" expanded="false" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/test/TestByteIndex.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.78957915">
-          <caret line="49" column="0" selection-start-line="49" selection-start-column="0" selection-end-line="49" selection-end-column="0" />
+        <state vertical-scroll-proportion="0.6993988">
+          <caret line="48" column="46" selection-start-line="48" selection-start-column="46" selection-end-line="48" selection-end-column="46" />
           <folding>
             <element signature="imports" expanded="true" />
           </folding>

@@ -15,9 +15,9 @@ public class TestByteIndex extends IndexHelperImpl {
         //initial an index
         Index index = new Index();
         index.setKey(256 * 256 * 256 * 127 + 256 * 256 * 127 + 256 * 127 + 127);//not max key; but max in form of byte[]
-        Pair<Integer, Integer> p1 = new Pair<Integer, Integer>(256,30);
+        Pair<Integer, Integer> p1 = new Pair<Integer, Integer>(256*256*256,50);
         Pair<Integer, Integer> p2 = new Pair<Integer, Integer>(256*256,40);
-        Pair<Integer, Integer> p3 = new Pair<Integer, Integer>(256*256*256,50);
+        Pair<Integer, Integer> p3 = new Pair<Integer, Integer>(256,50);
         List<Pair<Integer, Integer>> l = new ArrayList<Pair<Integer, Integer>>();
         l.add(p1);
         l.add(p2);
@@ -46,8 +46,7 @@ public class TestByteIndex extends IndexHelperImpl {
 
         //test byte to indexMap
         Map<Integer,Index> returnedMap=indexHelper.bytesToIndex(returnedbytes);
-        System.out.println("returned map: "+returnedMap);
-
+        System.out.println("returned map(pair list are sorted): "+returnedMap);
 
     }
 }
