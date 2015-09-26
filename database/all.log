@@ -1,14 +1,20 @@
-2015-09-25 21:07:37.661 [main] INFO  project.IndexHelperImpl - Create IndexHelper Object.
-2015-09-25 21:07:37.662 [main] INFO  project.IndexHelperImpl - calculate the size of output byte[] is:64
-2015-09-25 21:07:37.662 [main] INFO  project.IndexHelperImpl - converted #20 start_sign
-2015-09-25 21:07:37.662 [main] INFO  project.IndexHelperImpl - added reserved bytes
-2015-09-25 21:07:37.662 [main] INFO  project.IndexHelperImpl - converted #20 key
-2015-09-25 21:07:37.662 [main] INFO  project.IndexHelperImpl - converted #20's #1 pair
-2015-09-25 21:07:37.662 [main] INFO  project.IndexHelperImpl - converted #20's #2 pair
-2015-09-25 21:07:37.663 [main] INFO  project.IndexHelperImpl - converted #20's #3 pair
-2015-09-25 21:07:37.663 [main] INFO  project.IndexHelperImpl - converted #2139062143 start_sign
-2015-09-25 21:07:37.663 [main] INFO  project.IndexHelperImpl - added reserved bytes
-2015-09-25 21:07:37.663 [main] INFO  project.IndexHelperImpl - converted #2139062143 key
-2015-09-25 21:07:37.663 [main] INFO  project.IndexHelperImpl - converted #2139062143's #5 pair
-2015-09-25 21:07:37.663 [main] INFO  project.IndexHelperImpl - converted #2139062143's #6 pair
-2015-09-25 21:07:37.663 [main] INFO  project.IndexHelperImpl - converted #2139062143's #7 pair
+2015-09-26 12:17:52.541 [main] INFO  project.IndexHelperImpl - Create IndexHelper Object.
+2015-09-26 12:17:52.543 [main] INFO  project.IndexHelperImpl - calculate the size of output byte[] is:64
+2015-09-26 12:17:52.544 [main] INFO  project.IndexHelperImpl - converted #20 start_sign
+2015-09-26 12:17:52.544 [main] INFO  project.IndexHelperImpl - added reserved bytes
+2015-09-26 12:17:52.545 [main] INFO  project.IndexHelperImpl - converted #20 key
+2015-09-26 12:17:52.545 [main] INFO  project.IndexHelperImpl - converted #20's #1 pair
+2015-09-26 12:17:52.545 [main] INFO  project.IndexHelperImpl - converted #20's #2 pair
+2015-09-26 12:17:52.545 [main] INFO  project.IndexHelperImpl - converted #20's #3 pair
+2015-09-26 12:17:52.545 [main] INFO  project.IndexHelperImpl - converted #2139062143 start_sign
+2015-09-26 12:17:52.546 [main] INFO  project.IndexHelperImpl - added reserved bytes
+2015-09-26 12:17:52.546 [main] INFO  project.IndexHelperImpl - converted #2139062143 key
+2015-09-26 12:17:52.546 [main] INFO  project.IndexHelperImpl - converted #2139062143's #5 pair
+2015-09-26 12:17:52.546 [main] INFO  project.IndexHelperImpl - converted #2139062143's #6 pair
+2015-09-26 12:17:52.546 [main] INFO  project.IndexHelperImpl - converted #2139062143's #7 pair
+2015-09-26 12:17:52.547 [main] INFO  project.IndexHelperImpl - found a start sign at 0
+2015-09-26 12:17:52.548 [main] INFO  project.IndexHelperImpl - key # is: 20
+2015-09-26 12:17:52.548 [main] INFO  project.IndexHelperImpl - got pairs [Pair [left=256, right=30], Pair [left=65536, right=40], Pair [left=16777216, right=50]]
+2015-09-26 12:17:52.548 [main] INFO  project.IndexHelperImpl - found a start sign at 32
+2015-09-26 12:17:52.548 [main] INFO  project.IndexHelperImpl - key # is: 2139062143
+2015-09-26 12:17:52.548 [main] INFO  project.IndexHelperImpl - got pairs [Pair [left=256, right=30], Pair [left=65536, right=40], Pair [left=16777216, right=50]]

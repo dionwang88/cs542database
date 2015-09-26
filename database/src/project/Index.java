@@ -17,18 +17,25 @@ public class Index {
 	 * could be redundant
 	 */
 	private static final byte sign = -1;
-
+	/**
+	 * byte size of key
+	 */
 	private static final byte KEYSIZE = Integer.BYTES;
+	/**
+	 * keep three reserved bytes, so total minimum number of byte,
+	 * for a record, is (1+3+key size+pair size).
+	 * Now it is 16 bytes
+	 */
 	private static final byte RESERVED=3;
 	/**
 	 * key: the key of the data
 	 */
 	private int key;
-
 	/**
 	 * the pairs of (index, length) of the data blocks in the data file, ordered by index
 	 */
 	private List<Pair<Integer, Integer>> indexes;
+
 	private int index_num;
 
 	public Index(){}
@@ -51,7 +58,7 @@ public class Index {
 	public void setIndexes(List<Pair<Integer, Integer>> l) {
 		this.indexes = l;
 	}
-	public byte getSign() {
+	public static byte getSign() {
 		return sign;
 	}
 	

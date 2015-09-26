@@ -1,6 +1,8 @@
 package project;
 
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 
@@ -111,10 +113,70 @@ public class IndexHelperImpl implements IndexHelper {
 	 */
 	@Override
 	public Map<Integer, Index> bytesToIndex(byte[] metadata) {
-		return null;
+		Map<Integer,Index> returnmap= new Hashtable<>();
+		int offset=0;
+		int search_span=Index.getReservedSize()+1+Index.getKeySize();
+		int pair_size=Integer.BYTES*2;
+		while(offset<metadata.length){
+			//search header
+			if (metadata[offset]==-1){
+				logger.info("found a start sign at " + offset);
+
+				//get key
+				int key_in_record=0;
+				int key_start=offset+1+Index.getReservedSize();
+				key_in_record=bytestoint(metadata,key_start);
+				logger.info("key # is: " + key_in_record);
+
+				//get pairs
+				offset+=search_span;// skip the head to pairs
+				List<Pair<Integer, Integer>> pairlist = new ArrayList<>();
+				while(metadata[offset]>=0) {
+					int l,r;
+					//get L,R in the current pair
+					l=bytestoint(metadata,offset);
+					r=bytestoint(metadata,offset+Integer.BYTES);
+					Pair<Integer,Integer> pair=new Pair<>(l,r);
+					//get pair to list
+					pairlist.add(pair);
+					//go to next pair
+					offset+=pair_size;
+					if(offset>= metadata.length) break;
+				}
+				logger.info("got pairs " + pairlist.toString());
+
+				//make index
+				Index index=new Index();
+				index.setKey(key_in_record);
+				index.setIndexes(pairlist);
+
+				//add to map
+				returnmap.put(key_in_record,index);
+			}
+			else {
+				logger.info("test this line may not appear, so this else could be redundant");
+				offset += search_span;
+			}
+		}
+		return returnmap;
 	}
 
     private static byte[] inttobytes(int intnumb){
+		/**
+		 * convert integer into a 4 bytes byte array
+		 */
         return ByteBuffer.allocate(Integer.BYTES).putInt(intnumb).array();
     }
+	private static int bytestoint(byte[] b,int start_offset){
+		/**
+		 * This function will, given a byte array and start,
+		 * convert 4 bytes number into ag integer, from start_offset to start_offset+3
+		 */
+		int numb=0;
+		for (int i=start_offset;i<start_offset+Index.getKeySize();i++){
+			numb<<=Byte.SIZE;
+			numb+=b[i];
+		}
+		return numb;
+	}
 }

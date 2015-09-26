@@ -24,7 +24,7 @@ public class TestByteIndex extends IndexHelperImpl {
         l.add(p3);
         index.setIndexes(l);
 
-        //put index in map
+        //put an index in map
         Map<Integer,Index> map=new Hashtable<>();
         map.put(index.getKey(), index);
 
@@ -33,15 +33,20 @@ public class TestByteIndex extends IndexHelperImpl {
         index.setKey(20);
         index.setIndexes(l);
         map.put(index.getKey(), index);
+        System.out.println("input map: "+map);
 
-        //test print output byte[]
+        //test printing output byte[]
         IndexHelper indexHelper = new TestByteIndex();
-        byte[] bytecode =indexHelper.indexToBytes(map);
-        for (byte aBytecode : bytecode) {
+        byte[] returnedbytes =indexHelper.indexToBytes(map);
+        for (byte aBytecode : returnedbytes) {
             System.out.print(aBytecode + " ");
         }
         System.out.println();
-        System.out.println("length of metadata is: "+bytecode.length);
+        System.out.println("length of metadata is: "+returnedbytes.length);
+
+        //test byte to indexMap
+        Map<Integer,Index> returnedMap=indexHelper.bytesToIndex(returnedbytes);
+        System.out.println("returned map: "+returnedMap);
 
 
     }
