@@ -1,6 +1,7 @@
 package project;
 
 import java.util.Hashtable;
+import java.util.Map;
 
 /**
  * DBManager is to manager database, including manage storage data and the indexes
@@ -21,6 +22,17 @@ public class DBManager {
 	
 	// database is to be contain the data
 	private byte[] data;
+	/**
+	 * When load indexes from metadata, save indexes into indexBuffer object.
+	 */
+	private Map<Integer, Index> indexBuffer = null;
+
+	public Map<Integer, Index> getIndexBuffer() {
+		return indexBuffer;
+	}
+	public void setIndexBuffer(Map<Integer, Index> indexBuffer) {
+		this.indexBuffer = indexBuffer;
+	}
 	 
 	/**
 	 * indexes is to be contain the indexes in the metadata
@@ -43,7 +55,13 @@ public class DBManager {
 		
 		return dbManager;
 	}
-
+	
+	/**
+	 * Before save the data, should validate the size of the data, should not exceed the size of data file, and should not
+	 * exceed the free space of data file.
+	 * @param key
+	 * @param data
+	 */
 	public void Put(int key, byte[] data) {
 		/**
 		 * In order to avoid during saving period rebooting, we save the data file first and then save the metadata.
@@ -70,9 +88,10 @@ public class DBManager {
 
 	}
 
-	public void readDatabase() {
+	public void loadDatabase() {
 		/**
 		 * Read the database and upload the data into memory
+		 * When finish loading data, should set the DATA_USED variable
 		 */
 		
 	}
