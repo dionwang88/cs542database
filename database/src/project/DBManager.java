@@ -1,5 +1,6 @@
 package project;
 
+import java.io.IOException;
 import java.util.Hashtable;
 import java.util.Map;
 
@@ -9,6 +10,10 @@ import java.util.Map;
  *
  */
 public class DBManager {
+	
+	private String DBDATA_NAME = "cs542.db";
+	private String METADATA_NAME = "cs542.meta";
+	
 	/**
 	 * The used index size in metadata file.
 	 */
@@ -42,6 +47,7 @@ public class DBManager {
 	private Hashtable<Integer, Index> indexes;
 	
 	protected DBManager(){
+		this.loadDatabase();
 	}
 	
 	/**
@@ -90,10 +96,16 @@ public class DBManager {
 
 	public void loadDatabase() {
 		/**
-		 * Read the database and upload the data into memory
+		 * Read the database and upload the data and indexes into memory
 		 * When finish loading data, should set the DATA_USED variable
 		 */
-		
+		Storage storage = new StorageImpl();
+		try {
+			this.setData(storage.readData(DBDATA_NAME));
+//			this.setIndexBuffer(indexBuffer);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	public byte[] getData() {
