@@ -106,7 +106,6 @@ public class IndexHelperImpl implements IndexHelper {
 	public Index getIndex(List<Pair<Integer,Integer>> pairs_list) {
 		Index i = new Index();
 		i.setIndexes(pairs_list);
-		i.setIndex_num(pairs_list.size());
 		return i;
 	}
 
