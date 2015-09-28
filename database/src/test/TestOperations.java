@@ -1,4 +1,4 @@
-package database;
+package test;
 import project.DbLocker;
 public class TestOperations {
 
