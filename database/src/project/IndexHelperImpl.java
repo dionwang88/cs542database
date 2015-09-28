@@ -13,8 +13,6 @@ import java.util.Map.Entry;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.Logger;
 
-import javax.lang.model.type.IntersectionType;
-
 
 /**
  * This class provides the methods of how to manipulate the index
