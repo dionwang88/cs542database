@@ -1,8 +1,11 @@
 package project;
 
-import java.io.IOException;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Map;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.core.Logger;
 
 /**
  * DBManager is to manager database, including manage storage data and the indexes
@@ -11,43 +14,32 @@ import java.util.Map;
  */
 public class DBManager {
 	
-	private String DBDATA_NAME = "cs542.db";
-	private String METADATA_NAME = "cs542.meta";
-	
-	/**
-	 * The used index size in metadata file.
-	 */
-	private int INDEX_USED = 0;
-	/**
-	 * The used data size in data file.
-	 */
-	private int DATA_USED = 0;
+	Logger logger = (Logger) LogManager.getLogger();
 	
 	private static DBManager dbManager = null;
 	
 	// database is to be contain the data
 	private byte[] data;
-	/**
-	 * When load indexes from metadata, save indexes into indexBuffer object.
-	 */
-	private Map<Integer, Index> indexBuffer = null;
-
-	public Map<Integer, Index> getIndexBuffer() {
-		return indexBuffer;
-	}
-	public void setIndexBuffer(Map<Integer, Index> indexBuffer) {
-		this.indexBuffer = indexBuffer;
-	}
-	 
+	
+	private static final String DBDATA_NAME = "data.db";
+	
+	private static final String DBMETA_NAME = "data.meta"; 
 	/**
 	 * indexes is to be contain the indexes in the metadata
 	 * Key is the index key
 	 * List is the index of that key
 	 */
-	private Hashtable<Integer, Index> indexes;
+	private Map<Integer, Index> indexes;
 	
+	/**
+	 * Locker controls the concurrency of the database.
+	 */
+	private DbLocker Locker;
+	
+	StorageImpl DBstorage;
+	
+	IndexHelperImpl DBHelper;
 	protected DBManager(){
-		this.loadDatabase();
 	}
 	
 	/**
@@ -57,17 +49,17 @@ public class DBManager {
 	public static DBManager getInstance(){
 		if (dbManager == null){
 			dbManager = new DBManager();
+			dbManager.DBstorage = new StorageImpl();
+			dbManager.DBHelper = new IndexHelperImpl();
+			dbManager.Locker = new DbLocker();
+			dbManager.readDatabase();
 		}
 		
 		return dbManager;
 	}
 	
-	/**
-	 * Before save the data, should validate the size of the data, should not exceed the size of data file, and should not
-	 * exceed the free space of data file.
-	 * @param key
-	 * @param data
-	 */
+	
+
 	public void Put(int key, byte[] data) {
 		/**
 		 * In order to avoid during saving period rebooting, we save the data file first and then save the metadata.
@@ -82,28 +74,117 @@ public class DBManager {
 		 * Params:  key -- data key
 		 * 			data -- data information
 		 *  
-		 */
-		
+		 */ 
+		System.out.println("Attempting to put key: " + key + " data : " + data + "to database");  
+		if (indexes.containsKey(key)){
+				System.out.println("Violation of Primary keys; Key already"
+						+ "exists in database."); 
+			}else{
+				// Getting the index list of free space in data array;
+				List<Pair<Integer,Integer>> index_pairs = DBHelper.findFreeSpaceIndex(data.length);
+				DBHelper.splitDataBasedOnIndex(data, index_pairs);
+				// Writing the database onto the disk
+				try{
+					DBstorage.writeData(DBDATA_NAME, data);
+					System.out.println("Data wrote to " + DBDATA_NAME);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+				// Updating the metadata buffer in memory
+				indexes.put(key, DBHelper.getIndex(index_pairs));
+				System.out.println("Metadata buffer updated");
+				// Writing data to metadata on disk
+				try{
+					DBstorage.writeMetaData(DBMETA_NAME, DBHelper.indexToBytes(indexes));
+					System.out.println("Metadata updated on disk");
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
 	}
 
 	public byte[] Get(int key) {
-		return null;
+		/**
+		 * Returns the data that is mapped to the given key; If no
+		 * such key exists in database, return null
+		 * 
+		 * Querying Process:
+		 * 		  1. There can be multiple threads reading the database. No threads
+		 * 			 can write the database when there is at least one thread reading.
+		 *  
+		 *  Params:  key -- data key
+		 * 
+		 */
+		byte[] databuffer = null;
+		System.out.println("Attempting to get data mapped to key :" + key);
+		try {
+			Locker.readLock();
+		} catch (Exception e) {
+			System.out.println("Interrupted while reading data");
+			e.printStackTrace();
+			return null;
+		}
+		if (indexes.containsKey(key)) {
+			databuffer = DBHelper.indexToBytes(indexes);
+		} else {
+			System.out.println("No data with such key exists in database.");
+		}
+		Locker.readUnlock();
+		return databuffer;	
 	}
 
 	public void Remove(int key) {
-
+		/**
+		 * Removes the mapped key - data relation in the database;
+		 * If no such key exists, this attempt will be recorded to log.
+		 * 
+		 * Params:  key -- data key
+		 */
+		System.out.println("Attempting to remove the data with key :" + key);
+		try {
+			Locker.writeLock();
+		} catch (Exception e) {
+			System.out.println("Waiting for too long. Removing failed");
+			e.printStackTrace();
+			return;
+		}
+		if (!indexes.containsKey(key)) {
+			System.out.println("No data with such key exists in database.Failed to remove.");
+		} else {
+			// Removing the key in the metadata buffer and update the metadata file
+			indexes.remove(key);
+			System.out.println("Metadata buffer updated");
+			// Writing metadata on disk
+			try{
+				DBstorage.writeMetaData(DBMETA_NAME, DBHelper.indexToBytes(indexes));
+				System.out.println("Metadata updated on disk");
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			// There is no need to update the data. Since we uses
+			// the metadata as an index, we know the data space related
+			// to that key is free to use in later operations.
+		}
+		Locker.writeUnlock();
 	}
 
-	public void loadDatabase() {
+	public void readDatabase() {
 		/**
-		 * Read the database and upload the data and indexes into memory
-		 * When finish loading data, should set the DATA_USED variable
+		 * Read the database and upload the data into memory
 		 */
-		Storage storage = new StorageImpl();
-		try {
-			this.setData(storage.readData(DBDATA_NAME));
-//			this.setIndexBuffer(indexBuffer);
-		} catch (IOException e) {
+		byte[] metadata;
+		try{
+			data = DBstorage.readData(DBDATA_NAME);
+			System.out.println("Data read in memory");
+		} catch (Exception e) {
+			e.printStackTrace();
+			System.out.println("Failed to read Data into memory");
+		}
+		try{
+			metadata = DBstorage.readMetaData(DBMETA_NAME);
+			indexes = DBHelper.bytesToIndex(metadata);
+			System.out.println("Metadata read in Memory");
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
@@ -116,28 +197,12 @@ public class DBManager {
 		this.data = database;
 	}
 
-	public Hashtable<Integer, Index> getIndexes() {
+	public Map<Integer, Index> getIndexBuffer() {
 		return indexes;
 	}
 
-	public void setIndexes(Hashtable<Integer, Index> indexes) {
+	public void setIndexes(Map<Integer, Index> indexes) {
 		this.indexes = indexes;
-	}
-
-	public int getINDEX_USED() {
-		return INDEX_USED;
-	}
-
-	public void setINDEX_USED(int iNDEX_USED) {
-		INDEX_USED = iNDEX_USED;
-	}
-
-	public int getDATA_USED() {
-		return DATA_USED;
-	}
-
-	public void setDATA_USED(int dATA_USED) {
-		DATA_USED = dATA_USED;
 	}
 	
 }
