@@ -47,7 +47,7 @@ public class IndexHelperImpl implements IndexHelper {
 	 * In pair object, left is start index, right is the size
 	 */
 	@Override
-	public List<Pair<Integer,Integer>> findFreeSpaceIndex(int size) {	
+	public List<Pair<Integer,Integer>> findFreeSpaceIndex(int size) {		
 		// Temp variable to record the left size of the data
 		int left_size = size;
 		List<Pair<Integer, Integer>> list_freeSpace = new ArrayList<Pair<Integer, Integer>>();
@@ -56,29 +56,36 @@ public class IndexHelperImpl implements IndexHelper {
 		if(index_list.size() == 0){ //if the index has no pair index
 			Pair<Integer,Integer> p = new Pair<Integer,Integer>(0, size); 
 			list_freeSpace.add(p);
-		}else if(index_list.size() == 2){// if the index list has only one pair index
+		}else if(index_list.size() == 2){// if the index list has only one pair index,new index start from last end + 1
 			Pair<Integer,Integer> p = new Pair<Integer,Integer>(index_list.get(1)+1, size); 
 			list_freeSpace.add(p);
 		}else{ // if the index list has more than one pair index
 			int i = 2;
-			int second = index_list.get(1) + 1; // the next position to the end index of first pair index 
+			
 			while( i < index_list.size()){
-				int third = index_list.get(i);
+				int pre_end = index_list.get(i-1);
+				int next_start = index_list.get(i); // the next position to the end index of first pair index 
 				// the length of free space
-				int length = third - second;
-				if(length != 0){// If between two pairs have free space
+				int length = next_start - pre_end;
+				if(length != 1){// If between two pairs have free space
 					if(length >= left_size){// if free space can contain the data
-						Pair<Integer,Integer> p = new Pair<Integer,Integer>(second, left_size); 
+						// new index starts from pre_end + 1, size is left_size
+						Pair<Integer,Integer> p = new Pair<Integer,Integer>(pre_end+1, left_size); 
 						list_freeSpace.add(p);
 						return list_freeSpace;
 					}else{// if the free space cannot contain the data, then will to find next free space
-						Pair<Integer,Integer> p = new Pair<Integer,Integer>(second, length); 
+						Pair<Integer,Integer> p = new Pair<Integer,Integer>(pre_end+1, length); 
 						list_freeSpace.add(p);
 						left_size = left_size - length;
 					}
 				}
 				i = i + 2; // add 2 to point the next index start point
-				second = index_list.get(i - 1) + 1;
+			}
+			if(left_size > 0){ //There is no free space between previous pairs
+				// The start of the new pair is the (end+1) of last pair
+				int pre_end = index_list.get(i-1);
+				Pair<Integer,Integer> p = new Pair<Integer,Integer>(pre_end+1, left_size); 
+				list_freeSpace.add(p);
 			}
 		}
 		
@@ -100,21 +107,13 @@ public class IndexHelperImpl implements IndexHelper {
 			for(Pair<Integer, Integer> pair : lst_p){
 				//transform the index pair to start, end
 				index_list.add(pair.getLeft());
-				index_list.add(pair.getLeft()+pair.getRight());
+				index_list.add(pair.getLeft()+pair.getRight()-1);
 			}
 		}
 		// Sort the index list
 		Collections.sort(index_list);
 		return index_list;
 	}
-
-	
-	public Index getIndex(List<Pair<Integer,Integer>> pairs_list) {
-		Index i = new Index();
-		i.setIndexes(pairs_list);
-		return i;
-	}
-
 
 	@Override
 	public void splitDataBasedOnIndex(byte[] data_to_save, List<Pair<Integer,Integer>> indexes) {
@@ -138,6 +137,14 @@ public class IndexHelperImpl implements IndexHelper {
 				index_in_data_to_save = index_in_data_to_save + 1;
 			}
 		}
+	}
+
+	
+	public Index getIndex(List<Pair<Integer,Integer>> pairs_list, int key) {
+		Index i = new Index();
+		i.setKey(key);
+		i.setIndexes(pairs_list);
+		return i;
 	}
 	
 	@Override

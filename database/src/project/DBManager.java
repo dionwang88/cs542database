@@ -35,12 +35,10 @@ public class DBManager {
 	 * Locker controls the concurrency of the database.
 	 */
 	private DbLocker Locker;
+	private Storage DBstorage;
+	private IndexHelper indexHelper;
 	
-	StorageImpl DBstorage;
-	
-	private IndexHelper DBHelper;
-	protected DBManager(){
-	}
+	private DBManager(){}
 	
 	/**
 	 * Singleton Object
@@ -50,7 +48,7 @@ public class DBManager {
 		if (dbManager == null){
 			dbManager = new DBManager();
 			dbManager.DBstorage = new StorageImpl();
-			dbManager.DBHelper = new IndexHelperImpl();
+			dbManager.indexHelper = new IndexHelperImpl();
 			dbManager.Locker = new DbLocker();
 			dbManager.readDatabase();
 		}
@@ -58,8 +56,6 @@ public class DBManager {
 		return dbManager;
 	}
 	
-
-
 	public void Put(int key, byte[] data) {
 		/**
 		 * In order to avoid during saving period rebooting, we save the data file first and then save the metadata.
@@ -82,20 +78,28 @@ public class DBManager {
 			if (indexes.containsKey(key)){
 					System.out.println("Violation of Primary keys; Key already"
 							+ "exists in database.");
-				}else{
+				}
+			else{
 					// Getting the index list of free space in data array;
-					List<Pair<Integer,Integer>> index_pairs = DBHelper.findFreeSpaceIndex(data.length);
-					DBHelper.splitDataBasedOnIndex(data, index_pairs);
-					// Writing the database onto the disk
-					DBstorage.writeData(DBDATA_NAME, data);
-					System.out.println("Data wrote to " + DBDATA_NAME);
+					List<Pair<Integer,Integer>> index_pairs = indexHelper.findFreeSpaceIndex(data.length);
+					indexHelper.splitDataBasedOnIndex(data, index_pairs);
 					
-					DBstorage.writeMetaData(DBMETA_NAME, DBHelper.indexToBytes(indexes));
-					System.out.println("Metadata updated on disk");
-					
-					indexes.put(key, DBHelper.getIndex(index_pairs));
+					indexes.put(key, indexHelper.getIndex(index_pairs,key));
 					System.out.println("Metadata buffer updated");
 					
+					// Writing the database onto the disk
+					
+					DBstorage.writeData(DBDATA_NAME, this.data);
+					System.out.println("Data wrote to " + DBDATA_NAME);
+					System.out.println("*************************");
+					System.out.println(indexes);
+					
+					byte[] metadata = indexHelper.indexToBytes(indexes);
+					
+					DBstorage.writeMetaData(DBMETA_NAME, metadata);
+					System.out.println("Metadata updated on disk");
+					System.out.println("*************************");
+					System.out.println(indexHelper.indexToBytes(indexes).length);
 				}
 		} catch (Exception e1) {
 			e1.printStackTrace();
@@ -121,7 +125,12 @@ public class DBManager {
 		try {
 			Locker.readLock();
 			if (indexes.containsKey(key)) {
-				databuffer = DBHelper.indexToBytes(indexes);
+				System.out.println();
+				System.out.println("&&&&&&&&&&&&&&&&&&&&&&");
+				System.out.println(indexes);
+				databuffer = indexHelper.indexToBytes(indexes);
+				System.out.println(databuffer);
+				System.out.println();
 			} else {
 				System.out.println("No data with such key exists in database.");
 			}
@@ -152,7 +161,7 @@ public class DBManager {
 				indexes.remove(key);
 				System.out.println("Metadata buffer updated");
 				
-				DBstorage.writeMetaData(DBMETA_NAME, DBHelper.indexToBytes(indexes));
+				DBstorage.writeMetaData(DBMETA_NAME, indexHelper.indexToBytes(indexes));
 				System.out.println("Metadata updated on disk");
 			}
 		} catch (Exception e1) {
@@ -177,7 +186,7 @@ public class DBManager {
 		}
 		try{
 			metadata = DBstorage.readMetaData(DBMETA_NAME);
-			indexes = DBHelper.bytesToIndex(metadata);
+			indexes = indexHelper.bytesToIndex(metadata);
 			System.out.println("Metadata read in Memory");
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -194,10 +203,6 @@ public class DBManager {
 
 	public Map<Integer, Index> getIndexBuffer() {
 		return indexes;
-	}
-
-	public void setIndexes(Map<Integer, Index> indexes) {
-		this.indexes = indexes;
 	}
 
 }
