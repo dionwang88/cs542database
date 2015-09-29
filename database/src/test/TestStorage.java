@@ -8,12 +8,14 @@ import project.StorageImpl;
 public class TestStorage {
 	public static void testWriteData(){
 		byte[] data = new byte[Storage.DATA_SIZE];
+		byte[] meta = new byte[Storage.METADATA_SIZE];
 		for(int i=0;i<data.length;i++){
 			data[i] = 111;
 		}
 		Storage storage = new StorageImpl();
 		try {
 			storage.writeData("data.db", data);
+			storage.writeMetaData("data.meta", meta);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -30,6 +32,6 @@ public class TestStorage {
 	}
 	
 	public static void main(String[] args){
-		TestStorage.testReadData();
+		TestStorage.testWriteData();
 	}
 }

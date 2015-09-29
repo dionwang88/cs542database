@@ -47,7 +47,7 @@ public class IndexHelperImpl implements IndexHelper {
 	 * In pair object, left is start index, right is the size
 	 */
 	@Override
-	public List<Pair<Integer,Integer>> findFreeSpaceIndex(int size) {	
+	public List<Pair<Integer,Integer>> findFreeSpaceIndex(int size) {		
 		// Temp variable to record the left size of the data
 		int left_size = size;
 		List<Pair<Integer, Integer>> list_freeSpace = new ArrayList<Pair<Integer, Integer>>();
@@ -108,14 +108,6 @@ public class IndexHelperImpl implements IndexHelper {
 		return index_list;
 	}
 
-	
-	public Index getIndex(List<Pair<Integer,Integer>> pairs_list) {
-		Index i = new Index();
-		i.setIndexes(pairs_list);
-		return i;
-	}
-
-
 	@Override
 	public void splitDataBasedOnIndex(byte[] data_to_save, List<Pair<Integer,Integer>> indexes) {
 		/**
@@ -138,6 +130,14 @@ public class IndexHelperImpl implements IndexHelper {
 				index_in_data_to_save = index_in_data_to_save + 1;
 			}
 		}
+	}
+
+	
+	public Index getIndex(List<Pair<Integer,Integer>> pairs_list, int key) {
+		Index i = new Index();
+		i.setKey(key);
+		i.setIndexes(pairs_list);
+		return i;
 	}
 	
 	@Override

@@ -53,7 +53,7 @@ public interface IndexHelper {
 	 */
 	public Map<Integer, Index> getIndexesBuffer();
 	
-	public Index getIndex(List<Pair<Integer,Integer>> pairs_list);
+	public Index getIndex(List<Pair<Integer,Integer>> pairs_list, int key);
 	
 	/**
 	 * Add a new index into indexes buffer
