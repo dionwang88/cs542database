@@ -36,7 +36,7 @@ public class Index {
 	 */
 	private List<Pair<Integer, Integer>> indexes;
 
-	private int index_num;
+
 
 	public Index(){}
 	

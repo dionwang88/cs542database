@@ -1,6 +1,7 @@
 package project;
 
 
+
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Hashtable;
@@ -12,8 +13,6 @@ import java.util.Map.Entry;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.Logger;
-
-import javax.lang.model.type.IntersectionType;
 
 
 /**
@@ -109,6 +108,14 @@ public class IndexHelperImpl implements IndexHelper {
 		return index_list;
 	}
 
+	
+	public Index getIndex(List<Pair<Integer,Integer>> pairs_list) {
+		Index i = new Index();
+		i.setIndexes(pairs_list);
+		return i;
+	}
+
+
 	@Override
 	public void splitDataBasedOnIndex(byte[] data_to_save, List<Pair<Integer,Integer>> indexes) {
 		/**
@@ -135,6 +142,7 @@ public class IndexHelperImpl implements IndexHelper {
 	
 	@Override
 	public byte[] indexToBytes(Map<Integer, Index> indexes) {
+
 
 		// calculate byte array size firstly.
 		int indexpairnumb=0;
@@ -184,6 +192,7 @@ public class IndexHelperImpl implements IndexHelper {
 
 		}
 		return outbyte;
+
 	}
 	
 	/**
@@ -194,6 +203,7 @@ public class IndexHelperImpl implements IndexHelper {
 	 */
 	@Override
 	public Map<Integer, Index> bytesToIndex(byte[] metadata) {
+
 		Map<Integer,Index> returnmap= new Hashtable<>();
 		int offset=0;
 		int search_span=Index.getReservedSize()+1+Index.getKeySize();
@@ -273,7 +283,6 @@ public class IndexHelperImpl implements IndexHelper {
 
 
 	public void updateIndex(Index index) {
-		
 
 	}
 	@Override
