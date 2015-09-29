@@ -56,8 +56,6 @@ public class DBManager {
 		return dbManager;
 	}
 	
-
-
 	public void Put(int key, byte[] data) {
 		/**
 		 * In order to avoid during saving period rebooting, we save the data file first and then save the metadata.

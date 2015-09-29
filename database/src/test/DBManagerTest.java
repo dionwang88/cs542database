@@ -9,11 +9,12 @@ public class DBManagerTest {
 		for(int i=0;i<data.length;i++){
 			data[i] = (byte) (i%127);
 		}
-		int key = 30;
-		DBManager dbmanager = DBManager.getInstance();
-		dbmanager.Put(key, data);
-		
-		byte[] mydata = dbmanager.Get(key);
-		System.out.println(mydata.length);
+		for (int key = 0;key<10;key++){
+			DBManager dbmanager = DBManager.getInstance();
+			dbmanager.Put(key, data);
+			
+			byte[] mydata = dbmanager.Get(key);
+			System.out.println(mydata.length);
+		}
 	}
 }
