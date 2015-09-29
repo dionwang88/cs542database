@@ -5,7 +5,7 @@ import project.Storage;
 
 public class DBManagerTest {
 	public static void main(String[] args){
-		byte[] data = new byte[10];
+		byte[] data = new byte[1];
 		for(int i=0;i<data.length;i++){
 			data[i] = (byte) (i%127);
 		}

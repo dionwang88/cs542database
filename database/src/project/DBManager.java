@@ -98,10 +98,6 @@ public class DBManager {
 					
 					byte[] metadata = indexHelper.indexToBytes(indexes);
 					
-					for(int i=0;i<metadata.length;i++){
-						System.out.println(metadata[i]);
-					}
-					
 					DBstorage.writeMetaData(DBMETA_NAME, metadata);
 					System.out.println("Metadata updated on disk");
 					System.out.println("*************************");
