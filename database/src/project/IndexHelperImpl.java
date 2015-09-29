@@ -287,7 +287,6 @@ public class IndexHelperImpl implements IndexHelper {
 	}
 	@Override
 	public Map<Integer, Index> getIndexesBuffer() {
-		// TODO Auto-generated method stub
 		return null;
 	}
 }
