@@ -1,6 +1,5 @@
 package project;
 
-import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 
@@ -15,7 +14,7 @@ import org.apache.logging.log4j.core.Logger;
 public class DBManager {
 	
 	Logger logger = (Logger) LogManager.getLogger();
-	
+
 	private static DBManager dbManager = null;
 	
 	// database is to be contain the data
@@ -23,12 +22,13 @@ public class DBManager {
 	
 	private static final String DBDATA_NAME = "data.db";
 	
-	private static final String DBMETA_NAME = "data.meta"; 
+	private static final String DBMETA_NAME = "data.meta";
 	/**
 	 * indexes is to be contain the indexes in the metadata
 	 * Key is the index key
 	 * List is the index of that key
 	 */
+
 	private Map<Integer, Index> indexes;
 	
 	/**
@@ -38,7 +38,7 @@ public class DBManager {
 	
 	StorageImpl DBstorage;
 	
-	IndexHelperImpl DBHelper;
+	private IndexHelper DBHelper;
 	protected DBManager(){
 	}
 	
@@ -58,7 +58,7 @@ public class DBManager {
 		return dbManager;
 	}
 	
-	
+
 
 	public void Put(int key, byte[] data) {
 		/**
@@ -73,34 +73,35 @@ public class DBManager {
 		 * 
 		 * Params:  key -- data key
 		 * 			data -- data information
-		 *  
+		 *
 		 */ 
-		System.out.println("Attempting to put key: " + key + " data : " + data + "to database");  
-		if (indexes.containsKey(key)){
-				System.out.println("Violation of Primary keys; Key already"
-						+ "exists in database."); 
-			}else{
-				// Getting the index list of free space in data array;
-				List<Pair<Integer,Integer>> index_pairs = DBHelper.findFreeSpaceIndex(data.length);
-				DBHelper.splitDataBasedOnIndex(data, index_pairs);
-				// Writing the database onto the disk
-				try{
+		try {
+			Locker.writeLock();
+			
+			System.out.println("Attempting to put key: " + key + " data : " + data + "to database");  
+			if (indexes.containsKey(key)){
+					System.out.println("Violation of Primary keys; Key already"
+							+ "exists in database.");
+				}else{
+					// Getting the index list of free space in data array;
+					List<Pair<Integer,Integer>> index_pairs = DBHelper.findFreeSpaceIndex(data.length);
+					DBHelper.splitDataBasedOnIndex(data, index_pairs);
+					// Writing the database onto the disk
 					DBstorage.writeData(DBDATA_NAME, data);
 					System.out.println("Data wrote to " + DBDATA_NAME);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-				// Updating the metadata buffer in memory
-				indexes.put(key, DBHelper.getIndex(index_pairs));
-				System.out.println("Metadata buffer updated");
-				// Writing data to metadata on disk
-				try{
+					
 					DBstorage.writeMetaData(DBMETA_NAME, DBHelper.indexToBytes(indexes));
 					System.out.println("Metadata updated on disk");
-				} catch (Exception e) {
-					e.printStackTrace();
+					
+					indexes.put(key, DBHelper.getIndex(index_pairs));
+					System.out.println("Metadata buffer updated");
+					
 				}
-			}
+		} catch (Exception e1) {
+			e1.printStackTrace();
+		} finally{
+			Locker.writeUnlock();
+		}
 	}
 
 	public byte[] Get(int key) {
@@ -119,17 +120,18 @@ public class DBManager {
 		System.out.println("Attempting to get data mapped to key :" + key);
 		try {
 			Locker.readLock();
+			if (indexes.containsKey(key)) {
+				databuffer = DBHelper.indexToBytes(indexes);
+			} else {
+				System.out.println("No data with such key exists in database.");
+			}
 		} catch (Exception e) {
 			System.out.println("Interrupted while reading data");
 			e.printStackTrace();
-			return null;
+		} finally{
+			Locker.readUnlock();
 		}
-		if (indexes.containsKey(key)) {
-			databuffer = DBHelper.indexToBytes(indexes);
-		} else {
-			System.out.println("No data with such key exists in database.");
-		}
-		Locker.readUnlock();
+
 		return databuffer;	
 	}
 
@@ -143,29 +145,22 @@ public class DBManager {
 		System.out.println("Attempting to remove the data with key :" + key);
 		try {
 			Locker.writeLock();
-		} catch (Exception e) {
-			System.out.println("Waiting for too long. Removing failed");
-			e.printStackTrace();
-			return;
-		}
-		if (!indexes.containsKey(key)) {
-			System.out.println("No data with such key exists in database.Failed to remove.");
-		} else {
-			// Removing the key in the metadata buffer and update the metadata file
-			indexes.remove(key);
-			System.out.println("Metadata buffer updated");
-			// Writing metadata on disk
-			try{
+			if (!indexes.containsKey(key)) {
+				System.out.println("No data with such key exists in database.Failed to remove.");
+			} else {
+				// Removing the key in the metadata buffer and update the metadata file
+				indexes.remove(key);
+				System.out.println("Metadata buffer updated");
+				
 				DBstorage.writeMetaData(DBMETA_NAME, DBHelper.indexToBytes(indexes));
 				System.out.println("Metadata updated on disk");
-			} catch (Exception e) {
-				e.printStackTrace();
 			}
-			// There is no need to update the data. Since we uses
-			// the metadata as an index, we know the data space related
-			// to that key is free to use in later operations.
+		} catch (Exception e1) {
+			e1.printStackTrace();
+		} finally {
+			Locker.writeUnlock();
 		}
-		Locker.writeUnlock();
+		
 	}
 
 	public void readDatabase() {
@@ -204,5 +199,5 @@ public class DBManager {
 	public void setIndexes(Map<Integer, Index> indexes) {
 		this.indexes = indexes;
 	}
-	
+
 }

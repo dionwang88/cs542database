@@ -1,0 +1,26 @@
+data structure:
+  
+  indexMap: the memory form of metadata
+    
+    1. key of index(int)
+    2. index class:   
+      1. start sign, which is -1 
+      2. key value(int) 
+      3. # index pairs in index pair list 
+      4. index pair list:
+        
+        pair<offset,length>: 8 bytes for each pair
+          
+          1.offset: record index in file 
+          2.length: how long the record is. 
+
+  byte: file storage from of metadata
+    minimium size: 16byte
+      start sign 1 byte
+      key value 4 byte
+      pair number in the index pair list 3 bytes
+      Each pair is 8 bytes
+    size of one record = (8 + 8 * # of pairs) bytes 
+
+
+indextobytes
