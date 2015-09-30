@@ -174,12 +174,12 @@ DbLocker will provide DBManger a right to lock the file, thus make sure concurre
 ![alt text](https://github.com/dionwang88/cs542database/blob/master/Fragment.jpg "Index Mapping")
 
 ###(1) public List<Integer> getSortedIndexList()
-Get the Index Buffer from DBManager 
-Loop the indexes in the IndexBuffer Map to get the index pairs list:
-		Loop the index pairs list:
-			Get the start-length index pair and change it to start-end index pair
-			add the start-end index into a start-end list
-		Sort the start-end list and return the list in order to find free space method
+Get the Index Buffer from DBManager  <br />
+Loop the indexes in the IndexBuffer Map to get the index pairs list: <br />
+		Loop the index pairs list: <br />
+			Get the start-length index pair and change it to start-end index pair <br />
+			add the start-end index into a start-end list <br />
+		Sort the start-end list and return the list in order to find free space method <br />
 
 ###(2) public List<Pair<Integer,Integer>> findFreeSpaceIndex(int size)
 Loop the start-end list:
