@@ -74,7 +74,7 @@ public class IndexHelperImpl implements IndexHelper {
 	 * 		Get the free length = end - start
 	 * 		copy the same length in saving data to the (start, end) in the database
 	 * 		next loop
-	 * 		 
+	 * 
 	 */
 	@Override
 	public List<Pair<Integer,Integer>> findFreeSpaceIndex(int size) {		
@@ -167,13 +167,19 @@ public class IndexHelperImpl implements IndexHelper {
 				index_in_data_to_save = index_in_data_to_save + 1;
 			}
 		}
+		dbmanager.setData(db_data);
 	}
 
 	
 	public Index getIndex(List<Pair<Integer,Integer>> pairs_list, int key) {
+		int space_used = Index.getReservedSize()+1+Index.getKeySize();
 		Index i = new Index();
 		i.setKey(key);
 		i.setIndexes(pairs_list);
+		for (Pair<Integer, Integer> p : pairs_list) {
+			space_used+=2*Integer.BYTES;
+		}
+		this.dbmanager.set_INDEXES_USED(space_used);
 		return i;
 	}
 	
@@ -243,6 +249,8 @@ public class IndexHelperImpl implements IndexHelper {
 
 		Map<Integer,Index> returnmap= new Hashtable<>();
 		int offset=0;
+		int index_used = 0;
+		int data_used = 0;
 		int search_span=Index.getReservedSize()+1+Index.getKeySize();
 		int pair_size=Integer.BYTES*2;
 		while(offset<metadata.length){
@@ -258,6 +266,7 @@ public class IndexHelperImpl implements IndexHelper {
 
 				//get pairs
 				offset+=search_span;// skip the head to pairs
+				index_used+=search_span;
 				List<Pair<Integer, Integer>> pairlist = new ArrayList<>();
 				while(metadata[offset]>=0) {
 					int l,r;
@@ -269,6 +278,8 @@ public class IndexHelperImpl implements IndexHelper {
 					pairlist.add(pair);
 					//go to next pair
 					offset+=pair_size;
+					index_used+=pair_size;
+					data_used += r;
 					if(offset>= metadata.length) break;
 				}
 				logger.info("got pairs " + pairlist.toString());
@@ -280,6 +291,8 @@ public class IndexHelperImpl implements IndexHelper {
 
 				//add to map
 				returnmap.put(key_in_record,index);
+				this.dbmanager.set_INDEXES_USED(index_used);
+				this.dbmanager.set_DATA_USED(data_used);
 			} else {
 				logger.info("test this line may not appear, so this else could be redundant");
 				offset += search_span;
@@ -297,6 +310,7 @@ public class IndexHelperImpl implements IndexHelper {
 	private static int bytestoint(byte[] b,int start_offset) {
 		/**
 		 * This function will, given a byte array and start,
+		 * convert 4 bytes number into an integer, from start_offset to start_offset+3
 		 */
 		int numb = 0;
 		for (int i = start_offset; i < start_offset + Index.getKeySize(); i++) {
@@ -305,6 +319,7 @@ public class IndexHelperImpl implements IndexHelper {
 		}
 		return numb;
 	}
+	
 
 	@Override
 	public void addIndex(Index index) {
