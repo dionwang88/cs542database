@@ -6,7 +6,6 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Collections;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -169,18 +168,12 @@ public class IndexHelperImpl implements IndexHelper {
 		}
 		dbmanager.setData(db_data);
 	}
-
 	
-	public Index getIndex(List<Pair<Integer,Integer>> pairs_list, int key) {
-		int space_used = Index.getReservedSize()+1+Index.getKeySize();
-		Index i = new Index();
-		i.setKey(key);
-		i.setIndexes(pairs_list);
-		for (Pair<Integer, Integer> p : pairs_list) {
-			space_used+=2*Integer.BYTES;
-		}
-		this.dbmanager.set_INDEXES_USED(space_used);
-		return i;
+	
+	public int getIndexSize(List<Pair<Integer,Integer>> pairs_list) {
+		int space_used = Index.getReservedSize()+1+Index.getKeySize()
+				+ pairs_list.size() * 2 * Integer.BYTES;
+		return space_used;
 	}
 	
 	@Override

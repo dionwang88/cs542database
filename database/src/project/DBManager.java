@@ -14,27 +14,29 @@ import org.apache.logging.log4j.core.Logger;
  */
 public class DBManager {
 	
-	Logger logger = (Logger) LogManager.getLogger();
+	Logger logger = (Logger) LogManager.getLogger(DBManager.class);
 
 	private static DBManager dbManager = null;
 	
 	// database is to be contain the data
 	private byte[] data;
 	
+	// Keep track of how much space is used in data
 	private int DATA_USED;
 	
+	// Keep track of how much space is used in metadata
 	private int INDEXES_USED;
-
+	
+	// Size of data and metadata
 	private static final int DATA_SIZE = Storage.DATA_SIZE;
 	
 	public static final int METADATA_SIZE = Storage.METADATA_SIZE;
-	/**
-	 * Set the minimum size of input byte array 
-	 */
-	
+
+	// Names of Data and Metadata
 	private static final String DBDATA_NAME = "data.db";
 	
 	private static final String DBMETA_NAME = "data.meta";
+	
 	/**
 	 * indexes is to be contain the indexes in the metadata
 	 * Key is the index key
@@ -43,11 +45,13 @@ public class DBManager {
 
 	private Map<Integer, Index> indexes;
 	
-	/**
-	 * Locker controls the concurrency of the database.
-	 */
+	//Locker controls the concurrency of the database.
 	private DbLocker Locker;
 	
+	/**
+	 *  DBstorage for reading and writing the data
+	 *  indexHelper for manipulating the indexes
+	 */
 	private Storage DBstorage;
 	private IndexHelper indexHelper;
 	
@@ -59,6 +63,7 @@ public class DBManager {
 	 */
 	public static DBManager getInstance(){
 		if (dbManager == null){
+			// Instantiate and Initialization of DBManager
 			dbManager = new DBManager();
 			dbManager.DBstorage = new StorageImpl();
 			dbManager.indexHelper = new IndexHelperImpl();
@@ -87,26 +92,38 @@ public class DBManager {
 		try {
 			Locker.writeLock();			
 			logger.info("Attempting to put key: " + key + "to database");
+			// if database is going to be out of volume, block the put attempt.
 			if (data.length + DATA_USED > DATA_SIZE) {
-				System.out.println("Not enough data space left.");
+				System.out.println("Not enough data space left. Put Attempt with key "
+					+ key + " Failed.");
 				return;
 			}
-
+            //if key already exists in the database, update it by removing it first.
 			if (indexes.containsKey(key)){
 				Remove(key);
 				}
 					// Getting the index list of free space in data array;
 					List<Pair<Integer,Integer>> index_pairs = indexHelper.findFreeSpaceIndex(data.length);
 					indexHelper.splitDataBasedOnIndex(data, index_pairs);
-					
-					indexes.put(key, indexHelper.getIndex(index_pairs,key));
+					// Updating the Index map. If the metadata is out of volume, block the putting attempt.
+					Index tmpindex = new Index();
+					tmpindex.setKey(key);
+					tmpindex.setIndexes(index_pairs);
+					int indexsize = indexHelper.getIndexSize(index_pairs);
+					if (indexsize + INDEXES_USED > METADATA_SIZE) {
+						System.out.println("Not enough metadata space left. Put Attempt with key "
+					+ key + " Failed.");
+						return;
+					}
+					indexes.put(key, tmpindex);
+					set_INDEXES_USED(get_INDEXES_USED() + indexsize);
 					logger.info("Metadata buffer updated");
 					
 					// Writing the database onto the disk
 					
 					DBstorage.writeData(DBDATA_NAME, this.data);
-					DATA_USED += data.length;
-					logger.info("Data related to key " + key +" wrote to " + DBDATA_NAME);
+					set_DATA_USED(get_DATA_USED() + data.length);
+					System.out.println("Data related to key " + key +" wrote to " + DBDATA_NAME);
 					
 					byte[] metadata = indexHelper.indexToBytes(indexes);
 					
@@ -126,7 +143,8 @@ public class DBManager {
 	public byte[] Get(int key) {
 		/**
 		 * Returns the data that is mapped to the given key; If no
-		 * such key exists in database, return null
+		 * such key exists in database, return null and Print a message
+		 * to the console.
 		 * 
 		 * Querying Process:
 		 * 		  1. There can be multiple threads reading the database. No threads
@@ -142,6 +160,7 @@ public class DBManager {
 			logger.info("Attempting to get data mapped to key :" + key);
 			if (indexes.containsKey(key)) {
 				List<Pair<Integer, Integer>> index = indexes.get(key).getIndexes();
+				//extracting the mapped data from the data in memory;
 				int start = 0;
 				for (Pair<Integer, Integer> p : index) {
 					System.arraycopy(data, p.getLeft(), databuffer, start, p.getRight());
@@ -166,7 +185,7 @@ public class DBManager {
 	public void Remove(int key) {
 		/**
 		 * Removes the mapped key - data relation in the database;
-		 * If no such key exists, this attempt will be recorded to log.
+		 * If no such key exists, print an error message to the console.
 		 * 
 		 * Params:  key -- data key
 		 */
@@ -183,11 +202,11 @@ public class DBManager {
 					size += p.getRight();
 				}
 				indexes.remove(key);
-				DATA_USED -= size;
+				this.set_DATA_USED(get_DATA_USED() - size);
 				logger.info("Metadata buffer updated");
-				
 				DBstorage.writeMetaData(DBMETA_NAME, indexHelper.indexToBytes(indexes));
 				logger.info("Metadata updated on disk");
+				System.out.println("Data with key " + key + " is removed.");
 			}
 		} catch (Exception e1) {
 			e1.printStackTrace();
@@ -202,9 +221,7 @@ public class DBManager {
 	}
 
 	public void readDatabase() {
-		/**
-		 * Read the database and upload the data into memory
-		 */
+		//Read the database and upload the data into memory
 		byte[] metadata;
 		try{
 			data = DBstorage.readData(DBDATA_NAME);
@@ -257,14 +274,16 @@ public class DBManager {
 	}
 	
 	public void clear() {
+		// for clearing the database
 		try {
 			Locker.writeLock();
+			//Setting the metadata buffer in memory to an empty Hashtable
 			indexes = new Hashtable<Integer, Index>();
 			logger.info("Clear : Metadata buffer updated");
-			this.set_INDEXES_USED(0);
+			set_INDEXES_USED(0);
 			DBstorage.writeMetaData(DBMETA_NAME, indexHelper.indexToBytes(indexes));
 			logger.info("Metadata updated on disk");
-			this.set_DATA_USED(0);
+			set_DATA_USED(0);
 			System.out.println("Database Cleared!");
 			System.out.println("Current Free Space is " + this.getfreespace());
 		} catch (Exception e) {
