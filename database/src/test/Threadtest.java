@@ -1,12 +1,14 @@
 package test;
 import java.util.LinkedList;
-import project.DbLocker;
 import java.util.Iterator;
+
+import project.DBManager;
+import project.Index;
 public class Threadtest implements Runnable{
-	String name;
 	int num;
+	byte[] data;
 	LinkedList<String> todolist;
-	private DbLocker locker;
+	DBManager db;
 	public void run(){
 		Iterator<String> iterator = todolist.iterator();
 		synchronized(todolist) {
@@ -19,6 +21,8 @@ public class Threadtest implements Runnable{
 					write();
 				} else if (str == "read") {
 					read();
+				} else if (str == "remove") {
+					remove();
 				} else {
 					continue;
 				}
@@ -31,30 +35,33 @@ public class Threadtest implements Runnable{
 			todolist.add(task);
 		}
 	}
-	public Threadtest(String name, int num, DbLocker locker){
-		this.name = name;
+	public Threadtest(int num, byte[] data, DBManager db){
 		this.num = num;
+		this.data = data;
 		todolist = new LinkedList<String>();
-		this.locker = locker;
+		this.db = db;
 	}
 	private void write(){
-		try {
-			locker.writeLock();
-		} catch (Exception e) {
-			e.printStackTrace();
-			return;
-		}
-		System.out.println("Thread " + name + " is writing data:" + num);
-		locker.writeUnlock();
+		System.out.println(Thread.currentThread() + " is waiting to write data:" + Threadtest.byteArrayToInt(data));
+		db.Put(num, data);
+	}
+	private void remove(){
+		System.out.println(Thread.currentThread() + " is waiting to remove data.");
+		db.Remove(num);
 	}
 	private void read(){
-		try {
-			locker.readLock();
-		} catch (Exception e) {
-			e.printStackTrace();
-			return;
-		}
-		System.out.println("Thread " + name + " is reading.");
-		locker.readUnlock();
+		System.out.println(Thread.currentThread() + " is waiting to read data.");
+		byte[] data = db.Get(num);
+		if (data == null) System.out.println("To Client: " + Thread.currentThread() + " got no data.");
+		else System.out.println(Thread.currentThread() + " got " + Threadtest.byteArrayToInt(data));
 	}
+public static int byteArrayToInt(byte[] b) 
+{
+    int value = 0;
+    for (int i = 0; i < 4; i++) {
+        int shift = (4 - 1 - i) * 8;
+        value += (b[i] & 0x000000FF) << shift;
+    }
+    return value;
+}
 }

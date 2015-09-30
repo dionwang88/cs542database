@@ -297,7 +297,6 @@ public class IndexHelperImpl implements IndexHelper {
 	private static int bytestoint(byte[] b,int start_offset) {
 		/**
 		 * This function will, given a byte array and start,
-		 * convert 4 bytes number into ag integer, from start_offset to start_offset+3
 		 */
 		int numb = 0;
 		for (int i = start_offset; i < start_offset + Index.getKeySize(); i++) {
