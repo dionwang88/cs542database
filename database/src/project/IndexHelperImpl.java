@@ -45,6 +45,36 @@ public class IndexHelperImpl implements IndexHelper {
 	 * find the indexes list of free spaces based on the data size get all free space based on the delete sign and 
 	 * amount blocks to find some enough space to save the data.
 	 * In pair object, left is start index, right is the size
+	 * 
+	 * To solve the fragment problem:
+	 * 
+	 * (1) public List<Integer> getSortedIndexList()
+	 * Get the Index Buffer from DBManager 
+	 * Loop the indexes in the IndexBuffer Map to get the index pairs list:
+	 * 		Loop the index pairs list:
+	 * 			Get the start-length index pair and change it to start-end index pair
+	 * 			add the start-end index into a start-end list
+	 * 		Sort the start-end list and return the list in order to find free space method
+	 * 
+	 * (2) public List<Pair<Integer,Integer>> findFreeSpaceIndex(int size)
+	 * Loop the start-end list:
+	 * 		Get two start-end indexes once a time
+	 * 		The free space equals second index start - first index end
+	 * 		Compare the size of free space with that of the saving data:
+	 * 			if size of free space >= saving size of saving data:
+	 * 				add the (start, saving size) pair to free space list
+	 * 				return free space list
+	 * 			else:
+	 * 				add the free space to free space list
+	 * 				saving size = saving size - this free size
+	 * 				next loop
+	 * 
+	 * (3) public void splitDataBasedOnIndex(byte[] data_to_save, List<Pair<Integer,Integer>> indexes)
+	 * Loop the free (start,end) pair in free space list:
+	 * 		Get the free length = end - start
+	 * 		copy the same length in saving data to the (start, end) in the database
+	 * 		next loop
+	 * 		 
 	 */
 	@Override
 	public List<Pair<Integer,Integer>> findFreeSpaceIndex(int size) {		
