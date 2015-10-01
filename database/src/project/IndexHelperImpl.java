@@ -239,7 +239,6 @@ public class IndexHelperImpl implements IndexHelper {
 	 */
 	@Override
 	public Map<Integer, Index> bytesToIndex(byte[] metadata) {
-
 		Map<Integer,Index> returnmap= new Hashtable<>();
 		int offset=0;
 		int index_used = 0;
@@ -271,8 +270,8 @@ public class IndexHelperImpl implements IndexHelper {
 					pairlist.add(pair);
 					//go to next pair
 					offset+=pair_size;
-					index_used+=pair_size;
-					data_used += r;
+					//index_used+=pair_size;
+					//data_used += r;
 					if(offset>= metadata.length) break;
 				}
 				logger.info("got pairs " + pairlist.toString());
@@ -281,16 +280,16 @@ public class IndexHelperImpl implements IndexHelper {
 				Index index=new Index();
 				index.setKey(key_in_record);
 				index.setIndexes(pairlist);
-
 				//add to map
 				returnmap.put(key_in_record,index);
-				this.dbmanager.set_INDEXES_USED(index_used);
-				this.dbmanager.set_DATA_USED(data_used);
+
 			} else {
 				logger.info("test this line may not appear, so this else could be redundant");
 				offset += search_span;
 			}
 		}
+		//this.dbmanager.set_INDEXES_USED(index_used);
+		//this.dbmanager.set_DATA_USED(data_used);
 		return returnmap;
 	}
 
@@ -308,7 +307,7 @@ public class IndexHelperImpl implements IndexHelper {
 		int numb = 0;
 		for (int i = start_offset; i < start_offset + Index.getKeySize(); i++) {
 			numb <<= Byte.SIZE;
-			numb += b[i];
+			int tmp=b[i];
 		}
 		return numb;
 	}

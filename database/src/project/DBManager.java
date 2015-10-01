@@ -101,7 +101,7 @@ public class DBManager {
             //if key already exists in the database, update it by removing it first.
 			if (indexes.containsKey(key)){
 				Remove(key);
-				}
+			}
 					// Getting the index list of free space in data array;
 					List<Pair<Integer,Integer>> index_pairs = indexHelper.findFreeSpaceIndex(data.length);
 					indexHelper.splitDataBasedOnIndex(data, index_pairs);
@@ -233,12 +233,30 @@ public class DBManager {
 		try{
 			metadata = DBstorage.readMetaData(DBMETA_NAME);
 			indexes = indexHelper.bytesToIndex(metadata);
+			indextosize();
 			System.out.println("Free Space left is:" + (DATA_SIZE - DATA_USED));
 			System.out.println("Free Meta Space left is:" + (METADATA_SIZE - INDEXES_USED));
 			logger.info("Metadata read in Memory");
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+	}
+	
+	private void indextosize() {
+		System.out.println("Current used space is " + get_DATA_USED());
+		System.out.println("Current used meta space is " + get_INDEXES_USED());
+
+		int indexsize = 0;
+		int datasize =0;
+		for (Map.Entry<Integer, Index> m : indexes.entrySet()) {
+			indexsize += Index.getReservedSize() + 1 + Index.getKeySize();
+			for (Pair<Integer, Integer> p : m.getValue().getIndexes()) {
+				datasize += p.getRight();
+				indexsize += 2 * Integer.BYTES;
+			}
+		}
+		this.set_DATA_USED(datasize);
+		this.set_INDEXES_USED(indexsize);
 	}
 	
 	public byte[] getData() {
@@ -281,7 +299,8 @@ public class DBManager {
 			indexes = new Hashtable<Integer, Index>();
 			logger.info("Clear : Metadata buffer updated");
 			set_INDEXES_USED(0);
-			DBstorage.writeMetaData(DBMETA_NAME, indexHelper.indexToBytes(indexes));
+			byte[] metadata_buffer = new byte[0];
+			DBstorage.writeMetaData(DBMETA_NAME, metadata_buffer);
 			logger.info("Metadata updated on disk");
 			set_DATA_USED(0);
 			System.out.println("Database Cleared!");
