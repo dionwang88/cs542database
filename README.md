@@ -22,6 +22,12 @@
 |------[Concurrency control](#15)
 
 --
+
+---
+#Shell Location:
+database/show.sh
+Execute: ./database/show.sh
+
 #Framework<span id = "0"\>：
 ##Operating procedure<span id = "9"\>
 The data/metadata will be stored as byte array. *StorageImpl* class will be responsible for fetch/put the byte array, in which both data and metadata are stored, out of/into the file. IndexHelperImpl will help *DBManager* to transform metadata into what we desire, that is a hash table whose key and value are the key for record and *Index* class, respectively. The more query and update will be executed by the *DBManager* class.
