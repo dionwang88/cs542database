@@ -3,7 +3,6 @@ package project;
 import java.util.List;
 import java.util.Map;
 import java.util.Hashtable;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.Logger;
 
@@ -13,9 +12,8 @@ import org.apache.logging.log4j.core.Logger;
  *
  */
 public class DBManager {
-	
-	Logger logger = (Logger) LogManager.getLogger(DBManager.class);
-
+	Logger logger = (Logger) LogManager.getLogger();
+   
 	private static DBManager dbManager = null;
 	
 	// database is to be contain the data
@@ -92,15 +90,15 @@ public class DBManager {
 		try {
 			Locker.writeLock();			
 			logger.info("Attempting to put key: " + key + "to database");
-			// if database is going to be out of volume, block the put attempt.
-			if (data.length + DATA_USED > DATA_SIZE) {
-				System.out.println("Not enough data space left. Put Attempt with key "
-					+ key + " Failed.");
-				return;
-			}
             //if key already exists in the database, update it by removing it first.
 			if (indexes.containsKey(key)){
 				Remove(key);
+			}
+			// if database is going to be out of volume, block the put attempt.
+			if (data.length + get_DATA_USED() > DATA_SIZE) {
+				System.out.println("Not enough data space left. Put Attempt with key "
+					+ key + " Failed.");
+				return;
 			}
 					// Getting the index list of free space in data array;
 					List<Pair<Integer,Integer>> index_pairs = indexHelper.findFreeSpaceIndex(data.length);
@@ -196,13 +194,10 @@ public class DBManager {
 				System.out.println("No data with key " + key +" exists in database.Failed to remove.");
 			} else {
 				// Removing the key in the metadata buffer and update the metadata file
-				List<Pair<Integer, Integer>> l = indexes.get(key).getIndexes();
-				int size = 0;
-				for (Pair<Integer, Integer> p : l) {
-					size += p.getRight();
-				}
+				int[] tmp = getPairSize(indexes.get(key));
 				indexes.remove(key);
-				this.set_DATA_USED(get_DATA_USED() - size);
+				this.set_DATA_USED(get_DATA_USED() - tmp[0]);
+				this.set_INDEXES_USED(get_INDEXES_USED() - tmp[1] );
 				logger.info("Metadata buffer updated");
 				DBstorage.writeMetaData(DBMETA_NAME, indexHelper.indexToBytes(indexes));
 				logger.info("Metadata updated on disk");
@@ -243,20 +238,26 @@ public class DBManager {
 	}
 	
 	private void indextosize() {
-		System.out.println("Current used space is " + get_DATA_USED());
-		System.out.println("Current used meta space is " + get_INDEXES_USED());
-
 		int indexsize = 0;
 		int datasize =0;
+		int[] tmp = new int[2];
 		for (Map.Entry<Integer, Index> m : indexes.entrySet()) {
-			indexsize += Index.getReservedSize() + 1 + Index.getKeySize();
-			for (Pair<Integer, Integer> p : m.getValue().getIndexes()) {
-				datasize += p.getRight();
-				indexsize += 2 * Integer.BYTES;
-			}
+			tmp = getPairSize (m.getValue());
+			datasize += tmp[0];
+			indexsize += tmp[1];
 		}
 		this.set_DATA_USED(datasize);
 		this.set_INDEXES_USED(indexsize);
+	}
+	
+	private static int[] getPairSize(Index index) {
+		int[] result = new int[2];
+		result[1] += Index.getReservedSize() + 1 + Index.getKeySize()+
+				2 * Integer.BYTES * index.getIndexes().size();
+		for (Pair<Integer, Integer> p : index.getIndexes()) {
+			result[0] += p.getRight();
+		}
+		return result;
 	}
 	
 	public byte[] getData() {
@@ -304,7 +305,7 @@ public class DBManager {
 			logger.info("Metadata updated on disk");
 			set_DATA_USED(0);
 			System.out.println("Database Cleared!");
-			System.out.println("Current Free Space is " + this.getfreespace());
+			logger.info("Current Free Space is " + this.getfreespace());
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
