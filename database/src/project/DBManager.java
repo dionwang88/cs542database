@@ -229,8 +229,8 @@ public class DBManager {
 			metadata = DBstorage.readMetaData(DBMETA_NAME);
 			indexes = indexHelper.bytesToIndex(metadata);
 			indextosize();
-			System.out.println("Free Space left is:" + (DATA_SIZE - DATA_USED));
-			System.out.println("Free Meta Space left is:" + (METADATA_SIZE - INDEXES_USED));
+			logger.info("Free Space left is:" + (DATA_SIZE - DATA_USED));
+			logger.info("Free Meta Space left is:" + (METADATA_SIZE - INDEXES_USED));
 			logger.info("Metadata read in Memory");
 		} catch (Exception e) {
 			e.printStackTrace();
