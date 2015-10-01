@@ -83,7 +83,7 @@ public class DbLocker {
 			} else {
 				readingThreads.put(callingThread, (readCount -1)); 
 			}
-		 logger.info(callingThread + " is unlocking readlock.");
+		 System.out.println(callingThread + " is unlocking readlock.");
 		 notifyAll();
 		}
 
@@ -99,7 +99,7 @@ public class DbLocker {
 		while(! canWrite(callingThread)){
 			wait();
 		}
-		logger.info(Thread.currentThread() + " is locking writelock.");
+		System.out.println(Thread.currentThread() + " is locking writelock.");
 		writeRequests--;
 		writeCount++;
 		writingThread = callingThread;
@@ -115,7 +115,7 @@ public class DbLocker {
 				" hold the write lock on this ReadWriteLock");
 			}
 		writeCount--;
-		logger.info(Thread.currentThread() + " is unlocking writelock.");
+		System.out.println(Thread.currentThread() + " is unlocking writelock.");
 		/*
 		 *  Set current writing thread to null so other 
 		 *  write threads can be granted access.

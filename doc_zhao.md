@@ -211,6 +211,15 @@ Loop the free (start,end) pair in free space list: <br />
 -----
 ### Assumptions & decisions:
 
+### Results
+
+To validate our design, we conducted the following experiement. We first put 4 byte arrays with key 0,1,2,3 of size 1MB to the database. Then we removed key 1 and put 0.5 Mb for key 4. After that,  we put a 1 Mb data with key 5, which should result in a failure as there are not that much space left. Following that we removed key 2 and put 1 Mb with key 6 and a success is expected. Finally, we remove key 4 and wrote 1 Mb with key 7, and such attempt should be allowed. 
+
+Below are the test run results from console.
+
+![GitHub Logo](Fragmentation.png)
+
+As you can see, the put attempt with key 5 failed while key 6 and 7 succeeded.
 
 ##Concurrency control<span id = "15"\>
 
@@ -244,7 +253,21 @@ Denied if :
 * This thread is not the current writing thread.
 * Has readers other than the current thread.
 
-Like what we did in the Readlock, the thread waits until such criterion is met. Then it increments the number of itself writing the data, decrement the waiting threads and set the current writing thread to itself so as to ensure later re-entrance. After writing the data, it decreases its current writing access to the database and updates the current writing thread attribute if needed. Finally, it notifies other threads.
+Jusr like the Readlock, the thread waits until such criterion is met. Then it increments the number of itself writing the data, decrement the waiting threads and set the current writing thread to itself so as to ensure later re-entrance. After writing the data, it decreases its current writing access to the database and updates the current writing thread attribute if needed. Finally, it notifies other threads.
+
+### Result
+
+To validate concurrency control over the database, we tried the following experiment: 
+
+We wrote a class named Threadtest that can carry out a specific list of operations on the database according to the user's request. Then we instantiated several Threads of this and assigned different tasks to them. These tasks should be carried out in a sequence that follows our assumption and decisions of concurrency control.
+
+There are three threads in our experiment, and named as Thread 1, 2 and 3. All threads are assigned the same key (key 11), but with different value. Thread 1's tasks are to read and remove; Thread 2's are to write and read; Thread 3 is schedlued to remove and write. Thread got 66051 , Thread 2 got 330255 and Thread 3 is 660510. For test purposes the key 11 is put with 66051 first.
+
+Below are the test results:
+
+![GitHub Logo](Concurrency.png)
+
+From above we can see after all three threads hadstarted, the first task of Thread 1 and 3 are added, but Thread 3 locked the database first and removed key 11. Then Thread 2's first task and 3's second tasks are added while Thread 3 locked again and wrote its data to the database. Thread 2 then locked the writelock and updated the value mapped to key 11 (which is seen in above as remove first then put). After that, Thread 2's second task is added but Thread 1 locked the read lock first and got the data (which is Thread 2's pre-assigend value : 330255). Then Thread 1 removes the key 11 so when Thread 2 tries to read the data later, it got nothing.
 
 
 ---	
