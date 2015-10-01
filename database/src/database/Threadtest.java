@@ -42,19 +42,21 @@ public class Threadtest implements Runnable{
 			locker.writeLock();
 		} catch (Exception e) {
 			e.printStackTrace();
-			return;
 		}
 		System.out.println("Thread " + name + " is writing data:" + num);
-		locker.writeUnlock();
+		try {
+			locker.writeUnlock();
+		}catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 	private void read(){
 		try {
-			locker.readLock();
+			locker.ReadLock();
 		} catch (Exception e) {
 			e.printStackTrace();
-			return;
 		}
 		System.out.println("Thread " + name + " is reading.");
-		locker.readUnlock();
+		locker.ReadUnlock();
 	}
 }
