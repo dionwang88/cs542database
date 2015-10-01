@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.Logger;
+import sun.jvm.hotspot.memory.Space;
 
 
 /**
@@ -112,6 +113,9 @@ public class IndexHelperImpl implements IndexHelper {
 			if(left_size > 0){ //There is no free space between previous pairs
 				// The start of the new pair is the (end+1) of last pair
 				int pre_end = index_list.get(i-1);
+				if(pre_end== Storage.DATA_SIZE-1){
+					pre_end=-1;
+				}
 				Pair<Integer,Integer> p = new Pair<Integer,Integer>(pre_end+1, left_size); 
 				list_freeSpace.add(p);
 			}
