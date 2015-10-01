@@ -3,7 +3,6 @@ import java.util.LinkedList;
 import java.util.Iterator;
 
 import project.DBManager;
-import project.Index;
 public class Threadtest implements Runnable{
 	int num;
 	byte[] data;

@@ -9,7 +9,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.Logger;
 
@@ -188,7 +187,7 @@ public class IndexHelperImpl implements IndexHelper {
 			indexpairnumb+=index.getIndexes().size();
 		}
 		byte[] outbyte = new byte[indexnumb*(Index.getReservedSize()+Index.getKeySize()+1)+indexpairnumb*Integer.BYTES*2];
-        logger.info("calculate the size of output byte[] is:"+outbyte.length);
+        //System.out.println("calculate the size of output byte[] is:"+outbyte.length);
 
 		//convert indexMap to byte array
 		int offset=0;
@@ -197,20 +196,20 @@ public class IndexHelperImpl implements IndexHelper {
 			//make sure pairs are sorted
 			index.sortpairs();
 			outbyte[offset++]=IndexHelper.START_SIGN;
-            logger.info("converted #"+key+" start_sign");
+            //System.out.println("converted #"+key+" start_sign");
 
 			//add reserved bytes
 			for (int i = 0; i <Index.getReservedSize() ; i++) {
 				outbyte[offset++]=0;
 			}
-			logger.info("added reserved bytes");
+			//System.out.println("added reserved bytes");
 
 			//covert key from int to byte[]
 			byte[] bytekey = inttobytes(index.getKey());
             for (byte aBytekey : bytekey) {
                 outbyte[offset++] = aBytekey;
             }
-            logger.info("converted #"+key+" key");
+            //System.out.println("converted #"+key+" key");
 
             //convert pairs to byte[]
             List<Pair<Integer, Integer>> l= index.getIndexes();
@@ -223,7 +222,7 @@ public class IndexHelperImpl implements IndexHelper {
                     offset++;
                 }
                 offset+=Integer.BYTES;
-                logger.info("converted #"+key+"'s #"+(offset-8)/8+" pair");
+                //System.out.println("converted #"+key+"'s #"+(offset-8)/8+" pair");
             }
 
 		}
@@ -239,27 +238,23 @@ public class IndexHelperImpl implements IndexHelper {
 	 */
 	@Override
 	public Map<Integer, Index> bytesToIndex(byte[] metadata) {
-
 		Map<Integer,Index> returnmap= new Hashtable<>();
 		int offset=0;
-		int index_used = 0;
-		int data_used = 0;
 		int search_span=Index.getReservedSize()+1+Index.getKeySize();
 		int pair_size=Integer.BYTES*2;
 		while(offset<metadata.length){
 			//search header
 			if (metadata[offset]==-1){
-				logger.info("found a start sign at " + offset);
+				//System.out.println("found a start sign at " + offset);
 
 				//get key
 				int key_in_record=0;
 				int key_start=offset+1+Index.getReservedSize();
 				key_in_record=bytestoint(metadata,key_start);
-				logger.info("key # is: " + key_in_record);
+				//System.out.println("key # is: " + key_in_record);
 
 				//get pairs
 				offset+=search_span;// skip the head to pairs
-				index_used+=search_span;
 				List<Pair<Integer, Integer>> pairlist = new ArrayList<>();
 				while(metadata[offset]>=0) {
 					int l,r;
@@ -271,26 +266,26 @@ public class IndexHelperImpl implements IndexHelper {
 					pairlist.add(pair);
 					//go to next pair
 					offset+=pair_size;
-					index_used+=pair_size;
-					data_used += r;
+					//index_used+=pair_size;
+					//data_used += r;
 					if(offset>= metadata.length) break;
 				}
-				logger.info("got pairs " + pairlist.toString());
+				//System.out.println("got pairs " + pairlist.toString());
 
 				//make index
 				Index index=new Index();
 				index.setKey(key_in_record);
 				index.setIndexes(pairlist);
-
 				//add to map
 				returnmap.put(key_in_record,index);
-				this.dbmanager.set_INDEXES_USED(index_used);
-				this.dbmanager.set_DATA_USED(data_used);
+
 			} else {
-				logger.info("test this line may not appear, so this else could be redundant");
+				System.out.println("test this line may not appear, so this else could be redundant");
 				offset += search_span;
 			}
 		}
+		//this.dbmanager.set_INDEXES_USED(index_used);
+		//this.dbmanager.set_DATA_USED(data_used);
 		return returnmap;
 	}
 
@@ -308,7 +303,8 @@ public class IndexHelperImpl implements IndexHelper {
 		int numb = 0;
 		for (int i = start_offset; i < start_offset + Index.getKeySize(); i++) {
 			numb <<= Byte.SIZE;
-			numb += b[i];
+			int tmp=b[i];
+			numb+=(tmp>=0?tmp:tmp+256);
 		}
 		return numb;
 	}
