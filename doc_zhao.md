@@ -6,7 +6,8 @@
 |------[Operating procedure](#9)		
 |------[metadata structure](#11)			
 |------[metadata transformation](#12)		
-|------[Physical data storage](#13)			
+|------[Physical data storage](#13)
+
 [Main classes](#1)		
 |------[Storage](#2)		
 |------[StorageImpl](#3)		
@@ -14,7 +15,8 @@
 |------[Index](#5)			
 |------[IndexHelper](#6)		
 |------[IndexHelperImpl](#7)				
-|------[DBManager](#8)			
+|------[DBManager](#8)<br>
+|------[Dblocker](#17)				
 [Validation](#10)		
 |------[Fragment](#14)		
 |------[Concurrency control](#15)
@@ -82,6 +84,7 @@ Each metadata will have structure as followed:
 |start_sign (1B)|reserved bytes (3B)|key (4B)|offset 1 (4B)|length 1 (4B)|offset 2 (4B)|length 2 (4B)|...
 |---|---|---|---|---|---|---|---|---| 
 
+
 # Main classes<span id = "1"\>
 ####*Storage*<span id = "2"\>
 This is an interface, which contains 2 attributes and 4 method. Storage play a role of write and read data and metadata. By using FileStream, these method can load all the data/metadata, in the form of byte array, into the main memory.  Its two attributes, which are *DATA_SIZE* and *METADATA_SIZE*, are responsible for the constraint of maximum data/metadata size.
@@ -135,7 +138,7 @@ The implement of interface IndexHelper. The same method. This class has been des
 ####*DBManager*<span id = "8"\>
 DBManager is designed to execute most of the database access work. A user must go through the manager to access the data. At the same time, it is in charge of disk storage, searching for index, concurrency control. This class has been designed in singleton pattern.
 #####Attribute:
-|method name|description|
+|attribute name|description|
 |---|---|
 |private int INDEX_USED = 0;| Count the number of used index.	
 |private int DATA_USED = 0;	|	Count the size of used data.
@@ -152,22 +155,24 @@ DBManager is designed to execute most of the database access work. A user must g
 |void Put(int key, byte[] data)| put byte data with a key into database.
 |byte[] Get(int key)|get the data with the key.
 |void Remove(int key)|remove the data with the key.
-####DbLocker
-DbLocker will provide DBManger a right to lock the file, thus make sure concurrency control, under the multiple processors situation.
+####*DbLocker*<span id ="17"\>
+DbLocker will provide DBManger with a re-entrant ReadWrite lock so as to ensure concurrency control under the multiple processors situation.
 
+#####Attribute:
 |attribute name|description|
 |---|---|
-|readingNum|
-|writingNum|
-|waitingNum|
-|writerPriority
+|Map readingThreads|Number of read accesses for currently reading threads
+|int writeCount| Number of currently writing accesses of one thread
+|int writeRequests| Number of writing requests
+|Thread writingThread| Current writing thread
 
+#####Method:
 |method name|description|
 |---|---|
-|readLock()|
-|readUnlock()|
-|writeLock()|
-|writeUnlock()|
+|ReadLock()|Grant read access to the current thread.
+|ReadUnlock()|Unlocks the ReadLock.
+|writeLock()|Grant write access to the current thread.
+|writeUnlock()|Unlocks the writeLock.
 #Validation<span id = "10"\>
 ##Fragment <span id = "14"\>
 
@@ -205,14 +210,42 @@ Loop the free (start,end) pair in free space list: <br />
 
 -----
 ### Assumptions & decisions:
----
-BLABLABLABLABLABLABLABLABLABLABLABLABLABLABLA
 
----	
+
 ##Concurrency control<span id = "15"\>
+
 ### Assumptions & decisions:
----
-BLABLABLABLABLABLABLABLABLABLABLABLABLABLABLA
+1. Threads can only be read if no other threads has write accesses or in request of it.
+2. Threads can write when no other threads are reading or writing the database.
+3. When a thread is writing, it also has access to read.
+4. Multiple read and write requests from a same thread is allowed.
+
+#### Readlock:
+A thread is granted read access to the database if : 
+
+* It is the current writing thread. This is implemented by keeping track of the current writing thread.
+* It has been granted read access already to ensure Read-Read Re-entrance. This is implemented by keeping a map called "readingThread" in the memory, where the key is the thread instance and the value is the count of read accesse.
+
+Denied if :
+
+* Other thread is writing. 
+* There are threads waiting to write. This is implemented by counting the number of write requests.
+
+The thread waits until such criterion is met. After that, it updates the readingThread Map and get data from the database. After query is complete, it updates the Map and notify other threads.
+
+#### Writelock:
+A thread with write requests first adds to the waitinglist. Then it is granted access to the database if :
+
+* It is the only thread reading the data. (Auto Upgrade)
+* No other thread is writing. 
+
+Denied if :
+
+* This thread is not the current writing thread.
+* Has readers other than the current thread.
+
+Like what we did in the Readlock, the thread waits until such criterion is met. Then it increments the number of itself writing the data, decrement the waiting threads and set the current writing thread to itself so as to ensure later re-entrance. After writing the data, it decreases its current writing access to the database and updates the current writing thread attribute if needed. Finally, it notifies other threads.
+
 
 ---	
 

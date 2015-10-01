@@ -27,7 +27,7 @@ public class IndexHelperImpl implements IndexHelper {
 	private static IndexHelperImpl indexHelper = null;
 	
 	protected IndexHelperImpl() {
-		System.out.println("Create IndexHelper Object.");
+		logger.info("Create IndexHelper Object.");
 	}
 	/**
 	 * Singleton Object
