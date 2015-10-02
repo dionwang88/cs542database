@@ -11,8 +11,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.Logger;
-import sun.jvm.hotspot.memory.Space;
-
 
 /**
  * This class provides the methods of how to manipulate the index
