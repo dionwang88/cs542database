@@ -30,8 +30,17 @@ public class DBTool {
 */
     private DBTool(){}
 
-    public static void show(List<Pair<Integer, Integer>> freelist, int free){
-        if (free==0){System.out.println("Database is full.");}
+    public static void showWrapped(DBManager dbmanager){
+        int freesize= Storage.DATA_SIZE-dbmanager.get_DATA_USED();
+        java.util.List<Pair<Integer, Integer>> al=DBTool.freelist(dbmanager.getIndexBuffer());
+        DBTool.show(DBTool.minusList(new Pair<>(0, Storage.DATA_SIZE), al), freesize);
+    }
+
+    private static void show(List<Pair<Integer, Integer>> freelist, int free){
+        if (free==0){
+            System.out.println("Total space is " + Storage.DATA_SIZE + "byte(s).\nUsed space is " + Storage.DATA_SIZE + "byte(s).\nUnused is " + 0 + "byte(s).");
+            System.out.println("Free space location:");
+            System.out.println("---[]--- Database is full!");}
         else if(freelist==null) {System.out.println("metadata disorder");}
         else {
             int total = Storage.DATA_SIZE;
@@ -41,15 +50,15 @@ public class DBTool {
                 lset[i] = freelist.get(i).getLeft();
                 rset[i] = freelist.get(i).getRight() - 1;
             }
-            System.out.println("Total space is " + total + "byte(s).\n Used space is " + (total - free) + "byte(s).\n Unused is " + free + "byte(s).");
+            System.out.println("Total space is " + total + "byte(s).\nUsed space is " + (total - free) + "byte(s).\nUnused is " + free + "byte(s).");
             System.out.println("Free space location:");
             for (int i = 0; i < freelist.size(); i++) {
-                System.out.println("[ " + lset[i] + ", " + (lset[i] + rset[i]) + "]");
+                System.out.println("---[" + lset[i] + " , " + (lset[i] + rset[i]) + "]---");
             }
         }
     }
 
-    public static List<Pair<Integer,Integer>> freelist(Map<Integer,Index> tab){
+    private static List<Pair<Integer,Integer>> freelist(Map<Integer,Index> tab){
         List<Pair<Integer,Integer>> looplist=new ArrayList<>();
         for (int key:tab.keySet()) {
             Index tmplist=tab.get(key);
@@ -61,9 +70,13 @@ public class DBTool {
         return sortIndex.getIndexes();
     }
 
-    public static List<Pair<Integer,Integer>> minusList(Pair<Integer,Integer> F,List<Pair<Integer,Integer>> L){
+    private static List<Pair<Integer,Integer>> minusList(Pair<Integer,Integer> F,List<Pair<Integer,Integer>> L){
         List<Pair<Integer,Integer>> rlist=new ArrayList<>();
-        if((L.get(0).getLeft()<F.getLeft())
+        if(L.size()==0){
+            rlist.add(F);
+            return rlist;
+        }
+        else if((L.get(0).getLeft()<F.getLeft())
                 ||(L.get(L.size()-1).getLeft()+L.get(L.size()-1).getRight()-1>F.getRight())){
             return null;
         }

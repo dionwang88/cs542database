@@ -17,9 +17,7 @@ public class TestShow {
             System.out.println("1 Argument is expected, but actual # of arguments is "+args.length);
         }else{
             DBManager dbmanager=DBManager.getInstance();
-            int freesize= Storage.DATA_SIZE-dbmanager.get_DATA_USED();
-            java.util.List<Pair<Integer, Integer>> al=DBTool.freelist(dbmanager.getIndexBuffer());
-            DBTool.show(DBTool.minusList(new Pair<>(0, Storage.DATA_SIZE), al), freesize);
+            DBTool.showWrapped(dbmanager);
         }
     }
 }

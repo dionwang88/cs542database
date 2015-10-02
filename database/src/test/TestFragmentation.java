@@ -1,5 +1,7 @@
 package test;
 import project.DBManager;
+import project.DBTool;
+
 public class TestFragmentation {
 
 	public static void main(String[] args) {
@@ -13,24 +15,24 @@ public class TestFragmentation {
 			smalldata[i] = (byte) ((i)%127);
 		}
 		dbmanager.clear();
+		DBTool.showWrapped(dbmanager);
 		for (int key = 0 ; key < 4; key ++ ) {
-		dbmanager.Put(key, bigdata);
-		System.out.println("Current Space left is " + dbmanager.getfreespace());
+			dbmanager.Put(key, bigdata);
+			DBTool.showWrapped(dbmanager);
 		}
 		dbmanager.Remove(1);
-		System.out.println("Current Space left is " + dbmanager.getfreespace());
+		DBTool.showWrapped(dbmanager);
 		dbmanager.Put(4, smalldata);
-		System.out.println("Current Space left is " + dbmanager.getfreespace());
+		DBTool.showWrapped(dbmanager);
 		dbmanager.Put(5, bigdata); // Failure Expected.
 		dbmanager.Remove(2);
-		System.out.println("Current Space left is " + dbmanager.getfreespace());
+		DBTool.showWrapped(dbmanager);
 		dbmanager.Put(6, bigdata); // Should succeed
-		System.out.println("Current Space left is " + dbmanager.getfreespace());
+		DBTool.showWrapped(dbmanager);
 		dbmanager.Remove(4);
-		System.out.println("Current Space left is " + dbmanager.getfreespace());
+		DBTool.showWrapped(dbmanager);
 		dbmanager.Put(7, bigdata); // Should succeed
-		System.out.println("Current Space left is " + dbmanager.getfreespace());
-
+		DBTool.showWrapped(dbmanager);
 	}
 
 }
