@@ -94,8 +94,8 @@ public class IndexHelperImpl implements IndexHelper {
 				int pre_end = index_list.get(i-1);
 				int next_start = index_list.get(i); // the next position to the end index of first pair index 
 				// the length of free space
-				int length = next_start - pre_end;
-				if(length != 1){// If between two pairs have free space
+				int length = next_start - (pre_end + 1);
+				if(length != 0){// If between two pairs have free space
 					if(length >= left_size){// if free space can contain the data
 						// new index starts from pre_end + 1, size is left_size
 						Pair<Integer,Integer> p = new Pair<Integer,Integer>(pre_end+1, left_size); 

@@ -23,7 +23,8 @@ public class TestFragmentation {
 		dbmanager.Remove(1);
 		DBTool.showWrapped(dbmanager);
 		dbmanager.Put(4, smalldata);
-		DBTool.showWrapped(dbmanager);
+		System.out.println("Current Space left is " + dbmanager.getfreespace());
+		System.out.println("Try to save data key is:" + 5 + ", size is:" + bigdata.length);
 		dbmanager.Put(5, bigdata); // Failure Expected.
 		dbmanager.Remove(2);
 		DBTool.showWrapped(dbmanager);

@@ -121,7 +121,7 @@ public class DBManager {
 					
 					DBstorage.writeData(DBDATA_NAME, this.data);
 					set_DATA_USED(get_DATA_USED() + data.length);
-					System.out.println("Data related to key " + key +" wrote to " + DBDATA_NAME);
+					System.out.println("Data related to key is:" + key +", and size is:" + data.length +" have written to " + DBDATA_NAME);
 					
 					byte[] metadata = indexHelper.indexToBytes(indexes);
 					
