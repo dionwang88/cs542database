@@ -21,6 +21,7 @@ public class TestFragmentation {
 		System.out.println("Current Space left is " + dbmanager.getfreespace());
 		dbmanager.Put(4, smalldata);
 		System.out.println("Current Space left is " + dbmanager.getfreespace());
+		System.out.println("Try to save data key is:" + 5 + ", size is:" + bigdata.length);
 		dbmanager.Put(5, bigdata); // Failure Expected.
 		dbmanager.Remove(2);
 		System.out.println("Current Space left is " + dbmanager.getfreespace());
