@@ -1,11 +1,13 @@
 package project;
 
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
+import java.lang.reflect.Array;
+import java.util.Arrays;
 
+import com.sun.corba.se.spi.ior.WriteContents;
 import org.apache.commons.io.IOUtils;
+
+import static project.Storage.DATA_SIZE;
 
 /**
  * Implementation of the Storage Interface.
@@ -33,9 +35,8 @@ public class StorageImpl implements Storage {
 	
 	@Override
 	public byte[] readData(String fileName) throws IOException {
-		InputStream inputstream = new FileInputStream(fileName);
-		byte[] data = IOUtils.toByteArray(inputstream);
-		return data;
+		byte[] data = readOutDataBase(fileName);
+		return Arrays.copyOfRange(data,0,DATA_SIZE);
 	}
 	
 	@Override
@@ -43,15 +44,7 @@ public class StorageImpl implements Storage {
 		// Verify the data size cannot exceed the DATA_SIZE
 		if(data.length > DATA_SIZE) 
 			throw new Exception("The data size is exceed the requirement!");
-		FileOutputStream fos = null;
-		try{
-			fos = new FileOutputStream(fileName);
-			fos.write(data);
-		}catch(Exception e){
-			e.printStackTrace();
-		}finally{
-			if(fos != null) fos.close();
-		}
+		writeIntoDataBase(fileName,data,true);
 	}
 
 	@Override
@@ -59,15 +52,7 @@ public class StorageImpl implements Storage {
 		// Verify the data size cannot exceed the METADATA_SIZE
 		if (metadata.length > METADATA_SIZE)
 			throw new Exception("The metadata size is exceed the requirement!");
-		FileOutputStream fos = null;
-		try{
-			fos = new FileOutputStream(fileName);
-			fos.write(metadata);
-		}catch(Exception e){
-			e.printStackTrace();
-		}finally{
-			if(fos != null) fos.close();
-		}
+		writeIntoDataBase(fileName,metadata,false);
 	}
 
 	@Override
@@ -78,10 +63,55 @@ public class StorageImpl implements Storage {
 	 * 4. The amount of bytes of this index in the data array
 	 */
 	public byte[] readMetaData(String fileName) throws IOException {
-		InputStream inputstream = new FileInputStream(fileName);
-		byte[] data = IOUtils.toByteArray(inputstream);
-		
-		return data;
+		byte[] data = readOutDataBase(fileName);
+		return Arrays.copyOfRange(data,DATA_SIZE,data.length);
+	}
+
+	private byte[] readOutDataBase(String fileName) throws IOException{
+		InputStream inputstream = null;
+		byte[] out;
+		try {
+			inputstream = new FileInputStream(fileName);
+			out=IOUtils.toByteArray(inputstream);
+		} catch (FileNotFoundException e) {
+			System.out.println("File "+DBManager.getDBName()+" doesn't exist\ncreating a new file now.");
+			FileOutputStream fos=null;
+			try{
+				fos = new FileOutputStream(fileName);
+				byte[] empty=new byte[Storage.DATA_SIZE];
+				for (int i = 0; i <empty.length;i++) {
+					empty[i]=0;
+				}
+				fos.write(empty);
+			}catch(Exception ee){
+				ee.printStackTrace();
+			}finally{
+				if(fos != null) fos.close();
+			}
+			out=readOutDataBase(fileName);
+		}
+		return out;
+	}
+
+	private void writeIntoDataBase(String fileName,byte[] writeContent, boolean isData) throws IOException{
+		byte[] original = readOutDataBase(fileName);
+		if(isData){
+			for (int i = 0; i < writeContent.length; i++)
+				original[i]=writeContent[i];
+		}
+		else{
+			for (int i = 0; i < writeContent.length; i++)
+				original[i+DATA_SIZE]=writeContent[i];
+		}
+		FileOutputStream fos = null;
+		try{
+			fos = new FileOutputStream(fileName);
+			fos.write(original);
+		}catch(Exception e){
+			e.printStackTrace();
+		}finally{
+			if(fos != null) fos.close();
+		}
 	}
 
 }

@@ -31,9 +31,7 @@ public class DBManager {
 	public static final int METADATA_SIZE = Storage.METADATA_SIZE;
 
 	// Names of Data and Metadata
-	private static final String DBDATA_NAME = "data.db";
-	
-	private static final String DBMETA_NAME = "data.meta";
+	private static final String DB_NAME = "cs542.db";
 	
 	/**
 	 * indexes is to be contain the indexes in the metadata
@@ -54,7 +52,9 @@ public class DBManager {
 	private IndexHelper indexHelper;
 	
 	private DBManager(){}
-	
+
+	public static String getDBName(){return DB_NAME;}
+
 	/**
 	 * Singleton Object
 	 * @return
@@ -119,13 +119,13 @@ public class DBManager {
 					
 					// Writing the database onto the disk
 					
-					DBstorage.writeData(DBDATA_NAME, this.data);
+					DBstorage.writeData(DB_NAME, this.data);
 					set_DATA_USED(get_DATA_USED() + data.length);
-					System.out.println("Data related to key is:" + key +", and size is:" + data.length +" have written to " + DBDATA_NAME);
+					System.out.println("Data related to key is:" + key +", and size is:" + data.length +" have written to " + DB_NAME);
 					
 					byte[] metadata = indexHelper.indexToBytes(indexes);
 					
-					DBstorage.writeMetaData(DBMETA_NAME, metadata);
+					DBstorage.writeMetaData(DB_NAME, metadata);
 					logger.info("Metadata updated on disk");
 		} catch (Exception e1) {
 			e1.printStackTrace();
@@ -199,7 +199,7 @@ public class DBManager {
 				this.set_DATA_USED(get_DATA_USED() - tmp[0]);
 				this.set_INDEXES_USED(get_INDEXES_USED() - tmp[1] );
 				logger.info("Metadata buffer updated");
-				DBstorage.writeMetaData(DBMETA_NAME, indexHelper.indexToBytes(indexes));
+				DBstorage.writeMetaData(DB_NAME, indexHelper.indexToBytes(indexes));
 				logger.info("Metadata updated on disk");
 				System.out.println("Data with key " + key + " is removed.");
 			}
@@ -219,14 +219,14 @@ public class DBManager {
 		//Read the database and upload the data into memory
 		byte[] metadata;
 		try{
-			data = DBstorage.readData(DBDATA_NAME);
+			data = DBstorage.readData(DB_NAME);
 			logger.info("Data read in memory");
 		} catch (Exception e) {
 			e.printStackTrace();
 			System.out.println("Failed to read Data into memory");
 		}
 		try{
-			metadata = DBstorage.readMetaData(DBMETA_NAME);
+			metadata = DBstorage.readMetaData(DB_NAME);
 			indexes = indexHelper.bytesToIndex(metadata);
 			indextosize();
 			logger.info("Free Space left is:" + (DATA_SIZE - DATA_USED));
@@ -301,7 +301,7 @@ public class DBManager {
 			logger.info("Clear : Metadata buffer updated");
 			set_INDEXES_USED(0);
 			byte[] metadata_buffer = new byte[0];
-			DBstorage.writeMetaData(DBMETA_NAME, metadata_buffer);
+			DBstorage.writeMetaData(DB_NAME, metadata_buffer);
 			logger.info("Metadata updated on disk");
 			set_DATA_USED(0);
 			System.out.println("Database Cleared!");
