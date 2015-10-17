@@ -3,8 +3,11 @@ package project;
 import java.io.*;
 import java.lang.reflect.Array;
 import java.util.Arrays;
+import java.util.stream.Stream;
 
 import com.sun.corba.se.spi.ior.WriteContents;
+import com.sun.deploy.util.ArrayUtil;
+import com.sun.tools.javac.util.ArrayUtils;
 import org.apache.commons.io.IOUtils;
 
 import static project.Storage.DATA_SIZE;
@@ -94,19 +97,22 @@ public class StorageImpl implements Storage {
 	}
 
 	private void writeIntoDataBase(String fileName,byte[] writeContent, boolean isData) throws IOException{
-		byte[] original = readOutDataBase(fileName);
+		byte[] out;
 		if(isData){
+			out = readOutDataBase(fileName);
 			for (int i = 0; i < writeContent.length; i++)
-				original[i]=writeContent[i];
+				out[i]=writeContent[i];
 		}
 		else{
-			for (int i = 0; i < writeContent.length; i++)
-				original[i+DATA_SIZE]=writeContent[i];
+			out=new byte[DATA_SIZE+writeContent.length];
+			byte[] data=readData(fileName);
+			System.arraycopy(data,0,out,0,data.length);
+			System.arraycopy(writeContent,0,out,data.length,writeContent.length);
 		}
 		FileOutputStream fos = null;
 		try{
 			fos = new FileOutputStream(fileName);
-			fos.write(original);
+			fos.write(out);
 		}catch(Exception e){
 			e.printStackTrace();
 		}finally{
