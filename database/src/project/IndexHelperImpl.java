@@ -208,6 +208,7 @@ public class IndexHelperImpl implements IndexHelper {
 			//System.out.println("added reserved bytes");
 
 			//covert key from int to byte[]
+			if(index.getKey()<0) throw new Error("Key value can't be negative!");
 			byte[] bytekey = inttobytes(index.getKey());
             for (byte aBytekey : bytekey) {
                 outbyte[offset++] = aBytekey;
