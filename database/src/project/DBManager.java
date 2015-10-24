@@ -1,5 +1,9 @@
 package project;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.List;
 import java.util.Map;
 import java.util.Hashtable;
@@ -31,7 +35,7 @@ public class DBManager {
 	public static final int METADATA_SIZE = Storage.METADATA_SIZE;
 
 	// Names of Data and Metadata
-	private static final String DB_NAME = "cs542.db";
+	private static String DB_NAME;
 	
 	/**
 	 * indexes is to be contain the indexes in the metadata
@@ -51,7 +55,9 @@ public class DBManager {
 	private Storage DBstorage;
 	private IndexHelper indexHelper;
 	
-	private DBManager(){}
+	private DBManager(String dbname){
+		DB_NAME=dbname;
+	}
 
 	public static String getDBName(){return DB_NAME;}
 
@@ -59,17 +65,37 @@ public class DBManager {
 	 * Singleton Object
 	 * @return
 	 */
-	public static DBManager getInstance(){
+	public static DBManager getInstance(String dbname){
 		if (dbManager == null){
 			// Instantiate and Initialization of DBManager
-			dbManager = new DBManager();
+			dbManager = new DBManager(dbname);
 			dbManager.DBstorage = new StorageImpl();
 			dbManager.indexHelper = new IndexHelperImpl();
 			dbManager.Locker = new DbLocker();
-			dbManager.readDatabase();
+			if(!new File(dbname).isFile()) {
+				System.out.println("File "+DBManager.getDBName()+" doesn't exist\nWould you like to create a new one now?(Y/N)");
+				BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+				String is_YorN= null;
+				try {
+					is_YorN = br.readLine();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+				if (is_YorN.toLowerCase().equals("y")){
+					dbManager.readDatabase();
+				}
+				else dbManager=null;
+			}
+			else dbManager.readDatabase();
 		}
 		
 		return dbManager;
+	}
+	public static DBManager getInstance(){
+		return getInstance("cs542.db");
+	}
+	public static void close(){
+		dbManager=null;
 	}
 	
 	public void Put(int key, byte[] data) {
@@ -121,7 +147,7 @@ public class DBManager {
 					
 					DBstorage.writeData(DB_NAME, this.data);
 					set_DATA_USED(get_DATA_USED() + data.length);
-					System.out.println("Data related to key is:" + key +", and size is:" + data.length +" have written to " + DB_NAME);
+					System.out.println("Data related to key is " + key +", and size is " + data.length +" have written to " + DB_NAME);
 					
 					byte[] metadata = indexHelper.indexToBytes(indexes);
 					
@@ -215,13 +241,13 @@ public class DBManager {
 		
 	}
 
-	public void readDatabase() {
+	public void readDatabase(){
 		//Read the database and upload the data into memory
 		byte[] metadata;
 		try{
 			data = DBstorage.readData(DB_NAME);
 			logger.info("Data read in memory");
-		} catch (Exception e) {
+		} catch (IOException e) {
 			e.printStackTrace();
 			System.out.println("Failed to read Data into memory");
 		}
@@ -232,8 +258,9 @@ public class DBManager {
 			logger.info("Free Space left is:" + (DATA_SIZE - DATA_USED));
 			logger.info("Free Meta Space left is:" + (METADATA_SIZE - INDEXES_USED));
 			logger.info("Metadata read in Memory");
-		} catch (Exception e) {
+		} catch (IOException e) {
 			e.printStackTrace();
+			System.out.println("Failed to read MataData into memory");
 		}
 	}
 	
@@ -304,7 +331,7 @@ public class DBManager {
 			DBstorage.writeMetaData(DB_NAME, metadata_buffer);
 			logger.info("Metadata updated on disk");
 			set_DATA_USED(0);
-			System.out.println("Database Cleared!");
+			//System.out.println("Database Cleared!");
 			logger.info("Current Free Space is " + this.getfreespace());
 		} catch (Exception e) {
 			e.printStackTrace();

@@ -30,6 +30,7 @@ import static project.Storage.DATA_SIZE;
  * @author wangqian
  *
  */
+
 public class StorageImpl implements Storage {
 
 	public StorageImpl(){
@@ -37,8 +38,8 @@ public class StorageImpl implements Storage {
 	}
 	
 	@Override
-	public byte[] readData(String fileName) throws IOException {
-		byte[] data = readOutDataBase(fileName);
+	public byte[] readData(String fileName) throws IOException{
+		byte[] data= readOutDataBase(fileName);
 		return Arrays.copyOfRange(data,0,DATA_SIZE);
 	}
 	
@@ -65,8 +66,8 @@ public class StorageImpl implements Storage {
 	 * 3. The index in the data array
 	 * 4. The amount of bytes of this index in the data array
 	 */
-	public byte[] readMetaData(String fileName) throws IOException {
-		byte[] data = readOutDataBase(fileName);
+	public byte[] readMetaData(String fileName) throws IOException{
+		byte[] data=readOutDataBase(fileName);
 		return Arrays.copyOfRange(data,DATA_SIZE,data.length);
 	}
 
@@ -77,7 +78,7 @@ public class StorageImpl implements Storage {
 			inputstream = new FileInputStream(fileName);
 			out=IOUtils.toByteArray(inputstream);
 		} catch (FileNotFoundException e) {
-			System.out.println("File "+DBManager.getDBName()+" doesn't exist\ncreating a new file now.");
+			System.out.println("File "+DBManager.getDBName()+" created");
 			FileOutputStream fos=null;
 			try{
 				fos = new FileOutputStream(fileName);
@@ -100,8 +101,7 @@ public class StorageImpl implements Storage {
 		byte[] out;
 		if(isData){
 			out = readOutDataBase(fileName);
-			for (int i = 0; i < writeContent.length; i++)
-				out[i]=writeContent[i];
+			for (int i = 0; i < writeContent.length; i++) out[i]=writeContent[i];
 		}
 		else{
 			out=new byte[DATA_SIZE+writeContent.length];

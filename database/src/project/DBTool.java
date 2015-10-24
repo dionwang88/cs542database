@@ -1,6 +1,12 @@
 package project;
 
 
+import test.Clear;
+import test.TestConcurrency;
+import test.TestFragmentation;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -10,30 +16,19 @@ import java.util.stream.Collectors;
  * Created by vincent on 9/30/15.
  */
 public class DBTool {
-    //private static DBTool dBTool = null;
-/**
-    public static void main(String args[]){
-        //test show within the class
-        //ArrayList l=new ArrayList();
-        //l.add(new Pair<>(0, 16));
-        /l.add(new Pair<>(16, 16));
-        //l.add(new Pair<>(32, 16));
-        //l.add(new Pair<>(64, 16));
-        //l.add(new Pair<>(96, 16));
-        //l.add(new Pair<>(128, 16));
-        //show(l);
-        DBManager dbmanager=DBManager.getInstance();
-        int freesize=Storage.DATA_SIZE-dbmanager.get_DATA_USED();
-        List<Pair<Integer, Integer>> al=freelist(dbmanager.getIndexBuffer());
-        show(minusList(new Pair<>(0,Storage.DATA_SIZE),al),freesize);
-    }
-*/
+
     private DBTool(){}
 
     public static void showWrapped(DBManager dbmanager){
-        int freesize= Storage.DATA_SIZE-dbmanager.get_DATA_USED();
-        java.util.List<Pair<Integer, Integer>> al=DBTool.freelist(dbmanager.getIndexBuffer());
-        DBTool.show(DBTool.minusList(new Pair<>(0, Storage.DATA_SIZE), al), freesize);
+        if (dbmanager==null) ;
+        else {
+            int freesize = Storage.DATA_SIZE - dbmanager.get_DATA_USED();
+            java.util.List<Pair<Integer, Integer>> al = DBTool.freelist(dbmanager.getIndexBuffer());
+            DBTool.show(DBTool.minusList(new Pair<>(0, Storage.DATA_SIZE), al), freesize);
+            System.out.println("Keys in database are:");
+            for (Integer k : dbmanager.getIndexBuffer().keySet()) System.out.print(k+" ");
+            System.out.println("\n");
+        }
     }
 
     private static void show(List<Pair<Integer, Integer>> freelist, int free){
@@ -101,10 +96,44 @@ public class DBTool {
 
         return rlist;
     }
-    //public static DBTool getInstance(){
-    //    if (dBTool == null){
-    //        dBTool = new DBTool();
-    //    }
-     //   return dBTool;
-    //}
+
+    private static void shell(){
+        System.out.println("Welcome! This is a group project of cs542 at WPI\nType help to see commands.");
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        String[] s;
+        waiting_command:
+        while(true){
+            try {
+                s=br.readLine().split(" ");
+                if(s.length>3) {System.out.println("Too many argument!");continue ;}
+                switch (s[0].toLowerCase()) {
+                    case "quit":case "q":           System.out.println("Now Quit Shell.");break waiting_command;
+                    case "show":
+                        DBManager dbmanager;
+                        if (s.length==1) dbmanager = DBManager.getInstance();
+                        else dbmanager=DBManager.getInstance(s[1]);
+                        showWrapped(dbmanager);
+                        DBManager.close();break;
+                    case "fragment":case "f":       TestFragmentation.main(null);break;
+                    case "Concurrency":case "c":    TestConcurrency.main(null);break;
+                    case "clear":case "cl":         Clear.main(null);break;
+                    case "help":
+                        System.out.println("Help Information:\nq|Q|quit|Quit\t\tquit the shell\n" +
+                                "show [<filename>]\tshow the space of the database, default file is 'cs542.db'.\n" +
+                                "fragment|f\t\t\tvalidate fragment\n" +
+                                "concurrency|c\t\tvalidate concurrency control\n" +
+                                "clear|cl\t\t\tclear the database");
+
+                        break;
+                    default:System.out.println("Can't find the command '"+s[0]+"'!\nyou may use 'help' command");
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public static void main(String[] args){
+        shell();
+    }
 }
