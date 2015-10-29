@@ -379,14 +379,14 @@ public class IndexHelperImpl implements IndexHelper {
 		return return_map;
 	}
 
-	private static byte[] intToByte(int intnumb){
+	static byte[] intToByte(int intnumb){
 		/**
 		 * convert integer into a 4 bytes byte array
 		 */
         return ByteBuffer.allocate(Integer.BYTES).putInt(intnumb).array();
     }
 
-	private static int byteToInt(byte[] b, int start_offset) {
+	static int byteToInt(byte[] b, int start_offset) {
 		/**
 		 * This function will, given a byte array and start,
 		 * convert 4 bytes number into an integer, from start_offset to start_offset+3
@@ -417,5 +417,8 @@ public class IndexHelperImpl implements IndexHelper {
 		tabMetadata=t.bytesToTabMeta(b);
 		System.out.println(tabMetadata.toString());
 
+		byte[] rec=null;
+		//dbm.getAttribute()
+		dbm.close();
 	}
 }

@@ -1,9 +1,6 @@
 package project;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.lang.reflect.Array;
 import java.util.*;
 
@@ -252,6 +249,40 @@ public class DBManager {
 			}
 		}
 		
+	}
+
+	public Object getAttribute(int key, String Attr_name){
+		/**
+		 * Now we assume only one table so tid is always 0;
+		 * Need to be modified in the future.
+		 */
+		Object returnObj=null;
+		byte[] record=Get(key);
+		List<Pair> l=tabMetadata.get(0);
+		int type=-1,length=0,offset=0;
+		for(int i=1;i<l.size();i++){
+			if(l.get(i).getLeft()==Attr_name){
+				Pair p= (Pair) l.get(i).getRight();
+				offset+=length;
+				type= (int) p.getLeft();
+				length= (int) p.getRight();
+				break;
+			}
+		}
+		byte[] tmp= new byte[length];
+		if(type==0){
+			System.arraycopy(record,offset,tmp,0,length);
+			returnObj=IndexHelperImpl.byteToInt(tmp,0);
+		}
+		if(type==1){
+			System.arraycopy(record,offset,tmp,0,length);
+			try {
+				returnObj=new String(tmp,"UTF-8").trim();
+			} catch (UnsupportedEncodingException e) {
+				e.printStackTrace();
+			}
+		}
+		return returnObj;
 	}
 
 	public void readDatabase(){

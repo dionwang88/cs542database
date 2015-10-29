@@ -45,8 +45,7 @@ public class ReadManager {
 	}
 	
 	public static void main(String[] args) {
-		Map<Integer,ArrayList<String>> m = ReadFile("/Users/Xiang/Documents/GitHub/cs542database/database/movies.txt");
-		System.out.println("DDDD");
+		Map<Integer,ArrayList<String>> m = ReadFile("movies.txt");
 	}
 	
 }
