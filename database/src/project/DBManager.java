@@ -93,6 +93,15 @@ public class DBManager {
 		dbManager=null;
 	}
 	
+	
+	public void GetTable(int tableID) {
+		
+	}
+	
+	public void put(int key, String[] Attributes) {
+		
+	}
+	
 	public void Put(int key, byte[] data) {
 		/**
 		 * In order to avoid during saving period rebooting, we save the data file first and then save the metadata.
