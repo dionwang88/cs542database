@@ -2,6 +2,8 @@ package project;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.reflect.Array;
@@ -41,6 +43,7 @@ public class DBManager {
 
 	// Names of Data and Metadata
 	private static String DB_NAME;
+	
 	
 	/**
 	 * indexes is to be contain the indexes in the metadata
@@ -94,14 +97,6 @@ public class DBManager {
 	}
 	
 	
-	public void GetTable(int tableID) {
-		
-	}
-	
-	public void put(int key, String[] Attributes) {
-		
-	}
-	
 	public void Put(int key, byte[] data) {
 		/**
 		 * In order to avoid during saving period rebooting, we save the data file first and then save the metadata.
@@ -138,7 +133,7 @@ public class DBManager {
 					tmpindex.setKey(key);
 					tmpindex.setIndexes(index_pairs);
 					int indexsize = indexHelper.getIndexSize(index_pairs);
-					if (indexsize + INDEXES_USED > METADATA_SIZE) {
+					if (indexsize + INDEXES_USED + TABMETA_USED > METADATA_SIZE) {
 						System.out.println("Not enough metadata space left. Put Attempt with key "
 					+ key + " Failed.");
 						return;
@@ -386,5 +381,85 @@ public class DBManager {
 			e.printStackTrace();
 		}
 	}
+	
+	public String bytetoString(byte[] data,int Tabid){
+		List<Pair> schema = tabMetadata.get(Tabid);
+		int[] AttrType = new int[schema.size() - 1];
+		String s = "";
+		int loc = 0;
+		for (int i = 1; i< schema.size(); i ++){
+			Pair<String,Pair<Integer,Integer>> p = schema.get(i);
+			AttrType[i-1] = p.getRight().getLeft();
+			if (AttrType[i-1] == 0) s = s + IndexHelperImpl.byteToInt(data, loc);
+			else s = s + new String(Arrays.copyOfRange(data, loc, loc + p.getRight().getRight()));
+			s = s + " ";
+		}
+		return s;
+	}
+	
+	public  void  ReadFile(String Filepath, int Tabid) {
+		byte[] bytedata = null;
+		BufferedReader br = null;
+		String line = "";
+		String sep = ","; //use comma as separator
+		ArrayList<String> attributes;
+		List<Pair> schema = tabMetadata.get(Tabid);
+		int[] AttrType = new int[schema.size() - 1];
+		int[] AttrLength = new int[schema.size() - 1];
+		for (int i = 1; i< schema.size(); i ++){
+			Pair<String,Pair<Integer,Integer>> p = schema.get(i);
+			AttrType[i-1] = p.getRight().getLeft();
+			AttrLength[i-1] = p.getRight().getRight();
+		}
+		try{
+			br = new BufferedReader(new FileReader(Filepath));
+			int i = 1;
+			while ((line = br.readLine()) != null) {
+				String[] record = line.split(sep);
+				for (int j = 0; j < record.length; j ++){
+					if (AttrType[j] == 1) {
+						if (AttrLength[j] > record[j].length()){
+							for (int k =0; k < AttrLength[j] - record[j].length(); k++){
+								record[j] = record[j] +" ";
+							}
+						}else{
+							System.out.println("Attribute Size exceeded.");
+						}
+						if (bytedata == null) bytedata = record[j].getBytes();
+						else bytedata = concat(bytedata, record[j].getBytes());
+					}
+					else{
+						int v = Integer.parseInt(record[j]);
+						if (bytedata == null) bytedata = IndexHelperImpl.intToByte(v);
+						else bytedata = concat(bytedata, IndexHelperImpl.intToByte(v));
+					}
+				}
+				this.Put(i, bytedata);
+				i++;
+			}
+	} catch (FileNotFoundException e) {
+		e.printStackTrace();
+	} catch (IOException e) {
+		e.printStackTrace();
+	} finally {
+		if (br != null) {
+			try {
+				br.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+	System.out.println("Reading" + Filepath + " Done");
+	}
+	
+	private byte[] concat(byte[] a, byte[] b) {
+		   int aLen = a.length;
+		   int bLen = b.length;
+		   byte[] c= new byte[aLen+bLen];
+		   System.arraycopy(a, 0, c, 0, aLen);
+		   System.arraycopy(b, 0, c, aLen, bLen);
+		   return c;
+		}
 
 }
