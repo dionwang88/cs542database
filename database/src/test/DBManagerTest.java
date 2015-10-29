@@ -27,15 +27,17 @@ public class DBManagerTest {
 		dbmanager.readDatabase();
 		*/
 		String[] AttrNames = {"Title", "Year", "Format", "Genre", "Director", "Writer", "Country", "Studio", "Price", "Catalog No"};
-		int[] type = {1,0,1,1,1,1,1,1,0,0};
+		int[] type = {1,0,1,1,1,1,1,1,1,0};
 		List<Pair> attrs = new ArrayList<>();
 		for (int i = 0; i < type.length; i++){
 			int length = 0;
-			if (type[i] == 0) length = 30;
-			else length = 99999;
+			if (type[i] == 1) length = 100;
+			else length = 4;
 			attrs.add(new Pair(AttrNames[i],new Pair(type[i],length)));
 		}
+		dbmanager.clear();
 		dbmanager.createTabMete("Movies", attrs);
-		dbmanager.ReadFile("/Users/Xiang/Documents/GitHub/cs542database/database/movies.txt", 1);
+		dbmanager.ReadFile("/Users/Xiang/Documents/GitHub/cs542database/database/movies.txt", 0);
+		System.out.println(dbmanager.getAttribute(1, "Title"));
 	}
 }

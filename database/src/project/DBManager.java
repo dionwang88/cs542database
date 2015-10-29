@@ -1,7 +1,6 @@
 package project;
 
 import java.io.*;
-import java.lang.reflect.Array;
 import java.util.*;
 
 import org.apache.logging.log4j.LogManager;
@@ -430,7 +429,7 @@ public class DBManager {
 		byte[] bytedata = null;
 		BufferedReader br = null;
 		String line = "";
-		String sep = ","; //use comma as separator
+		String sep = "@"; //use | as separator
 		ArrayList<String> attributes;
 		List<Pair> schema = tabMetadata.get(Tabid);
 		int[] AttrType = new int[schema.size() - 1];
