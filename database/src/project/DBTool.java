@@ -12,9 +12,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-/**
- * Created by vincent on 9/30/15.
- */
 public class DBTool {
 
     private DBTool(){}
@@ -22,9 +19,9 @@ public class DBTool {
     public static void showWrapped(DBManager dbmanager){
         if (dbmanager==null) ;
         else {
-            int freesize = Storage.DATA_SIZE - dbmanager.get_DATA_USED();
+            int freeSize = Storage.DATA_SIZE - dbmanager.get_DATA_USED();
             java.util.List<Pair<Integer, Integer>> al = DBTool.freelist(dbmanager.getIndexBuffer());
-            DBTool.show(DBTool.minusList(new Pair<>(0, Storage.DATA_SIZE), al), freesize);
+            DBTool.show(DBTool.minusList(new Pair<>(0, Storage.DATA_SIZE), al), freeSize);
             System.out.println("Keys in database are:");
             for (Integer k : dbmanager.getIndexBuffer().keySet()) System.out.print(k+" ");
             System.out.println("\n");

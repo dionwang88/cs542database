@@ -210,9 +210,8 @@ Loop the free (start,end) pair in free space list: <br />
 ----Get the free length = end - start <br />
 ----copy the same length in saving data to the (start, end) in the database <br />
 ----next loop <br />
-<br /> 
 
------
+--
 ### Assumptions & decisions:
 
 ### Results
@@ -277,10 +276,10 @@ From above we can see after all three threads hadstarted, the first task of Thre
 ---	
 # Further Assumptions in Project 2<span id = "16"\>
 
-###Table-Metadata
+##Table-Metadata
 We add a new type of metadata--table metadata--to store the table information so that multi-attribute based on project 1 can be implemented.	
 
-Assumptions:
+###Assumptions:
 
 1. Table metadata contains start sign, reserved bytes(3 bytes), table id, table name, attributes numbers, attribute names and lengths.
 1. The start sign of table-metadata is one-byte number, which is -2. Still, there is no other numbers to be negative.
@@ -307,7 +306,7 @@ Every attribute/table name are divided into two parts, which are both 7 bytes.
 
 #### Memory Structure
 Table metadata:
-> Map\<String table_name, List\<Pair\> tableMeta\>
+> Map\<int tid, List\<Pair\> tableMeta\>
 	
 tableMetadata
 > List\<Pair pairs\>
@@ -321,10 +320,16 @@ The rest of pairs:
 attribute\_info\_Pair\:
 >Pair\<int attribute\_type, int attribute\_length\>
 
-###Relation
-For now, we assumed that we only have one relation in our database. We will add relation class in the future project.
+#### Table Metadata transformation
+We add two more functions in IndexHelper to transform the physical metadata into memory, and from memory back to physical as well.
 
-###Index
+bytesToTabMeta()
+Load table metadata from metadata byte array. This function needs to identify the correct metadata, which could be mixed with index metadata.
+tabMateToBytes()
+Return metadata array of table metadata, than when we write metadata into db file, this returned array will concat with index metadata.
+##Relation And DbManager
+For now, we assumed that we **only have one relation** in our database. We will add relation class in the future project. In other word, we don't have relation class now, and all the interface are under the class DBManager. We will finish this part in the next project.
+##Index
 Based on the project 1, we add three methods to realize the indexing mechanism.
 #### put
 #### get

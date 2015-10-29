@@ -23,10 +23,7 @@ public class IndexHelperImpl implements IndexHelper {
 	protected IndexHelperImpl() {
 		logger.info("Create IndexHelper Object.");
 	}
-	/**
-	 * Singleton Object
-	 * @return
-	 */
+
 	public static IndexHelperImpl getInstance(){
 		if(indexHelper == null){
 			indexHelper = new IndexHelperImpl();
@@ -72,14 +69,14 @@ public class IndexHelperImpl implements IndexHelper {
 	public List<Pair<Integer,Integer>> findFreeSpaceIndex(int size) {		
 		// Temp variable to record the left size of the data
 		int left_size = size;
-		List<Pair<Integer, Integer>> list_freeSpace = new ArrayList<Pair<Integer, Integer>>();
+		List<Pair<Integer, Integer>> list_freeSpace = new ArrayList<>();
 		List<Integer> index_list = this.getSortedIndexList();
 
 		if(index_list.size() == 0){ //if the index has no pair index
-			Pair<Integer,Integer> p = new Pair<Integer,Integer>(0, size); 
+			Pair<Integer,Integer> p = new Pair<>(0, size);
 			list_freeSpace.add(p);
 		}else if(index_list.size() == 2){// if the index list has only one pair index,new index start from last end + 1
-			Pair<Integer,Integer> p = new Pair<Integer,Integer>(index_list.get(1)+1, size); 
+			Pair<Integer,Integer> p = new Pair<>(index_list.get(1)+1, size);
 			list_freeSpace.add(p);
 		}else{ // if the index list has more than one pair index
 			int i = 2;
@@ -92,11 +89,11 @@ public class IndexHelperImpl implements IndexHelper {
 				if(length != 0){// If between two pairs have free space
 					if(length >= left_size){// if free space can contain the data
 						// new index starts from pre_end + 1, size is left_size
-						Pair<Integer,Integer> p = new Pair<Integer,Integer>(pre_end+1, left_size); 
+						Pair<Integer,Integer> p = new Pair<>(pre_end+1, left_size);
 						list_freeSpace.add(p);
 						return list_freeSpace;
 					}else{// if the free space cannot contain the data, then will to find next free space
-						Pair<Integer,Integer> p = new Pair<Integer,Integer>(pre_end+1, length); 
+						Pair<Integer,Integer> p = new Pair<>(pre_end+1, length);
 						list_freeSpace.add(p);
 						left_size = left_size - length;
 					}
@@ -109,7 +106,7 @@ public class IndexHelperImpl implements IndexHelper {
 				if(pre_end== Storage.DATA_SIZE-1){
 					pre_end=-1;
 				}
-				Pair<Integer,Integer> p = new Pair<Integer,Integer>(pre_end+1, left_size); 
+				Pair<Integer,Integer> p = new Pair<>(pre_end+1, left_size);
 				list_freeSpace.add(p);
 			}
 		}
@@ -118,11 +115,11 @@ public class IndexHelperImpl implements IndexHelper {
 	}
 	/**
 	 * Transform the index buffer to the Map type sorted by start index
-	 * @return
+	 * @return return sorted indexList
 	 */
 	public List<Integer> getSortedIndexList(){
 		// This list is to save all the index pairs(start, length).
-		List<Integer> index_list = new ArrayList<Integer>();
+		List<Integer> index_list = new ArrayList<>();
 		// Get the index buffer object
 		Map<Integer, Index> indexBuffer = this.dbmanager.getIndexBuffer();
 		// To get all the index list
@@ -166,9 +163,7 @@ public class IndexHelperImpl implements IndexHelper {
 	}
 	
 	public int getIndexSize(List<Pair<Integer,Integer>> pairs_list) {
-		int space_used = Index.getReservedSize()+1+Index.getKeySize()
-				+ pairs_list.size() * 2 * Integer.BYTES;
-		return space_used;
+		return Index.getReservedSize()+1+Index.getKeySize()+pairs_list.size()*2*Integer.BYTES;
 	}
 	
 	@Override
@@ -197,7 +192,7 @@ public class IndexHelperImpl implements IndexHelper {
 
 			//covert key from int to byte[]
 			if(index.getKey()<0) throw new Error("Key value can't be negative!");
-			byte[] bytekey = inttobytes(index.getKey());
+			byte[] bytekey = intToByte(index.getKey());
             for (byte aBytekey : bytekey) {
                 outbyte[offset++] = aBytekey;
             }
@@ -205,8 +200,8 @@ public class IndexHelperImpl implements IndexHelper {
             //convert pairs to byte[]
             List<Pair<Integer, Integer>> l= index.getIndexes();
             for (Pair<Integer, Integer> aL : l) {
-                byte[] bpl = inttobytes(aL.getLeft());
-                byte[] bpr = inttobytes(aL.getRight());
+                byte[] bpl = intToByte(aL.getLeft());
+                byte[] bpr = intToByte(aL.getRight());
                 for (int j = 0; j < bpl.length; j++) {
                     outbyte[offset] = bpl[j];
                     outbyte[offset+Integer.BYTES] = bpr[j];
@@ -229,9 +224,9 @@ public class IndexHelperImpl implements IndexHelper {
 			if (metadata[offset]==-1){
 
 				//get key
-				int key_in_record=0;
+				int key_in_record;
 				int key_start=offset+1+Index.getReservedSize();
-				key_in_record=bytestoint(metadata,key_start);
+				key_in_record= byteToInt(metadata, key_start);
 
 				//get pairs
 				offset+=search_span;// skip the head to pairs
@@ -239,8 +234,8 @@ public class IndexHelperImpl implements IndexHelper {
 				while(metadata[offset]>=0) {
 					int l,r;
 					//get L,R in the current pair
-					l=bytestoint(metadata,offset);
-					r=bytestoint(metadata,offset+Integer.BYTES);
+					l= byteToInt(metadata, offset);
+					r= byteToInt(metadata, offset + Integer.BYTES);
 					Pair<Integer,Integer> pair=new Pair<>(l,r);
 					//get pair to list
 					pairlist.add(pair);
@@ -265,16 +260,13 @@ public class IndexHelperImpl implements IndexHelper {
 		return returnmap;
 	}
 
-	public byte[] tabMatatoBytes(Map<String,List<Pair>> tabMetadata){
+	public byte[] tabMetaToBytes(Map<Integer, List<Pair>> tabMetadata){
 		int offset=0,count=0;
-		for(String tname:tabMetadata.keySet()){
-			for(Pair p:tabMetadata.get(tname)){
-				count++;
-			}
-		}
+		for(int tid:tabMetadata.keySet())
+			count+=tabMetadata.get(tid).size();
 		//init the byte array
 		byte[] return_byte=new byte[count*(1+3+16+4)];
-		for(String tname:tabMetadata.keySet()){
+		for(int tid:tabMetadata.keySet()){
 			//start flag
 			return_byte[offset]=TAB_START_SIGN;
 			//reserved bytes
@@ -282,15 +274,14 @@ public class IndexHelperImpl implements IndexHelper {
 			offset+=(1+TAB_META_RESERVED);
 
 			//pairs start
-			for(int i=0;i<tabMetadata.get(tname).size();i++){
-				Pair p=tabMetadata.get(tname).get(i);
+			for(int i=0;i<tabMetadata.get(tid).size();i++){
+				Pair p=tabMetadata.get(tid).get(i);
 				if(i==0){
-					int tid= (int) p.getLeft();
 					String tab_str_name=(String) p.getRight();
 					tab_str_name=tab_str_name+new String(new char[14-tab_str_name.length()]).replace("\0", " ");
 					byte[] tab_name=tab_str_name.getBytes();
 					//copy tid
-					System.arraycopy(inttobytes(tid),0,return_byte,offset,4);
+					System.arraycopy(intToByte(tid),0,return_byte,offset,4);
 					offset+=4;
 					//copy first part of tab name
 					return_byte[offset++]=0;
@@ -316,10 +307,10 @@ public class IndexHelperImpl implements IndexHelper {
 					System.arraycopy(attr_name,7,return_byte,offset,7);
 					offset+=7;
 					//copy type
-					System.arraycopy(inttobytes(attr_type),0,return_byte,offset,4);
+					System.arraycopy(intToByte(attr_type),0,return_byte,offset,4);
 					offset+=4;
 					//copy length
-					System.arraycopy(inttobytes((Integer) attr_length),0,return_byte,offset,4);
+					System.arraycopy(intToByte((Integer) attr_length),0,return_byte,offset,4);
 					offset+=4;
 				}
 			}
@@ -327,8 +318,8 @@ public class IndexHelperImpl implements IndexHelper {
 		return return_byte;
 	}
 
-	public Map<String, List<Pair>> bytesToTabMeta(byte[] metadata){
-		Map<String, List<Pair>> return_map=new Hashtable<>();
+	public Map<Integer, List<Pair>> bytesToTabMeta(byte[] metadata){
+		Map<Integer, List<Pair>> return_map=new Hashtable<>();
 		int offset=0,search_span=8;
 		while(offset<metadata.length){
 			int pair_no=0;
@@ -337,13 +328,13 @@ public class IndexHelperImpl implements IndexHelper {
 				offset+=4;
 
 				//table id
-				int tid=bytestoint(metadata,offset);
+				int tid= byteToInt(metadata, offset);
 				offset+=Integer.BYTES;
 				//table name
 				byte[] tab_name=new byte[14];
 				System.arraycopy(metadata,offset+1,tab_name,0,7);
 				offset+=8;
-				System.arraycopy(metadata,offset+1,tab_name,6,7);
+				System.arraycopy(metadata,offset+1,tab_name,7,7);
 				offset+=8;
 				String tab_str_name= null;
 				try {
@@ -360,7 +351,7 @@ public class IndexHelperImpl implements IndexHelper {
 					byte[] attr_name=new byte[14];
 					System.arraycopy(metadata,offset+1,attr_name,0,7);
 					offset+=8;
-					System.arraycopy(metadata,offset+1,attr_name,6,7);
+					System.arraycopy(metadata,offset+1,attr_name,7,7);
 					offset+=8;
 					String attr_str_name= null;
 					try {
@@ -369,10 +360,10 @@ public class IndexHelperImpl implements IndexHelper {
 						e.printStackTrace();
 					}
 					//attr type
-					int attr_type=bytestoint(metadata, offset);
+					int attr_type= byteToInt(metadata, offset);
 					offset+=Integer.BYTES;
 					//attr length
-					int attr_len=bytestoint(metadata,offset);
+					int attr_len= byteToInt(metadata, offset);
 					offset+=Integer.BYTES;
 
 					//add rest pairs
@@ -381,21 +372,21 @@ public class IndexHelperImpl implements IndexHelper {
 					pairlist.add(pair_no++, p3);
 				}
 				//put tab into map
-				return_map.put(tab_str_name,pairlist);
+				return_map.put(tid,pairlist);
 			}
 			else offset+=search_span;
 		}
 		return return_map;
 	}
 
-	private static byte[] inttobytes(int intnumb){
+	private static byte[] intToByte(int intnumb){
 		/**
 		 * convert integer into a 4 bytes byte array
 		 */
         return ByteBuffer.allocate(Integer.BYTES).putInt(intnumb).array();
     }
 
-	private static int bytestoint(byte[] b,int start_offset) {
+	private static int byteToInt(byte[] b, int start_offset) {
 		/**
 		 * This function will, given a byte array and start,
 		 * convert 4 bytes number into an integer, from start_offset to start_offset+3
@@ -409,34 +400,22 @@ public class IndexHelperImpl implements IndexHelper {
 		return numb;
 	}
 
-	public void addIndex(Index index) {
-
-	}
-
-	public void removeIndex(Integer Key) {
-
-	}
-
-	public void updateIndex(Index index) {
-
-	}
-
-	public Map<Integer, Index> getIndexesBuffer() {
-		return null;
-	}
-
 	public static void main(String[] args){
+		DBManager dbm=DBManager.getInstance();
 		//test tabmetadata transform
-		Map<String,List<Pair>> tabMetadata = new Hashtable<>();
+		Map<Integer,List<Pair>> tabMetadata = new Hashtable<>();
 		List<Pair> listpairs = new ArrayList<>();
-		listpairs.add(new Pair(0,"Movies"));
-		listpairs.add(new Pair("movieID", new Pair(0,10)));
-		tabMetadata.put("Movies", listpairs);
+		//listpairs.add(new Pair<>(1,"movieID"));
+		listpairs.add(new Pair<>("_movieId", new Pair<>(1,10)));
+		listpairs.add(new Pair<>("movieName", new Pair<>(0, 16)));
+		dbm.createTabMete("movies",listpairs);
+		//tabMetadata.put(1, listpairs);
+
 		IndexHelper t=new IndexHelperImpl();
-		byte[] b=t.tabMatatoBytes(tabMetadata);
-		System.out.println(b.length);
+		byte[] b=t.tabMetaToBytes(dbm.getTabMeta());
 		for (byte aB : b) System.out.println(aB);
 		tabMetadata=t.bytesToTabMeta(b);
 		System.out.println(tabMetadata.toString());
+
 	}
 }

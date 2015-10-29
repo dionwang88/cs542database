@@ -4,9 +4,9 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.List;
-import java.util.Map;
-import java.util.Hashtable;
+import java.lang.reflect.Array;
+import java.util.*;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.Logger;
 
@@ -25,10 +25,16 @@ public class DBManager {
 	
 	// Keep track of how much space is used in data
 	private int DATA_USED;
-	
-	// Keep track of how much space is used in metadata
+
+	// Keep track of how much space is used in index metadata
 	private int INDEXES_USED;
-	
+
+	// Keep track of how much space is used in table metadata
+	private int TABMETA_USED;
+
+	// Keep track of how much space is used in metadata
+	private int METADATA_USED;
+
 	// Size of data and metadata
 	private static final int DATA_SIZE = Storage.DATA_SIZE;
 	public static final int METADATA_SIZE = Storage.METADATA_SIZE;
@@ -41,38 +47,27 @@ public class DBManager {
 	 * Key is the index key
 	 * List is the index of that key
 	 */
-
 	private Map<Integer, Index> indexes;
 
-	private Map<String, List> tabMetaData;
+	private Map<Integer,List<Pair>> tabMetadata;
 	
 	//Locker controls the concurrency of the database.
 	private DbLocker Locker;
-	
-	/**
-	 *  DBstorage for reading and writing the data
-	 *  indexHelper for manipulating the indexes
-	 */
-	private Storage DBstorage;
+	private Storage DBStorage;
 	private IndexHelper indexHelper;
 	private DBManager(String dbname){
 		DB_NAME=dbname;
 	}
 
 	public static String getDBName(){return DB_NAME;}
-
-	/**
-	 * Singleton Object
-	 * @return
-	 */
-	public static DBManager getInstance(String dbname){
+	public static DBManager getInstance(String dbName){
 		if (dbManager == null){
 			// Instantiate and Initialization of DBManager
-			dbManager = new DBManager(dbname);
-			dbManager.DBstorage = new StorageImpl();
+			dbManager = new DBManager(dbName);
+			dbManager.DBStorage = new StorageImpl();
 			dbManager.indexHelper = new IndexHelperImpl();
 			dbManager.Locker = new DbLocker();
-			if(!new File(dbname).isFile()) {
+			if(!new File(dbName).isFile()) {
 				System.out.println("File "+DBManager.getDBName()+" doesn't exist\nWould you like to create a new one now?(Y/N)");
 				BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 				String is_YorN= null;
@@ -145,13 +140,18 @@ public class DBManager {
 					
 					// Writing the database onto the disk
 					
-					DBstorage.writeData(DB_NAME, this.data);
+					DBStorage.writeData(DB_NAME, this.data);
 					set_DATA_USED(get_DATA_USED() + data.length);
-					System.out.println("Data related to key is " + key +", and size is " + data.length +" have written to " + DB_NAME);
-					
-					byte[] metadata = indexHelper.indexToBytes(indexes);
-					
-					DBstorage.writeMetaData(DB_NAME, metadata);
+					System.out.println("Data related to key is " + key + ", and size is " + data.length + " have written to " + DB_NAME);
+
+					//concat two kinds of meta date
+					byte[] tmp_meta1 = indexHelper.indexToBytes(indexes);
+					byte[] tmp_meta2 = indexHelper.tabMetaToBytes(tabMetadata);
+					byte[] metadata = new byte[tmp_meta1.length+tmp_meta2.length];
+					System.arraycopy(tmp_meta1, 0, metadata, 0, tmp_meta1.length);
+					System.arraycopy(tmp_meta2, 0, metadata, tmp_meta1.length, tmp_meta2.length);
+
+					DBStorage.writeMetaData(DB_NAME, metadata);
 					logger.info("Metadata updated on disk");
 		} catch (Exception e1) {
 			e1.printStackTrace();
@@ -192,7 +192,7 @@ public class DBManager {
 				}
 				returndata = new byte[start];
 				System.arraycopy(databuffer, 0, returndata, 0, start);
-				logger.info("Data with key " + key + " is " + returndata.toString());
+				logger.info("Data with key " + key + " is " + Arrays.toString(returndata));
 			} else {
 				System.out.println("No data with key "+ key +" exists in database.");
 			}
@@ -217,7 +217,7 @@ public class DBManager {
 			Locker.writeLock();
 			logger.info("Attempting to remove the data with key :" + key);
 			if (!indexes.containsKey(key)) {
-				System.out.println("No data with key " + key +" exists in database.Failed to remove.");
+				System.out.println("No data with key " + key + " exists in database.Failed to remove.");
 			} else {
 				// Removing the key in the metadata buffer and update the metadata file
 				int[] tmp = getPairSize(indexes.get(key));
@@ -225,7 +225,15 @@ public class DBManager {
 				this.set_DATA_USED(get_DATA_USED() - tmp[0]);
 				this.set_INDEXES_USED(get_INDEXES_USED() - tmp[1] );
 				logger.info("Metadata buffer updated");
-				DBstorage.writeMetaData(DB_NAME, indexHelper.indexToBytes(indexes));
+
+				//concat two kinds of meta date
+				byte[] tmp_meta1 = indexHelper.indexToBytes(indexes);
+				byte[] tmp_meta2 = indexHelper.tabMetaToBytes(tabMetadata);
+				byte[] metadata = new byte[tmp_meta1.length+tmp_meta2.length];
+				System.arraycopy(tmp_meta1, 0, metadata, 0, tmp_meta1.length);
+				System.arraycopy(tmp_meta2, 0, metadata, tmp_meta1.length, tmp_meta2.length);
+
+				DBStorage.writeMetaData(DB_NAME, metadata);
 				logger.info("Metadata updated on disk");
 				System.out.println("Data with key " + key + " is removed.");
 			}
@@ -245,16 +253,17 @@ public class DBManager {
 		//Read the database and upload the data into memory
 		byte[] metadata;
 		try{
-			data = DBstorage.readData(DB_NAME);
+			data = DBStorage.readData(DB_NAME);
 			logger.info("Data read in memory");
 		} catch (IOException e) {
 			e.printStackTrace();
 			System.out.println("Failed to read Data into memory");
 		}
 		try{
-			metadata = DBstorage.readMetaData(DB_NAME);
+			metadata = DBStorage.readMetaData(DB_NAME);
 			indexes = indexHelper.bytesToIndex(metadata);
-			indextosize();
+			tabMetadata=indexHelper.bytesToTabMeta(metadata);
+			indexToSize();
 			logger.info("Free Space left is:" + (DATA_SIZE - DATA_USED));
 			logger.info("Free Meta Space left is:" + (METADATA_SIZE - INDEXES_USED));
 			logger.info("Metadata read in Memory");
@@ -264,17 +273,17 @@ public class DBManager {
 		}
 	}
 	
-	private void indextosize() {
-		int indexsize = 0;
-		int datasize =0;
-		int[] tmp = new int[2];
+	private void indexToSize() {
+		int indexSize = 0;
+		int dataSize =0;
+		int[] tmp;
 		for (Map.Entry<Integer, Index> m : indexes.entrySet()) {
 			tmp = getPairSize (m.getValue());
-			datasize += tmp[0];
-			indexsize += tmp[1];
+			dataSize += tmp[0];
+			indexSize += tmp[1];
 		}
-		this.set_DATA_USED(datasize);
-		this.set_INDEXES_USED(indexsize);
+		this.set_DATA_USED(dataSize);
+		this.set_INDEXES_USED(indexSize);
 	}
 	
 	private static int[] getPairSize(Index index) {
@@ -298,7 +307,20 @@ public class DBManager {
 	public Map<Integer, Index> getIndexBuffer() {
 		return indexes;
 	}
-	
+
+	public void createTabMete(String tableName,List<Pair> attr){
+		List<Pair> pairs = new ArrayList<>();
+		//generate tid
+		int tid=0;
+		while(tabMetadata.keySet().contains(tid))
+			tid++;
+		pairs.add(new Pair<>(tid,tableName));
+		pairs.addAll(attr);
+		tabMetadata.put(tid, pairs);
+	}
+
+	public Map<Integer,List<Pair>> getTabMeta(){return tabMetadata;}
+
 	public int get_DATA_USED() {
 		return DATA_USED;
 	}
@@ -314,9 +336,22 @@ public class DBManager {
 	public void set_INDEXES_USED(int size) {
 		INDEXES_USED = size;
 	}
+
+	public void set_TABMETA_USED(DBManager dbm) {
+		int count = 0;
+		for (int tid : dbm.tabMetadata.keySet())
+			count+=dbm.tabMetadata.get(tid).size();
+		TABMETA_USED =count*(24);
+	}
+
+	public int get_TABMETA_USED(){return TABMETA_USED;}
+
+	public void set_METADATA_USED(){METADATA_USED=TABMETA_USED+INDEXES_USED;}
+
+	public int get_METADATA_USED(){return METADATA_USED;}
 	
-	public int getfreespace() {
-		return Storage.DATA_SIZE - DATA_USED;
+	public int getFreeSpace() {
+		return DATA_SIZE - DATA_USED;
 	}
 	
 	public void clear() {
@@ -328,11 +363,11 @@ public class DBManager {
 			logger.info("Clear : Metadata buffer updated");
 			set_INDEXES_USED(0);
 			byte[] metadata_buffer = new byte[0];
-			DBstorage.writeMetaData(DB_NAME, metadata_buffer);
+			DBStorage.writeMetaData(DB_NAME, metadata_buffer);
 			logger.info("Metadata updated on disk");
 			set_DATA_USED(0);
 			//System.out.println("Database Cleared!");
-			logger.info("Current Free Space is " + this.getfreespace());
+			logger.info("Current Free Space is " + this.getFreeSpace());
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
