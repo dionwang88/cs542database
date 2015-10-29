@@ -5,9 +5,7 @@
 [**Framework**](#0)				
 |------[Operating procedure](#9)		
 |------[metadata structure](#11)			
-|------[metadata transformation](#12)		
-|------[Physical data storage](#13)
-
+|------[Physical data storage](#13)<br/>
 [Main classes](#1)		
 |------[Storage](#2)		
 |------[StorageImpl](#3)		
@@ -15,18 +13,15 @@
 |------[Index](#5)			
 |------[IndexHelper](#6)		
 |------[IndexHelperImpl](#7)				
-|------[DBManager](#8)<br>
-|------[Dblocker](#17)				
+|------[DBManager](#8)<br/>
+|------[Dblocker](#17)<br/>			
 [Validation](#10)		
 |------[Fragment](#14)		
 |------[Concurrency control](#15)
+[Further Assumptions](#16)
 
 --
 
----
-#Shell Location:
-database/show.sh </br>
-Execute: ./database/show.sh
 
 #Framework<span id = "0"\>：
 ##Operating procedure<span id = "9"\>
@@ -37,7 +32,15 @@ The data/metadata will be stored as byte array. *StorageImpl* class will be resp
 The required functions--put, get and remove--are implemented within the *DBManager*. The *Index* will be modified after these operations. All these execution will happen in the main memory. Before the database is closed, all the *Index* in memory will be transformed back to byte array and then this array will be re-written into the disk.
 
 ##Metadata structure:<span id = "11"\>
-  
+ 
+### Storage-Metadata
+Assumptions & decisions:
+
+1. The start sign is one-byte number, which is -1. There is no other numbers--key, offset or length--to be negative. Any negative indexes are forbidden.
+2. Pair list in the class *Index* are sorted. Every times *indextobytes()* are called, the pair list in an index will be sorted by L's value.
+3. All the metadata will be converted into byte array. In this case, integer will be convert into 4 byte numbers. In other word, the key, offset and length all will be converted into 4 byte numbers. 
+4. There will be a three-byte reserved space for each record. They will be active when it's necessary in the future.
+
 #### indexMap:		
 This is a hash table: *Map\<K, V\>*. This structure will be used in the main memory.
 *K* is *Integer*, and *V* is a class of *Index*. indexMap will include the metadata in our database, and more detail will be stored in the class *Index*.
@@ -56,14 +59,9 @@ This class will contain metadata of a certain record, which key and index pairs.
 Pair class,*Pair\<L,R\>*, contains start position(or offset in data array) and length. Typically, one record will have one pair, but when free space are not available in whole multiple indexes are introduced to arrange the data into fragmental space. 	
 L is for array offset in data array, and R is for the length of the respective record(or the fragment of that record). Both L and R are int number, which is 4 bytes.
 
-##Physical/Memory metadata storage & transformation:<span id = "12"\>
-
-### Assumptions & decisions:
-
-1. The start sign is one-byte number, which is -1. There is no other numbers--key, offset or length--to be negative. Any negative indexes are forbidden.
-2. Pair list in the class *Index* are sorted. Every times *indextobytes()* are called, the pair list in an index will be sorted by L's value.
-3. All the metadata will be converted into byte array. In this case, integer will be convert into 4 byte numbers. In other word, the key, offset and length all will be converted into 4 byte numbers. 
-4. There will be a three-byte reserved space for each record. They will be active when it's necessary in the future.
+### *Table-Metadata*
+Assumptions & decisions:
+1. The start sign is one-byte number, which is -2. Still, there is no other numbers to be negative. 
 
 ##Data storage form<span id = "13"\>
 ### Assumptions & decisions:
@@ -120,7 +118,7 @@ A self-defined class. It is an offset-length pair for some record. The record ca
 |private static final byte KEYSIZE = Integer.BYTES|The size of the key. Since key is *int*, the size is 4 bytes.
 |private static final byte RESERVED=3|3 reserved byte-size numbers for the unexpected usage.
 |private int key|Key value of the record
-|private List<Pair<Integer, Integer>> indexes|A list of Pair class. It can store all the offset-length pairs for single record.
+|private List\< Pair\<Integer, Integer> > indexes|A list of Pair class. It can store all the offset-length pairs for single record.
 #####Method:
 |method name|description|
 |---|---|
@@ -179,7 +177,7 @@ DbLocker will provide DBManger with a re-entrant ReadWrite lock so as to ensure 
 |ReadUnlock()|Unlocks the ReadLock.
 |writeLock()|Grant write access to the current thread.
 |writeUnlock()|Unlocks the writeLock.
-#Validation<span id = "10"\>
+#Validation(P1)<span id = "10"\>
 ##Fragment <span id = "14"\>
 
 ### To solve the fragment problem:
@@ -267,7 +265,7 @@ To validate concurrency control over the database, we tried the following experi
 
 We wrote a class named Threadtest that can carry out a specific list of operations on the database according to the user's request. Then we instantiated several Threads of this and assigned different tasks to them. These tasks should be carried out in a sequence that follows our assumption and decisions of concurrency control.
 
-There are three threads in our experiment, and named as Thread 1, 2 and 3. All threads are assigned the same key (key 11), but with different value. Thread 1's tasks are to read and remove; Thread 2's are to write and read; Thread 3 is schedlued to remove and write. Thread got 66051 , Thread 2 got 330255 and Thread 3 is 660510. For test purposes the key 11 is put with 66051 first.
+There are three threads in our experiment, and named as Thread 1, 2 and 3. All threads are assigned the same key (key 11), but with different value. Thread 1's tasks are to read and remove; Thread 2's are to write and read; Thread 3 is scheduled to remove and write. Thread got 66051 , Thread 2 got 330255 and Thread 3 is 660510. For test purposes the key 11 is put with 66051 first.
 
 Below are the test results:
 
@@ -277,4 +275,57 @@ From above we can see after all three threads hadstarted, the first task of Thre
 
 
 ---	
+# Further Assumptions in Project 2<span id = "16"\>
 
+###Table-Metadata
+We add a new type of metadata--table metadata--to store the table information so that multi-attribute based on project 1 can be implemented.	
+
+Assumptions:
+
+1. Table metadata contains start sign, reserved bytes(3 bytes), table id, table name, attributes numbers, attribute names and lengths.
+1. The start sign of table-metadata is one-byte number, which is -2. Still, there is no other numbers to be negative.
+2. There are some reserved bytes, which could be used in an unexpected way and make flag searching efficient.
+2. table id, is 4-byte integer and non-negative, so max table number is 2^31.
+3. Table names will occupy 16 bytes, including 2-byte flags and max 14 table name length.
+4. Attribute number is 4-byte integer and non-negative. 
+5. Attribute names will occupy 16 bytes, including 2-byte flags and max 14 table name length.
+6. Attribute type is 4 bytes and indicates the data type of the domain. We assumed 1 is int, and 0 is String.
+4. Attribute length is 4-byte integer and non-negative. We also assumed that all the attributes have fixed length, so length may be pre-set.
+
+
+#### Physical Structure
+|start sign(1B)|reserved bytes(3B)|tab id(4B)|tab name(16B)|attribute 1(24B)|attribute 2(24B)|...
+|---|---|---|---|---|---|---|---|---|
+For each attribute:
+
+|attribute name(16B)|attribute type(4B)|attribute length(4B)|
+|---|---|---|
+Every attribute/table name are divided into two parts, which are both 7 bytes.
+
+|search flag(1B)|attribute/table name part 1(7B)|search flag(1B)|attribute/table name part 2(7B)|
+|---|---|---|---|
+
+#### Memory Structure
+Table metadata:
+> Map\<String table_name, List\<Pair\> tableMeta\>
+	
+tableMetadata
+> List\<Pair pairs\>
+
+First pair in the list:
+>Pair\<int tab\_id,String tab\_name\>
+
+The rest of pairs:
+>Pair\<String attribute\_name,Pair attribute\_info\_Pair\>
+
+attribute\_info\_Pair\:
+>Pair\<int attribute\_type, int attribute\_length\>
+
+###Relation
+For now, we assumed that we only have one relation in our database. We will add relation class in the future project.
+
+###Index
+Based on the project 1, we add three methods to realize the indexing mechanism.
+#### put
+#### get
+#### remove

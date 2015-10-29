@@ -1,16 +1,10 @@
 package project;
 
 import java.io.*;
-import java.lang.reflect.Array;
-import java.util.Arrays;
-import java.util.stream.Stream;
 
-import com.sun.corba.se.spi.ior.WriteContents;
-import com.sun.deploy.util.ArrayUtil;
-import com.sun.tools.javac.util.ArrayUtils;
+import java.util.Arrays;
 import org.apache.commons.io.IOUtils;
 
-import static project.Storage.DATA_SIZE;
 
 /**
  * Implementation of the Storage Interface.
@@ -38,12 +32,14 @@ public class StorageImpl implements Storage {
 	}
 	
 	@Override
+	//return the byte array data part of the given filename
 	public byte[] readData(String fileName) throws IOException{
 		byte[] data= readOutDataBase(fileName);
 		return Arrays.copyOfRange(data,0,DATA_SIZE);
 	}
 	
 	@Override
+	//write given byte array data into the given file with
 	public void writeData(String fileName, byte[] data) throws Exception {
 		// Verify the data size cannot exceed the DATA_SIZE
 		if(data.length > DATA_SIZE) 
@@ -52,6 +48,7 @@ public class StorageImpl implements Storage {
 	}
 
 	@Override
+	//write given metadata into file
 	public void writeMetaData(String fileName, byte[] metadata) throws Exception {
 		// Verify the data size cannot exceed the METADATA_SIZE
 		if (metadata.length > METADATA_SIZE)
@@ -66,13 +63,15 @@ public class StorageImpl implements Storage {
 	 * 3. The index in the data array
 	 * 4. The amount of bytes of this index in the data array
 	 */
+	//read metadata out of given file
 	public byte[] readMetaData(String fileName) throws IOException{
 		byte[] data=readOutDataBase(fileName);
 		return Arrays.copyOfRange(data,DATA_SIZE,data.length);
 	}
 
+	//read information in database, if it does not exists, then create.
 	private byte[] readOutDataBase(String fileName) throws IOException{
-		InputStream inputstream = null;
+		InputStream inputstream;
 		byte[] out;
 		try {
 			inputstream = new FileInputStream(fileName);
@@ -97,11 +96,12 @@ public class StorageImpl implements Storage {
 		return out;
 	}
 
+	//write data or metadata into a file
 	private void writeIntoDataBase(String fileName,byte[] writeContent, boolean isData) throws IOException{
 		byte[] out;
 		if(isData){
 			out = readOutDataBase(fileName);
-			for (int i = 0; i < writeContent.length; i++) out[i]=writeContent[i];
+			System.arraycopy(writeContent, 0, out, 0, writeContent.length);
 		}
 		else{
 			out=new byte[DATA_SIZE+writeContent.length];

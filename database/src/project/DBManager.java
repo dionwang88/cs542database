@@ -31,7 +31,6 @@ public class DBManager {
 	
 	// Size of data and metadata
 	private static final int DATA_SIZE = Storage.DATA_SIZE;
-	
 	public static final int METADATA_SIZE = Storage.METADATA_SIZE;
 
 	// Names of Data and Metadata
@@ -44,6 +43,8 @@ public class DBManager {
 	 */
 
 	private Map<Integer, Index> indexes;
+
+	private Map<String, List> tabMetaData;
 	
 	//Locker controls the concurrency of the database.
 	private DbLocker Locker;
@@ -54,7 +55,6 @@ public class DBManager {
 	 */
 	private Storage DBstorage;
 	private IndexHelper indexHelper;
-	
 	private DBManager(String dbname){
 		DB_NAME=dbname;
 	}

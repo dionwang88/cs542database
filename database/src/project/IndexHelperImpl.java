@@ -1,17 +1,11 @@
 package project;
 
-
-
+import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Hashtable;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.Logger;
-
 
 /**
  * This class provides the methods of how to manipulate the index
@@ -171,7 +165,6 @@ public class IndexHelperImpl implements IndexHelper {
 		dbmanager.setData(db_data);
 	}
 	
-	
 	public int getIndexSize(List<Pair<Integer,Integer>> pairs_list) {
 		int space_used = Index.getReservedSize()+1+Index.getKeySize()
 				+ pairs_list.size() * 2 * Integer.BYTES;
@@ -180,8 +173,6 @@ public class IndexHelperImpl implements IndexHelper {
 	
 	@Override
 	public byte[] indexToBytes(Map<Integer, Index> indexes) {
-
-
 		// calculate byte array size firstly.
 		int indexpairnumb=0;
 		int indexnumb=indexes.keySet().size();
@@ -190,7 +181,6 @@ public class IndexHelperImpl implements IndexHelper {
 			indexpairnumb+=index.getIndexes().size();
 		}
 		byte[] outbyte = new byte[indexnumb*(Index.getReservedSize()+Index.getKeySize()+1)+indexpairnumb*Integer.BYTES*2];
-        //System.out.println("calculate the size of output byte[] is:"+outbyte.length);
 
 		//convert indexMap to byte array
 		int offset=0;
@@ -198,14 +188,12 @@ public class IndexHelperImpl implements IndexHelper {
 			Index index=indexes.get(key);
 			//make sure pairs are sorted
 			index.sortpairs();
-			outbyte[offset++]=IndexHelper.START_SIGN;
-            //System.out.println("converted #"+key+" start_sign");
+			outbyte[offset++]=INDEX_START_SIGN;
 
 			//add reserved bytes
 			for (int i = 0; i <Index.getReservedSize() ; i++) {
 				outbyte[offset++]=0;
 			}
-			//System.out.println("added reserved bytes");
 
 			//covert key from int to byte[]
 			if(index.getKey()<0) throw new Error("Key value can't be negative!");
@@ -213,7 +201,6 @@ public class IndexHelperImpl implements IndexHelper {
             for (byte aBytekey : bytekey) {
                 outbyte[offset++] = aBytekey;
             }
-            //System.out.println("converted #"+key+" key");
 
             //convert pairs to byte[]
             List<Pair<Integer, Integer>> l= index.getIndexes();
@@ -226,36 +213,25 @@ public class IndexHelperImpl implements IndexHelper {
                     offset++;
                 }
                 offset+=Integer.BYTES;
-                //System.out.println("converted #"+key+"'s #"+(offset-8)/8+" pair");
             }
-
 		}
 		return outbyte;
-
 	}
-	
-	/**
-	 * 1. An index start sign
-	 * 2. Key
-	 * 3. The index in the data array
-	 * 4. The amount of bytes of this index in the data array
-	 */
+
 	@Override
 	public Map<Integer, Index> bytesToIndex(byte[] metadata) {
 		Map<Integer,Index> returnmap= new Hashtable<>();
 		int offset=0;
-		int search_span=Index.getReservedSize()+1+Index.getKeySize();
+		int search_span=4+Index.getKeySize();
 		int pair_size=Integer.BYTES*2;
 		while(offset<metadata.length){
 			//search header
 			if (metadata[offset]==-1){
-				//System.out.println("found a start sign at " + offset);
 
 				//get key
 				int key_in_record=0;
 				int key_start=offset+1+Index.getReservedSize();
 				key_in_record=bytestoint(metadata,key_start);
-				//System.out.println("key # is: " + key_in_record);
 
 				//get pairs
 				offset+=search_span;// skip the head to pairs
@@ -274,7 +250,6 @@ public class IndexHelperImpl implements IndexHelper {
 					//data_used += r;
 					if(offset>= metadata.length) break;
 				}
-				//System.out.println("got pairs " + pairlist.toString());
 
 				//make index
 				Index index=new Index();
@@ -284,21 +259,142 @@ public class IndexHelperImpl implements IndexHelper {
 				returnmap.put(key_in_record,index);
 
 			} else {
-				System.out.println("test this line may not appear, so this else could be redundant");
 				offset += search_span;
 			}
 		}
-		//this.dbmanager.set_INDEXES_USED(index_used);
-		//this.dbmanager.set_DATA_USED(data_used);
 		return returnmap;
 	}
 
-    private static byte[] inttobytes(int intnumb){
+	public byte[] tabMatatoBytes(Map<String,List<Pair>> tabMetadata){
+		int offset=0,count=0;
+		for(String tname:tabMetadata.keySet()){
+			for(Pair p:tabMetadata.get(tname)){
+				count++;
+			}
+		}
+		//init the byte array
+		byte[] return_byte=new byte[count*(1+3+16+4)];
+		for(String tname:tabMetadata.keySet()){
+			//start flag
+			return_byte[offset]=TAB_START_SIGN;
+			//reserved bytes
+			for(int i=offset+1;i<offset+1+TAB_META_RESERVED;i++) return_byte[i]=0;
+			offset+=(1+TAB_META_RESERVED);
+
+			//pairs start
+			for(int i=0;i<tabMetadata.get(tname).size();i++){
+				Pair p=tabMetadata.get(tname).get(i);
+				if(i==0){
+					int tid= (int) p.getLeft();
+					String tab_str_name=(String) p.getRight();
+					tab_str_name=tab_str_name+new String(new char[14-tab_str_name.length()]).replace("\0", " ");
+					byte[] tab_name=tab_str_name.getBytes();
+					//copy tid
+					System.arraycopy(inttobytes(tid),0,return_byte,offset,4);
+					offset+=4;
+					//copy first part of tab name
+					return_byte[offset++]=0;
+					System.arraycopy(tab_name,0,return_byte,offset,7);
+					offset+=7;
+					//second part
+					return_byte[offset++]=0;
+					System.arraycopy(tab_name,7,return_byte,offset,7);
+					offset+=7;
+				}
+				else{
+					String attr_str_name=(String) p.getLeft();
+					attr_str_name=attr_str_name+new String(new char[14-attr_str_name.length()]).replace("\0", " ");
+					byte[] attr_name=attr_str_name.getBytes();
+					int attr_type=(int) ((Pair) p.getRight()).getLeft();
+					Object attr_length = ((Pair) p.getRight()).getRight();
+					//copy attr name (first part)
+					return_byte[offset++]=0;
+					System.arraycopy(attr_name,0,return_byte,offset,7);
+					offset+=7;
+					//second part
+					return_byte[offset++]=0;
+					System.arraycopy(attr_name,7,return_byte,offset,7);
+					offset+=7;
+					//copy type
+					System.arraycopy(inttobytes(attr_type),0,return_byte,offset,4);
+					offset+=4;
+					//copy length
+					System.arraycopy(inttobytes((Integer) attr_length),0,return_byte,offset,4);
+					offset+=4;
+				}
+			}
+		}
+		return return_byte;
+	}
+
+	public Map<String, List<Pair>> bytesToTabMeta(byte[] metadata){
+		Map<String, List<Pair>> return_map=new Hashtable<>();
+		int offset=0,search_span=8;
+		while(offset<metadata.length){
+			int pair_no=0;
+			if(metadata[offset]==-2){
+				List<Pair> pairlist=new ArrayList<>();
+				offset+=4;
+
+				//table id
+				int tid=bytestoint(metadata,offset);
+				offset+=Integer.BYTES;
+				//table name
+				byte[] tab_name=new byte[14];
+				System.arraycopy(metadata,offset+1,tab_name,0,7);
+				offset+=8;
+				System.arraycopy(metadata,offset+1,tab_name,6,7);
+				offset+=8;
+				String tab_str_name= null;
+				try {
+					tab_str_name = new String(tab_name,"UTF-8").trim();
+				} catch (UnsupportedEncodingException e) {
+					e.printStackTrace();
+				}
+				//put first pair
+				Pair<Integer,String> p1=new Pair<>(tid,tab_str_name);
+				pairlist.add(pair_no++, p1);
+
+				while(offset<metadata.length&&metadata[offset]>=0){
+					//attr name
+					byte[] attr_name=new byte[14];
+					System.arraycopy(metadata,offset+1,attr_name,0,7);
+					offset+=8;
+					System.arraycopy(metadata,offset+1,attr_name,6,7);
+					offset+=8;
+					String attr_str_name= null;
+					try {
+						attr_str_name = new String(attr_name,"UTF-8").trim();
+					} catch (UnsupportedEncodingException e) {
+						e.printStackTrace();
+					}
+					//attr type
+					int attr_type=bytestoint(metadata, offset);
+					offset+=Integer.BYTES;
+					//attr length
+					int attr_len=bytestoint(metadata,offset);
+					offset+=Integer.BYTES;
+
+					//add rest pairs
+					Pair<Integer,Integer> p2=new Pair<>(attr_type,attr_len);
+					Pair<String,Pair> p3=new Pair<>(attr_str_name,p2);
+					pairlist.add(pair_no++, p3);
+				}
+				//put tab into map
+				return_map.put(tab_str_name,pairlist);
+			}
+			else offset+=search_span;
+		}
+		return return_map;
+	}
+
+	private static byte[] inttobytes(int intnumb){
 		/**
 		 * convert integer into a 4 bytes byte array
 		 */
         return ByteBuffer.allocate(Integer.BYTES).putInt(intnumb).array();
     }
+
 	private static int bytestoint(byte[] b,int start_offset) {
 		/**
 		 * This function will, given a byte array and start,
@@ -312,25 +408,35 @@ public class IndexHelperImpl implements IndexHelper {
 		}
 		return numb;
 	}
-	
 
-	@Override
 	public void addIndex(Index index) {
 
 	}
-
-	@Override
 
 	public void removeIndex(Integer Key) {
 
 	}
 
-
 	public void updateIndex(Index index) {
 
 	}
-	@Override
+
 	public Map<Integer, Index> getIndexesBuffer() {
 		return null;
+	}
+
+	public static void main(String[] args){
+		//test tabmetadata transform
+		Map<String,List<Pair>> tabMetadata = new Hashtable<>();
+		List<Pair> listpairs = new ArrayList<>();
+		listpairs.add(new Pair(0,"Movies"));
+		listpairs.add(new Pair("movieID", new Pair(0,10)));
+		tabMetadata.put("Movies", listpairs);
+		IndexHelper t=new IndexHelperImpl();
+		byte[] b=t.tabMatatoBytes(tabMetadata);
+		System.out.println(b.length);
+		for (byte aB : b) System.out.println(aB);
+		tabMetadata=t.bytesToTabMeta(b);
+		System.out.println(tabMetadata.toString());
 	}
 }
