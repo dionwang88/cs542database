@@ -37,7 +37,7 @@ public class DBManagerTest {
 		}
 		dbmanager.clear();
 		dbmanager.createTabMete("Movies", attrs);
-		dbmanager.ReadFile("/Users/Xiang/Documents/GitHub/cs542database/database/movies.txt", 0);
+		dbmanager.ReadFile("movies.txt", 0);
 		System.out.println(dbmanager.getAttribute(1, "Title"));
 	}
 }
