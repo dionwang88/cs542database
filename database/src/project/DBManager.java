@@ -400,6 +400,7 @@ public class DBManager {
 			set_DATA_USED(0);
 			//System.out.println("Database Cleared!");
 			logger.info("Current Free Space is " + this.getFreeSpace());
+			tabMetadata.clear();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -447,7 +448,7 @@ public class DBManager {
 				for (int j = 0; j < record.length; j ++){
 					if (AttrType[j] == 1) {
 						if (AttrLength[j] > record[j].length()){
-							for (int k =0; k < AttrLength[j] - record[j].length(); k++){
+							for (;AttrLength[j] > record[j].length();){
 								record[j] = record[j] +" ";
 							}
 						}else{
@@ -478,7 +479,7 @@ public class DBManager {
 			}
 		}
 	}
-	System.out.println("Reading" + Filepath + " Done");
+	System.out.println("Reading " + Filepath + " is Done");
 	}
 	
 	private byte[] concat(byte[] a, byte[] b) {
