@@ -6,12 +6,27 @@ import java.util.*;
 import java.util.Map.Entry;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.Logger;
+import java.io.IOException;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 
-/**
- * This class provides the methods of how to manipulate the index
- * @author wangqian
- *
- */
+class Serializer {
+	public static byte[] serialize(Object obj) throws IOException {
+		ByteArrayOutputStream b = new ByteArrayOutputStream();
+		ObjectOutputStream o = new ObjectOutputStream(b);
+		o.writeObject(obj);
+		return b.toByteArray();
+	}
+
+	public static Object deserialize(byte[] bytes) throws IOException, ClassNotFoundException {
+		ByteArrayInputStream b = new ByteArrayInputStream(bytes);
+		ObjectInputStream o = new ObjectInputStream(b);
+		return o.readObject();
+	}
+}
+
 public class IndexHelperImpl implements IndexHelper {
 	
 	Logger logger = (Logger) LogManager.getLogger();
@@ -165,8 +180,7 @@ public class IndexHelperImpl implements IndexHelper {
 	public int getIndexSize(List<Pair<Integer,Integer>> pairs_list) {
 		return Index.getReservedSize()+1+Index.getKeySize()+pairs_list.size()*2*Integer.BYTES;
 	}
-	
-	@Override
+
 	public byte[] indexToBytes(Map<Integer, Index> indexes) {
 		// calculate byte array size firstly.
 		int indexpairnumb=0;
@@ -213,7 +227,6 @@ public class IndexHelperImpl implements IndexHelper {
 		return outbyte;
 	}
 
-	@Override
 	public Map<Integer, Index> bytesToIndex(byte[] metadata) {
 		Map<Integer,Index> returnmap= new Hashtable<>();
 		int offset=0;
@@ -379,6 +392,61 @@ public class IndexHelperImpl implements IndexHelper {
 		return return_map;
 	}
 
+	public byte[] hastabToBytes(Map hashTab){
+		//fetch the index hashtab
+		byte[] transformed_data=null;
+		try {
+			transformed_data=Serializer.serialize(hashTab);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		//calculate the storage byte size
+		byte[] returned_byte=new byte[8+(transformed_data.length+6)+(transformed_data.length+6)/7-(transformed_data.length+6)%7];
+
+		//metadata length
+		byte[] len=intToByte(transformed_data.length);
+		//insert flag
+		for(int offset=0,t_offset=0;t_offset<transformed_data.length;offset++){
+			if(offset%8==0)
+				returned_byte[offset]=-3;
+			else if(offset<4){
+				returned_byte[offset]=0;
+			}else if(offset<8){
+				returned_byte[offset]=len[offset%4];
+			}
+			else returned_byte[offset]=transformed_data[t_offset++];
+		}
+		return returned_byte;
+	}
+
+	public Map bytesToHashtab(byte[] metadata){
+		Map returned_map = null;
+		int count=1;
+		for(int i=0;i<metadata.length;i+=8)
+			if(metadata[i]==-3)
+				count++;
+		byte[] transformed_data= new byte[count*7];
+		for(int offset=0,t_offset=0;offset<metadata.length;){
+			if(metadata[offset++]==-3){
+				System.arraycopy(metadata,offset,transformed_data,t_offset,7);
+				offset+=7;
+				t_offset+=7;
+			}
+			else offset++;
+		}
+		int len=byteToInt(transformed_data,3);
+		byte[] trimed= new byte[len];
+		System.arraycopy(transformed_data, 7, trimed, 0, len);
+
+		try {
+			returned_map= (Map) Serializer.deserialize(trimed);
+		} catch (IOException | ClassNotFoundException e) {
+			e.printStackTrace();
+		}
+		return returned_map;
+	}
+
 	static byte[] intToByte(int intnumb){
 		/**
 		 * convert integer into a 4 bytes byte array
@@ -401,24 +469,11 @@ public class IndexHelperImpl implements IndexHelper {
 	}
 
 	public static void main(String[] args){
-		DBManager dbm=DBManager.getInstance();
-		//test tabmetadata transform
-		Map<Integer,List<Pair>> tabMetadata = new Hashtable<>();
-		List<Pair> listpairs = new ArrayList<>();
-		//listpairs.add(new Pair<>(1,"movieID"));
-		listpairs.add(new Pair<>("_movieId", new Pair<>(1,10)));
-		listpairs.add(new Pair<>("movieName", new Pair<>(0, 16)));
-		dbm.createTabMete("movies",listpairs);
-		//tabMetadata.put(1, listpairs);
+		DBManager dbm= DBManager.getInstance();
+		IndexHelper ih=new IndexHelperImpl();
+		byte[] b=ih.hastabToBytes(dbm.getTabMeta());
+		Map m=ih.bytesToHashtab(b);
+			System.out.println(dbm.getTabMeta());
 
-		IndexHelper t=new IndexHelperImpl();
-		byte[] b=t.tabMetaToBytes(dbm.getTabMeta());
-		for (byte aB : b) System.out.println(aB);
-		tabMetadata=t.bytesToTabMeta(b);
-		System.out.println(tabMetadata.toString());
-
-		byte[] rec=null;
-		//dbm.getAttribute()
-		dbm.close();
 	}
 }

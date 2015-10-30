@@ -52,4 +52,7 @@ public interface IndexHelper {
 
 	byte[] tabMetaToBytes(Map<Integer, List<Pair>> tabMetadata);
 	Map<Integer, List<Pair>>  bytesToTabMeta(byte[] metadata);
+
+	byte[] hastabToBytes(Map hashTab);
+	Map bytesToHashtab(byte[] metadata);
 }
