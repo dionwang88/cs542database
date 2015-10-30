@@ -5,7 +5,7 @@ import java.util.List;
 
 import project.DBManager;
 import project.Pair;
-
+import project.AttrIndex;;
 public class DBManagerTest {
 	public static void main(String[] args) {
 		DBManager dbmanager = DBManager.getInstance();
@@ -38,6 +38,8 @@ public class DBManagerTest {
 		dbmanager.clear();
 		dbmanager.createTabMete("Movies", attrs);
 		dbmanager.ReadFile("movies.txt", 0);
-		System.out.println(dbmanager.getAttribute(3,"Price"));
+		System.out.println(dbmanager.getAttribute(2,"Title"));
+		AttrIndex<Integer> index1 = new AttrIndex<Integer>("Year");
+		System.out.println(index1);
 	}
 }

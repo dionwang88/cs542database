@@ -389,6 +389,7 @@ public class DBManager {
 			int i = 1;
 			while ((line = br.readLine()) != null) {
 				String[] record = line.split(sep);
+				bytedata = null;
 				for (int j = 0; j < record.length; j ++){
 					if (AttrType[j] == 1) {
 						if (AttrLength[j] > record[j].length()){
