@@ -27,18 +27,14 @@ import org.apache.commons.io.IOUtils;
 
 public class StorageImpl implements Storage {
 
-	public StorageImpl(){
+	public StorageImpl(){}
 
-	}
-	
-	@Override
 	//return the byte array data part of the given filename
 	public byte[] readData(String fileName) throws IOException{
 		byte[] data= readOutDataBase(fileName);
 		return Arrays.copyOfRange(data,0,DATA_SIZE);
 	}
-	
-	@Override
+
 	//write given byte array data into the given file with
 	public void writeData(String fileName, byte[] data) throws Exception {
 		// Verify the data size cannot exceed the DATA_SIZE
@@ -47,22 +43,24 @@ public class StorageImpl implements Storage {
 		writeIntoDataBase(fileName,data,true);
 	}
 
-	@Override
 	//write given metadata into file
-	public void writeMetaData(String fileName, byte[] metadata) throws Exception {
+	public void writeMetaData(String fileName,DBManager dbm) throws Exception {
+		//merge three kinds of meta first
+		IndexHelper ih=new IndexHelperImpl();
+		byte[] index_meta=ih.indexToBytes(dbm.getIndexBuffer());
+		byte[] table_meta=ih.tabMetaToBytes(dbm.getTabMeta());
+		byte[] uncl_index_meta=ih.hastabToBytes(dbm.getUnclstrIndex());
+		byte[] metadata=new byte[index_meta.length+table_meta.length+uncl_index_meta.length];
+		System.arraycopy(index_meta,0,metadata,0,index_meta.length);
+		System.arraycopy(table_meta,0,metadata,index_meta.length,table_meta.length);
+		System.arraycopy(uncl_index_meta,0,metadata,index_meta.length+table_meta.length,uncl_index_meta.length);
+
 		// Verify the data size cannot exceed the METADATA_SIZE
 		if (metadata.length > METADATA_SIZE)
 			throw new Exception("The metadata size is exceed the requirement!");
 		writeIntoDataBase(fileName,metadata,false);
 	}
 
-	@Override
-	/**
-	 * 1. An index start sign
-	 * 2. Key
-	 * 3. The index in the data array
-	 * 4. The amount of bytes of this index in the data array
-	 */
 	//read metadata out of given file
 	public byte[] readMetaData(String fileName) throws IOException{
 		byte[] data=readOutDataBase(fileName);

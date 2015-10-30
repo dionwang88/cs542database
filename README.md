@@ -330,7 +330,9 @@ Return metadata array of table metadata, than when we write metadata into db fil
 ##Relation And DbManager
 For now, we assumed that we **only have one relation** in our database. We will add relation class in the future project. In other word, we don't have relation class now, and all the interface are under the class DBManager. We will finish this part in the next project.
 ##Index
-Based on the project 1, we add three methods to realize the indexing mechanism.
+Based on the project 1, we add three methods to realize the indexing mechanism. In the project 1, we have already realized clustered index, which is based on key, or rather rid. Now we need to construct unclustered index based on other attributes.
 #### put
 #### get
 #### remove
+
+We also add two methods, **hashtabToBytes()** and **bytesToHashtab()** to Indexhelper to transform index between memory and physical storage.

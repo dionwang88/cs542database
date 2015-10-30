@@ -7,7 +7,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.Logger;
 
 /**
- * DBManager is to manager database, including manage storage data and the indexes
+ * DBManager is to manager database, including manage storage data and the clusteredIndexes
  * @author wangqian
  *
  */
@@ -15,36 +15,23 @@ public class DBManager {
 	Logger logger = (Logger) LogManager.getLogger();
    
 	private static DBManager dbManager = null;
-	
-	// database is to be contain the data
-	private byte[] data;
-	
-	// Keep track of how much space is used in data
-	private int DATA_USED;
 
-	// Keep track of how much space is used in index metadata
-	private int INDEXES_USED;
-
-	// Keep track of how much space is used in table metadata
-	private int TABMETA_USED;
-
-	// Keep track of how much space is used in metadata
-	private int METADATA_USED;
-
-	// Size of data and metadata
-	private static final int DATA_SIZE = Storage.DATA_SIZE;
-	public static final int METADATA_SIZE = Storage.METADATA_SIZE;
-
-	// Names of Data and Metadata
-	private static String DB_NAME;
-	
+	private byte[] data;// database is to be contain the data
+	private int DATA_USED;// Keep track of how much space is used in data
+	private int INDEXES_USED;// Keep track of how much space is used in index metadata
+	private int METADATA_USED;// Keep track of how much space is used in metadata
+	private static final int DATA_SIZE = Storage.DATA_SIZE;// Size of data
+	public static final int METADATA_SIZE = Storage.METADATA_SIZE;// Size of metadata
+	private static String DB_NAME;// Names of Data and Metadata
 	
 	/**
-	 * indexes is to be contain the indexes in the metadata
+	 * clusteredIndexes is to be contain the clusteredIndexes in the metadata
 	 * Key is the index key
 	 * List is the index of that key
 	 */
-	private Map<Integer, Index> indexes;
+	private Map<Integer, Index> clusteredIndexes;
+
+	private Map<String, Object> unclusteredIndexes;
 
 	private Map<Integer,List<Pair>> tabMetadata;
 	
@@ -52,10 +39,11 @@ public class DBManager {
 	private DbLocker Locker;
 	private Storage DBStorage;
 	private IndexHelper indexHelper;
-	private DBManager(String dbname){
-		DB_NAME=dbname;
-	}
 
+
+	//Method---------------------------------------
+	private DBManager(String dbname) {DB_NAME=dbname;}
+	public static void close(){dbManager=null;}
 	public static String getDBName(){return DB_NAME;}
 	public static DBManager getInstance(String dbName){
 		if (dbManager == null){
@@ -83,14 +71,34 @@ public class DBManager {
 		
 		return dbManager;
 	}
-	public static DBManager getInstance(){
-		return getInstance("cs542.db");
+	public static DBManager getInstance(){return getInstance("cs542.db");}
+	public byte[] getData() {return data;}
+	public void setData(byte[] database) {this.data = database;}
+	public void readDatabase(){
+		//Read the database and upload the data into memory
+		byte[] metadata;
+		try{
+			data = DBStorage.readData(DB_NAME);
+			logger.info("Data read in memory");
+		} catch (IOException e) {
+			e.printStackTrace();
+			System.out.println("Failed to read Data into memory");
+		}
+		try{
+			metadata = DBStorage.readMetaData(DB_NAME);
+			clusteredIndexes = indexHelper.bytesToIndex(metadata);
+			tabMetadata=indexHelper.bytesToTabMeta(metadata);
+			unclusteredIndexes = indexHelper.bytesToHashtab(metadata);
+			indexToSize();
+			logger.info("Free Space left is:" + (DATA_SIZE - DATA_USED));
+			logger.info("Free Meta Space left is:" + (METADATA_SIZE - METADATA_USED));
+			logger.info("Metadata read in Memory");
+		} catch (IOException e) {
+			e.printStackTrace();
+			System.out.println("Failed to read MataData into memory");
+		}
 	}
-	public static void close(){
-		dbManager=null;
-	}
-	
-	
+	//*******three main methods*********
 	public void Put(int key, byte[] data) {
 		/**
 		 * In order to avoid during saving period rebooting, we save the data file first and then save the metadata.
@@ -99,7 +107,7 @@ public class DBManager {
 		 * 			including reading threads will wait until the saving thread complete.
 		 * 		2. Locate the saving index:  call the method of findFreeSpaceIndex
 		 * 		3. Save the data to data part.
-		 * 		4. Save the indexes information to metadata part.
+		 * 		4. Save the clusteredIndexes information to metadata part.
 		 * 		5. Update the metadata buffer in memory
 		 * 
 		 * Params:  key -- data key
@@ -110,7 +118,7 @@ public class DBManager {
 			Locker.writeLock();			
 			logger.info("Attempting to put key: " + key + "to database");
             //if key already exists in the database, update it by removing it first.
-			if (indexes.containsKey(key)){
+			if (clusteredIndexes.containsKey(key)){
 				Remove(key);
 			}
 			// if database is going to be out of volume, block the put attempt.
@@ -127,29 +135,22 @@ public class DBManager {
 					tmpindex.setKey(key);
 					tmpindex.setIndexes(index_pairs);
 					int indexsize = indexHelper.getIndexSize(index_pairs);
-					if (indexsize + INDEXES_USED + TABMETA_USED > METADATA_SIZE) {
+					if (indexsize + METADATA_USED > METADATA_SIZE) {
 						System.out.println("Not enough metadata space left. Put Attempt with key "
 					+ key + " Failed.");
 						return;
 					}
-					indexes.put(key, tmpindex);
+					clusteredIndexes.put(key, tmpindex);
 					set_INDEXES_USED(get_INDEXES_USED() + indexsize);
 					logger.info("Metadata buffer updated");
 					
 					// Writing the database onto the disk
 					
 					DBStorage.writeData(DB_NAME, this.data);
-					set_DATA_USED(get_DATA_USED() + data.length);
-					System.out.println("Data related to key is " + key + ", and size is " + data.length + " have written to " + DB_NAME);
+			set_DATA_USED(get_DATA_USED() + data.length);
+			System.out.println("Data related to key is " + key + ", and size is " + data.length + " have written to " + DB_NAME);
 
-					//concat two kinds of meta date
-					byte[] tmp_meta1 = indexHelper.indexToBytes(indexes);
-					byte[] tmp_meta2 = indexHelper.tabMetaToBytes(tabMetadata);
-					byte[] metadata = new byte[tmp_meta1.length+tmp_meta2.length];
-					System.arraycopy(tmp_meta1, 0, metadata, 0, tmp_meta1.length);
-					System.arraycopy(tmp_meta2, 0, metadata, tmp_meta1.length, tmp_meta2.length);
-
-					DBStorage.writeMetaData(DB_NAME, metadata);
+					DBStorage.writeMetaData(DB_NAME, dbManager);
 					logger.info("Metadata updated on disk");
 		} catch (Exception e1) {
 			e1.printStackTrace();
@@ -180,8 +181,8 @@ public class DBManager {
 		try {
 			Locker.ReadLock();
 			logger.info("Attempting to get data mapped to key :" + key);
-			if (indexes.containsKey(key)) {
-				List<Pair<Integer, Integer>> index = indexes.get(key).getIndexes();
+			if (clusteredIndexes.containsKey(key)) {
+				List<Pair<Integer, Integer>> index = clusteredIndexes.get(key).getIndexes();
 				//extracting the mapped data from the data in memory;
 				int start = 0;
 				for (Pair<Integer, Integer> p : index) {
@@ -214,24 +215,16 @@ public class DBManager {
 		try {
 			Locker.writeLock();
 			logger.info("Attempting to remove the data with key :" + key);
-			if (!indexes.containsKey(key)) {
+			if (!clusteredIndexes.containsKey(key)) {
 				System.out.println("No data with key " + key + " exists in database.Failed to remove.");
 			} else {
 				// Removing the key in the metadata buffer and update the metadata file
-				int[] tmp = getPairSize(indexes.get(key));
-				indexes.remove(key);
+				int[] tmp = getPairSize(clusteredIndexes.get(key));
+				clusteredIndexes.remove(key);
 				this.set_DATA_USED(get_DATA_USED() - tmp[0]);
-				this.set_INDEXES_USED(get_INDEXES_USED() - tmp[1] );
+				this.set_INDEXES_USED(get_INDEXES_USED() - tmp[1]);
 				logger.info("Metadata buffer updated");
-
-				//concat two kinds of meta date
-				byte[] tmp_meta1 = indexHelper.indexToBytes(indexes);
-				byte[] tmp_meta2 = indexHelper.tabMetaToBytes(tabMetadata);
-				byte[] metadata = new byte[tmp_meta1.length+tmp_meta2.length];
-				System.arraycopy(tmp_meta1, 0, metadata, 0, tmp_meta1.length);
-				System.arraycopy(tmp_meta2, 0, metadata, tmp_meta1.length, tmp_meta2.length);
-
-				DBStorage.writeMetaData(DB_NAME, metadata);
+				DBStorage.writeMetaData(DB_NAME, dbManager);
 				logger.info("Metadata updated on disk");
 				System.out.println("Data with key " + key + " is removed.");
 			}
@@ -247,6 +240,7 @@ public class DBManager {
 		
 	}
 
+	//retrieve attribute value according to the rid and attribute name
 	public Object getAttribute(int key, String Attr_name){
 		/**
 		 * Now we assume only one table so tid is always 0;
@@ -257,13 +251,11 @@ public class DBManager {
 		List<Pair> l=tabMetadata.get(0);
 		int type=-1,length=0,offset=0;
 		for(int i=1;i<l.size();i++){
-			if(l.get(i).getLeft()==Attr_name){
-				Pair p= (Pair) l.get(i).getRight();
-				offset+=length;
-				type= (int) p.getLeft();
-				length= (int) p.getRight();
-				break;
-			}
+			Pair p= (Pair) l.get(i).getRight();
+			offset+=length;
+			type= (int) p.getLeft();
+			length= (int) p.getRight();
+			if(l.get(i).getLeft()==Attr_name)break;
 		}
 		byte[] tmp= new byte[length];
 		if(type==0){
@@ -280,36 +272,12 @@ public class DBManager {
 		}
 		return returnObj;
 	}
-
-	public void readDatabase(){
-		//Read the database and upload the data into memory
-		byte[] metadata;
-		try{
-			data = DBStorage.readData(DB_NAME);
-			logger.info("Data read in memory");
-		} catch (IOException e) {
-			e.printStackTrace();
-			System.out.println("Failed to read Data into memory");
-		}
-		try{
-			metadata = DBStorage.readMetaData(DB_NAME);
-			indexes = indexHelper.bytesToIndex(metadata);
-			tabMetadata=indexHelper.bytesToTabMeta(metadata);
-			indexToSize();
-			logger.info("Free Space left is:" + (DATA_SIZE - DATA_USED));
-			logger.info("Free Meta Space left is:" + (METADATA_SIZE - INDEXES_USED));
-			logger.info("Metadata read in Memory");
-		} catch (IOException e) {
-			e.printStackTrace();
-			System.out.println("Failed to read MataData into memory");
-		}
-	}
 	
 	private void indexToSize() {
 		int indexSize = 0;
 		int dataSize =0;
 		int[] tmp;
-		for (Map.Entry<Integer, Index> m : indexes.entrySet()) {
+		for (Map.Entry<Integer, Index> m : clusteredIndexes.entrySet()) {
 			tmp = getPairSize (m.getValue());
 			dataSize += tmp[0];
 			indexSize += tmp[1];
@@ -327,17 +295,9 @@ public class DBManager {
 		}
 		return result;
 	}
-	
-	public byte[] getData() {
-		return data;
-	}
-
-	public void setData(byte[] database) {
-		this.data = database;
-	}
 
 	public Map<Integer, Index> getIndexBuffer() {
-		return indexes;
+		return clusteredIndexes;
 	}
 
 	public void createTabMete(String tableName,List<Pair> attr){
@@ -353,6 +313,8 @@ public class DBManager {
 
 	public Map<Integer,List<Pair>> getTabMeta(){return tabMetadata;}
 
+	public Map getUnclstrIndex(){return unclusteredIndexes;}
+
 	public int get_DATA_USED() {
 		return DATA_USED;
 	}
@@ -367,18 +329,14 @@ public class DBManager {
 	
 	public void set_INDEXES_USED(int size) {
 		INDEXES_USED = size;
+		set_METADATA_USED();
 	}
 
-	public void set_TABMETA_USED(DBManager dbm) {
-		int count = 0;
-		for (int tid : dbm.tabMetadata.keySet())
-			count+=dbm.tabMetadata.get(tid).size();
-		TABMETA_USED =count*(24);
-	}
-
-	public int get_TABMETA_USED(){return TABMETA_USED;}
-
-	public void set_METADATA_USED(){METADATA_USED=TABMETA_USED+INDEXES_USED;}
+	public void set_METADATA_USED(){
+		METADATA_USED=indexHelper.hastabToBytes(unclusteredIndexes).length+
+				indexHelper.indexToBytes(clusteredIndexes).length+
+				indexHelper.tabMetaToBytes(tabMetadata).length;
+		}
 
 	public int get_METADATA_USED(){return METADATA_USED;}
 	
@@ -391,13 +349,15 @@ public class DBManager {
 		try {
 			Locker.writeLock();
 			//Setting the metadata buffer in memory to an empty Hashtable
-			indexes = new Hashtable<Integer, Index>();
+			tabMetadata=new Hashtable<>();
+			clusteredIndexes=new Hashtable<>();
+			unclusteredIndexes=new Hashtable<>();
 			logger.info("Clear : Metadata buffer updated");
-			set_INDEXES_USED(0);
-			byte[] metadata_buffer = new byte[0];
-			DBStorage.writeMetaData(DB_NAME, metadata_buffer);
+			set_METADATA_USED();
+			DBStorage.writeMetaData(DB_NAME, dbManager);
 			logger.info("Metadata updated on disk");
 			set_DATA_USED(0);
+			tabMetadata.clear();
 			//System.out.println("Database Cleared!");
 			logger.info("Current Free Space is " + this.getFreeSpace());
 			tabMetadata.clear();
@@ -411,27 +371,11 @@ public class DBManager {
 		}
 	}
 	
-	public String bytetoString(byte[] data,int Tabid){
-		List<Pair> schema = tabMetadata.get(Tabid);
-		int[] AttrType = new int[schema.size() - 1];
-		String s = "";
-		int loc = 0;
-		for (int i = 1; i< schema.size(); i ++){
-			Pair<String,Pair<Integer,Integer>> p = schema.get(i);
-			AttrType[i-1] = p.getRight().getLeft();
-			if (AttrType[i-1] == 0) s = s + IndexHelperImpl.byteToInt(data, loc);
-			else s = s + new String(Arrays.copyOfRange(data, loc, loc + p.getRight().getRight()));
-			s = s + " ";
-		}
-		return s;
-	}
-	
 	public  void  ReadFile(String Filepath, int Tabid) {
 		byte[] bytedata = null;
 		BufferedReader br = null;
 		String line = "";
 		String sep = "@"; //use | as separator
-		ArrayList<String> attributes;
 		List<Pair> schema = tabMetadata.get(Tabid);
 		int[] AttrType = new int[schema.size() - 1];
 		int[] AttrLength = new int[schema.size() - 1];
@@ -448,7 +392,7 @@ public class DBManager {
 				for (int j = 0; j < record.length; j ++){
 					if (AttrType[j] == 1) {
 						if (AttrLength[j] > record[j].length()){
-							for (;AttrLength[j] > record[j].length();){
+							for (; AttrLength[j]>record[j].length();){
 								record[j] = record[j] +" ";
 							}
 						}else{

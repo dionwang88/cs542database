@@ -38,10 +38,9 @@ public interface Storage {
 	/**
 	 * write the index into metadata
 	 * @param fileName
-	 * @param metadata
 	 * @throws Exception 
 	 */
-	public void writeMetaData(String fileName, byte[] metadata) throws Exception;
+	public void writeMetaData(String fileName, DBManager dbm) throws Exception;
 	
 	/**
 	 * read indexes from metadata
