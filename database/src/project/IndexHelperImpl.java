@@ -379,7 +379,6 @@ public class IndexHelperImpl implements IndexHelper {
 		return return_map;
 	}
 
-
 	static byte[] intToByte(int intnumb){
 		/**
 		 * convert integer into a 4 bytes byte array

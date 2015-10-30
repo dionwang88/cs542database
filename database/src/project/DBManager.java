@@ -257,13 +257,11 @@ public class DBManager {
 		List<Pair> l=tabMetadata.get(0);
 		int type=-1,length=0,offset=0;
 		for(int i=1;i<l.size();i++){
-			if(l.get(i).getLeft()==Attr_name){
-				Pair p= (Pair) l.get(i).getRight();
-				offset+=length;
-				type= (int) p.getLeft();
-				length= (int) p.getRight();
-				break;
-			}
+			Pair p= (Pair) l.get(i).getRight();
+			offset+=length;
+			type= (int) p.getLeft();
+			length= (int) p.getRight();
+			if(l.get(i).getLeft()==Attr_name)break;
 		}
 		byte[] tmp= new byte[length];
 		if(type==0){
@@ -398,6 +396,7 @@ public class DBManager {
 			DBStorage.writeMetaData(DB_NAME, metadata_buffer);
 			logger.info("Metadata updated on disk");
 			set_DATA_USED(0);
+			tabMetadata.clear();
 			//System.out.println("Database Cleared!");
 			logger.info("Current Free Space is " + this.getFreeSpace());
 		} catch (Exception e) {
@@ -410,27 +409,11 @@ public class DBManager {
 		}
 	}
 	
-	public String bytetoString(byte[] data,int Tabid){
-		List<Pair> schema = tabMetadata.get(Tabid);
-		int[] AttrType = new int[schema.size() - 1];
-		String s = "";
-		int loc = 0;
-		for (int i = 1; i< schema.size(); i ++){
-			Pair<String,Pair<Integer,Integer>> p = schema.get(i);
-			AttrType[i-1] = p.getRight().getLeft();
-			if (AttrType[i-1] == 0) s = s + IndexHelperImpl.byteToInt(data, loc);
-			else s = s + new String(Arrays.copyOfRange(data, loc, loc + p.getRight().getRight()));
-			s = s + " ";
-		}
-		return s;
-	}
-	
 	public  void  ReadFile(String Filepath, int Tabid) {
 		byte[] bytedata = null;
 		BufferedReader br = null;
 		String line = "";
 		String sep = "@"; //use | as separator
-		ArrayList<String> attributes;
 		List<Pair> schema = tabMetadata.get(Tabid);
 		int[] AttrType = new int[schema.size() - 1];
 		int[] AttrLength = new int[schema.size() - 1];
@@ -447,7 +430,7 @@ public class DBManager {
 				for (int j = 0; j < record.length; j ++){
 					if (AttrType[j] == 1) {
 						if (AttrLength[j] > record[j].length()){
-							for (int k =0; k < AttrLength[j] - record[j].length(); k++){
+							for (; AttrLength[j]>record[j].length();){
 								record[j] = record[j] +" ";
 							}
 						}else{
