@@ -251,11 +251,12 @@ public class DBManager {
 		List<Pair> l=tabMetadata.get(0);
 		int type=-1,length=0,offset=0;
 		for(int i=1;i<l.size();i++){
+			if(((String)l.get(i).getLeft()).toLowerCase().equals(Attr_name.toLowerCase())){
 			Pair p= (Pair) l.get(i).getRight();
 			offset+=length;
 			type= (int) p.getLeft();
 			length= (int) p.getRight();
-			if(l.get(i).getLeft()==Attr_name)break;
+			break;}
 		}
 		byte[] tmp= new byte[length];
 		if(type==0){
@@ -389,6 +390,7 @@ public class DBManager {
 			int i = 1;
 			while ((line = br.readLine()) != null) {
 				String[] record = line.split(sep);
+				bytedata = null;
 				for (int j = 0; j < record.length; j ++){
 					if (AttrType[j] == 1) {
 						if (AttrLength[j] > record[j].length()){

@@ -38,6 +38,6 @@ public class DBManagerTest {
 		dbmanager.clear();
 		dbmanager.createTabMete("Movies", attrs);
 		dbmanager.ReadFile("movies.txt", 0);
-		System.out.println(dbmanager.getAttribute(3,"Price"));
+		System.out.println(dbmanager.getAttribute(2,"Title"));
 	}
 }
