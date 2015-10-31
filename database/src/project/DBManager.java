@@ -336,12 +336,11 @@ public class DBManager {
 		List<Pair> l=tabMetadata.get(0);
 		int type=-1,length=0,offset=0;
 		for(int i=1;i<l.size();i++){
-			if(((String)l.get(i).getLeft()).toLowerCase().equals(Attr_name.toLowerCase())){
-				Pair p= (Pair) l.get(i).getRight();
-				offset+=length;
-				type= (int) p.getLeft();
-				length= (int) p.getRight();
-				break;}
+			Pair p= (Pair) l.get(i).getRight();
+			offset+=length;
+			type= (int) p.getLeft();
+			length= (int) p.getRight();
+			if(((String)l.get(i).getLeft()).toLowerCase().equals(Attr_name.toLowerCase())) break;
 		}
 		byte[] tmp= new byte[length];
 		if(type==0){
@@ -357,6 +356,28 @@ public class DBManager {
 			}
 		}
 		return returnObj;
+	}
+
+	public void printQuery(String table,List<Integer> keys,List<String> attrNames){
+		//find tid first
+		int tid;
+		for (int id: tabMetadata.keySet()){
+			if(tabMetadata.get(id).get(0).getRight()==table){
+				tid=id;break;
+			}
+		}
+		for(int key:keys){
+			boolean isFirst=true;
+			for(String attrName:attrNames){
+				if(isFirst) {
+					System.out.print(getAttribute(key, attrName));
+					isFirst = false;
+				}
+				else
+					System.out.print("|"+getAttribute(key, attrName));
+			}
+			System.out.print('\n');
+		}
 	}
 
 	public Map<Integer,List<Pair>> getTabMeta(){return tabMetadata;}
@@ -429,7 +450,4 @@ public class DBManager {
 		}
 		this.attrIndexes.get(0).put(attrs, attrindex);
 	}
-
-
-
 }
