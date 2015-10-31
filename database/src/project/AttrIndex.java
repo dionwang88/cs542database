@@ -16,7 +16,7 @@ public class AttrIndex<K>{
 		}else
 			attrs = AttrNames.get(0);
 		DBManager dbm = DBManager.getInstance();
-		for (int i = 1; i <= dbm.getIndexBuffer().size(); i++){
+		for (int i = 1; i <= dbm.getAddr().size(); i++){
 			Object attr = dbm.getAttribute(i, attrs);
 			this.hashPut(attr.toString().hashCode(), i);
 		}

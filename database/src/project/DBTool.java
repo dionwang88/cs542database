@@ -18,10 +18,10 @@ public class DBTool {
     public static void showWrapped(DBManager dbmanager){
         if (dbmanager!=null) {
             int freeSize = Storage.DATA_SIZE - dbmanager.get_DATA_USED();
-            java.util.List<Pair<Integer, Integer>> al = DBTool.freelist(dbmanager.getIndexBuffer());
+            java.util.List<Pair<Integer, Integer>> al = DBTool.freelist(dbmanager.getAddr());
             DBTool.show(DBTool.minusList(new Pair<>(0, Storage.DATA_SIZE), al), freeSize);
             System.out.println("Keys in database are:");
-            for (Integer k : dbmanager.getIndexBuffer().keySet()) System.out.print(k+" ");
+            for (Integer k : dbmanager.getAddr().keySet()) System.out.print(k+" ");
             System.out.println("\n");
         }
     }

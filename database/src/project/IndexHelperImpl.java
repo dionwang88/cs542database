@@ -134,7 +134,7 @@ public class IndexHelperImpl implements IndexHelper {
 		// This list is to save all the index pairs(start, length).
 		List<Integer> index_list = new ArrayList<>();
 		// Get the index buffer object
-		Map<Integer, Addr> indexBuffer = this.dbmanager.getIndexBuffer();
+		Map<Integer, Addr> indexBuffer = this.dbmanager.getAddr();
 		// To get all the index list
 		for (Entry<Integer, Addr> entry : indexBuffer.entrySet()) {
 			Addr addr = entry.getValue();
@@ -465,6 +465,15 @@ public class IndexHelperImpl implements IndexHelper {
 			numb+=(tmp>=0?tmp:tmp+256);
 		}
 		return numb;
+	}
+
+	static byte[] concat(byte[] a, byte[] b) {
+		int aLen = a.length;
+		int bLen = b.length;
+		byte[] c= new byte[aLen+bLen];
+		System.arraycopy(a, 0, c, 0, aLen);
+		System.arraycopy(b, 0, c, aLen, bLen);
+		return c;
 	}
 
 	public static void main(String[] args){
