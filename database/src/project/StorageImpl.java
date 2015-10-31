@@ -1,28 +1,24 @@
 package project;
 
 import java.io.*;
-
 import java.util.Arrays;
 import org.apache.commons.io.IOUtils;
 
 
 /**
  * Implementation of the Storage Interface.
- * Data Structure: 	first is 4m space is to save the real data, second is 1m space is to save the metadata information.
+ * Data Structure: 	first is 4MB space is to save the real data, second is 1m space is to save the metadata information.
  *
- * Metadatafile:    first byte is the sign of delete (1 is deleted, 0 is not deleted); 
+ * MetadataFile:    first byte is the sign of delete (1 is deleted, 0 is not deleted);
  * 					second byte is the key;
  * 					third byte is the total number of the indexes if the data cannot save in a single consecutive space
  * 					fourth byte is the index of the data;
  * 					fifth byte is the amount of bytes
- * 					if the data have to save in several parts, then there will have other indexes and amount of bytes information
- * 					for example: (0,1,1,10,1024) indicates this index metadata is a valid, data key is 1, there has only 1 index pair
- * 					, index in data file is 10, data size is 1024.
- * Data File:		Total size is 4m bytes.
- *
- * 
- * @author wangqian
- *
+ * 					if the data have to save in several parts, then there will have other indexes and amount of bytes
+ * 					information.
+ * 					for example: (0,1,1,10,1024) indicates this index metadata is a valid, data key is 1, there has only
+ * 					1 index pair, index in data file is 10, data size is 1024.
+ * Data File:		Total size is 4MB bytes.
  */
 
 public class StorageImpl implements Storage {
@@ -117,5 +113,4 @@ public class StorageImpl implements Storage {
 			if(fos != null) fos.close();
 		}
 	}
-
 }

@@ -7,7 +7,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.Logger;
 
 /**
- * DBManager is to manager database, including manage storage data and the clusteredIndexes
+ * DBManager is to manager database, including manage storage data and the addrMap
  * @author wangqian
  *
  */
@@ -25,14 +25,20 @@ public class DBManager {
 	private static String DB_NAME;// Names of Data and Metadata
 	
 	/**
-	 * clusteredIndexes is to be contain the clusteredIndexes in the metadata
+	 * addrMap is to be contain the addrMap in the metadata
 	 * Key is the index key
 	 * List is the index of that key
 	 */
-	private Map<Integer, Index> clusteredIndexes;
-
-	private Map<Integer,Map<String, Object>> unclusteredIndexes;
-
+	private Map<Integer, Addr> addrMap;
+	/**
+	 * table id
+	 * unclustered indexes<attr name, unclustered index for this attribute> for certain table
+	 */
+	private Map<Integer,Map<String, Object>> Indexes;
+	/**
+	 * table id
+	 * meta info. for certain table
+	 */
 	private Map<Integer,List<Pair>> tabMetadata;
 	
 	//Locker controls the concurrency of the database.
@@ -41,7 +47,7 @@ public class DBManager {
 	private IndexHelper indexHelper;
 
 
-	//Method---------------------------------------
+	//---------------Method------------------------
 	private DBManager(String dbname) {DB_NAME=dbname;}
 	public static void close(){dbManager=null;}
 	public static String getDBName(){return DB_NAME;}
@@ -86,10 +92,10 @@ public class DBManager {
 		}
 		try{
 			metadata = DBStorage.readMetaData(DB_NAME);
-			clusteredIndexes = indexHelper.bytesToIndex(metadata);
+			addrMap = indexHelper.bytesToIndex(metadata);
 			tabMetadata=indexHelper.bytesToTabMeta(metadata);
-			unclusteredIndexes = new Hashtable<Integer, Map<String,Object>>();
-			unclusteredIndexes.put(0, indexHelper.bytesToHashtab(metadata));
+			Indexes = new Hashtable<Integer, Map<String,Object>>();
+			Indexes.put(0, indexHelper.bytesToHashtab(metadata));
 			indexToSize();
 			logger.info("Free Space left is:" + (DATA_SIZE - DATA_USED));
 			logger.info("Free Meta Space left is:" + (METADATA_SIZE - METADATA_USED));
@@ -108,7 +114,7 @@ public class DBManager {
 		 * 			including reading threads will wait until the saving thread complete.
 		 * 		2. Locate the saving index:  call the method of findFreeSpaceIndex
 		 * 		3. Save the data to data part.
-		 * 		4. Save the clusteredIndexes information to metadata part.
+		 * 		4. Save the addrMap information to metadata part.
 		 * 		5. Update the metadata buffer in memory
 		 * 
 		 * Params:  key -- data key
@@ -119,7 +125,7 @@ public class DBManager {
 			Locker.writeLock();			
 			logger.info("Attempting to put key: " + key + "to database");
             //if key already exists in the database, update it by removing it first.
-			if (clusteredIndexes.containsKey(key)){
+			if (addrMap.containsKey(key)){
 				Remove(key);
 			}
 			// if database is going to be out of volume, block the put attempt.
@@ -131,17 +137,17 @@ public class DBManager {
 					// Getting the index list of free space in data array;
 					List<Pair<Integer,Integer>> index_pairs = indexHelper.findFreeSpaceIndex(data.length);
 					indexHelper.splitDataBasedOnIndex(data, index_pairs);
-					// Updating the Index map. If the metadata is out of volume, block the putting attempt.
-					Index tmpindex = new Index();
+					// Updating the Addr map. If the metadata is out of volume, block the putting attempt.
+					Addr tmpindex = new Addr();
 					tmpindex.setKey(key);
-					tmpindex.setIndexes(index_pairs);
+					tmpindex.setPhysAddrList(index_pairs);
 					int indexsize = indexHelper.getIndexSize(index_pairs);
 					if (indexsize + METADATA_USED > METADATA_SIZE) {
 						System.out.println("Not enough metadata space left. Put Attempt with key "
 					+ key + " Failed.");
 						return;
 					}
-					clusteredIndexes.put(key, tmpindex);
+					addrMap.put(key, tmpindex);
 					set_INDEXES_USED(get_INDEXES_USED() + indexsize);
 					logger.info("Metadata buffer updated");
 					
@@ -182,8 +188,8 @@ public class DBManager {
 		try {
 			Locker.ReadLock();
 			logger.info("Attempting to get data mapped to key :" + key);
-			if (clusteredIndexes.containsKey(key)) {
-				List<Pair<Integer, Integer>> index = clusteredIndexes.get(key).getIndexes();
+			if (addrMap.containsKey(key)) {
+				List<Pair<Integer, Integer>> index = addrMap.get(key).getPhysAddrList();
 				//extracting the mapped data from the data in memory;
 				int start = 0;
 				for (Pair<Integer, Integer> p : index) {
@@ -216,12 +222,12 @@ public class DBManager {
 		try {
 			Locker.writeLock();
 			logger.info("Attempting to remove the data with key :" + key);
-			if (!clusteredIndexes.containsKey(key)) {
+			if (!addrMap.containsKey(key)) {
 				System.out.println("No data with key " + key + " exists in database.Failed to remove.");
 			} else {
 				// Removing the key in the metadata buffer and update the metadata file
-				int[] tmp = getPairSize(clusteredIndexes.get(key));
-				clusteredIndexes.remove(key);
+				int[] tmp = getPairSize(addrMap.get(key));
+				addrMap.remove(key);
 				this.set_DATA_USED(get_DATA_USED() - tmp[0]);
 				this.set_INDEXES_USED(get_INDEXES_USED() - tmp[1]);
 				logger.info("Metadata buffer updated");
@@ -279,7 +285,7 @@ public class DBManager {
 		int indexSize = 0;
 		int dataSize =0;
 		int[] tmp;
-		for (Map.Entry<Integer, Index> m : clusteredIndexes.entrySet()) {
+		for (Map.Entry<Integer, Addr> m : addrMap.entrySet()) {
 			tmp = getPairSize (m.getValue());
 			dataSize += tmp[0];
 			indexSize += tmp[1];
@@ -288,18 +294,18 @@ public class DBManager {
 		this.set_INDEXES_USED(indexSize);
 	}
 	
-	private static int[] getPairSize(Index index) {
+	private static int[] getPairSize(Addr addr) {
 		int[] result = new int[2];
-		result[1] += Index.getReservedSize() + 1 + Index.getKeySize()+
-				2 * Integer.BYTES * index.getIndexes().size();
-		for (Pair<Integer, Integer> p : index.getIndexes()) {
+		result[1] += Addr.getReservedSize() + 1 + Addr.getKeySize()+
+				2 * Integer.BYTES * addr.getPhysAddrList().size();
+		for (Pair<Integer, Integer> p : addr.getPhysAddrList()) {
 			result[0] += p.getRight();
 		}
 		return result;
 	}
 
-	public Map<Integer, Index> getIndexBuffer() {
-		return clusteredIndexes;
+	public Map<Integer, Addr> getIndexBuffer() {
+		return addrMap;
 	}
 
 	public void createTabMete(String tableName,List<Pair> attr){
@@ -311,12 +317,12 @@ public class DBManager {
 		pairs.add(new Pair<>(tid,tableName));
 		pairs.addAll(attr);
 		tabMetadata.put(tid, pairs);
-		unclusteredIndexes.put(tid, new Hashtable<String,Object>());
+		Indexes.put(tid, new Hashtable<String, Object>());
 	}
 
 	public Map<Integer,List<Pair>> getTabMeta(){return tabMetadata;}
 
-	public Map<Integer,Map<String, Object>> getUnclstrIndex(){return unclusteredIndexes;}
+	public Map<Integer,Map<String, Object>> getUnclstrIndex(){return Indexes;}
 
 	public int get_DATA_USED() {
 		return DATA_USED;
@@ -336,8 +342,8 @@ public class DBManager {
 	}
 
 	public void set_METADATA_USED(){
-		METADATA_USED=indexHelper.hastabToBytes(unclusteredIndexes.get(0)).length+
-				indexHelper.indexToBytes(clusteredIndexes).length+
+		METADATA_USED=indexHelper.hastabToBytes(Indexes.get(0)).length+
+				indexHelper.indexToBytes(addrMap).length+
 				indexHelper.tabMetaToBytes(tabMetadata).length;
 		}
 
@@ -353,8 +359,8 @@ public class DBManager {
 			Locker.writeLock();
 			//Setting the metadata buffer in memory to an empty Hashtable
 			tabMetadata=new Hashtable<>();
-			clusteredIndexes=new Hashtable<>();
-			unclusteredIndexes=new Hashtable<Integer,Map<String, Object>>();
+			addrMap =new Hashtable<>();
+			Indexes =new Hashtable<Integer,Map<String, Object>>();
 			logger.info("Clear : Metadata buffer updated");
 			set_METADATA_USED();
 			DBStorage.writeMetaData(DB_NAME, dbManager);
@@ -441,11 +447,9 @@ public class DBManager {
 		}else{
 			attrs = Attrnames.get(0);
 		}
-		this.unclusteredIndexes.get(0).put(attrs, attrindex);
+		this.Indexes.get(0).put(attrs, attrindex);
 	}
-	
-	
-	
+
 	private byte[] concat(byte[] a, byte[] b) {
 		   int aLen = a.length;
 		   int bLen = b.length;

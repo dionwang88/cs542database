@@ -5,10 +5,11 @@ import java.util.Map;
 
 public interface IndexHelper {
 	/**
-	 * The index start sign in the metad ata file
+	 * The start sign in the metadata file
 	 */
-	byte INDEX_START_SIGN = -1;
+	byte Addr_START_SIGN = Addr.getSign();
 	byte TAB_START_SIGN = -2;
+	byte ATTRINDEX_START_SIGN=-3;
 	byte TAB_META_RESERVED=3;
 
 	/**
@@ -16,7 +17,6 @@ public interface IndexHelper {
 		 * amount blocks to find some enough space to save the data.
 	 * @param size : the size of data that to be saved
 	 * @return The indexes list of data file
-	 * @throws Exception
 	 */
 	List<Pair<Integer, Integer>> findFreeSpaceIndex(int size) ;
 
@@ -24,7 +24,7 @@ public interface IndexHelper {
 	 * Get the index buffer in Map type
 	 * key is the start index of local part on data file
 	 * value is the end index of local part on data file
-	 * @return
+	 * @return sorted list
 	 */
 	List<Integer> getSortedIndexList();
 	/**
@@ -39,14 +39,14 @@ public interface IndexHelper {
 	 * @param indexes storage index
 	 * @return the meta data byte array
 	 */
-	byte[] indexToBytes(Map<Integer, Index> indexes);
+	byte[] indexToBytes(Map<Integer, Addr> indexes);
 
 	/**
 	 * convert the meta data to the index Hashtable
 	 * @param metadata byte array
 	 * @return The Hashtable of indexes, key is the index key, value is the index object
 	 */
-	Map<Integer, Index> bytesToIndex(byte[] metadata);
+	Map<Integer, Addr> bytesToIndex(byte[] metadata);
 
 	int getIndexSize(List<Pair<Integer,Integer>> pairs_list);
 

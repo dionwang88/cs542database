@@ -4,45 +4,37 @@ import java.util.ArrayList;
 
 public class AttrIndex<K>{
 	Hashtable<Integer,ArrayList<Integer>> table;
-	private DBManager dbm = DBManager.getInstance();
-	
-	public AttrIndex(){
-		table = new Hashtable<Integer,ArrayList<Integer>>();
-	}
-	public AttrIndex(ArrayList<String> Attrnames){
+
+	public AttrIndex(){table = new Hashtable<>();}
+	public AttrIndex(ArrayList<String> AttrNames){
 		this();
 		String attrs = "";
-		if (Attrnames.size() > 1) {
-		for (String s : Attrnames){
-			attrs = attrs + "|" + s;
-		}
-		attrs +="|";
-		}else{
-			attrs = Attrnames.get(0);
-		}
+		if (AttrNames.size() > 1) {
+			for (String s : AttrNames)
+				attrs = attrs + "|" + s;
+			attrs +="|";
+		}else
+			attrs = AttrNames.get(0);
+		DBManager dbm = DBManager.getInstance();
 		for (int i = 1; i <= dbm.getIndexBuffer().size(); i++){
 			Object attr = dbm.getAttribute(i, attrs);
-			this.hashput(attr.toString().hashCode(),i);
+			this.hashPut(attr.toString().hashCode(), i);
 		}
-		
 	}
 	
 	public void put(int key, K data_value){
-		this.hashput(data_value.toString().hashCode(),key);
+		this.hashPut(data_value.toString().hashCode(), key);
 	}
 
-	
-	
-	private void hashput(int val,int rID){
+	private void hashPut(int val, int rID){
 		if (table.containsKey(val)) {
 			table.get(val).add(rID);
 		}else{
-			ArrayList<Integer> l = new ArrayList<Integer>();
+			ArrayList<Integer> l = new ArrayList<>();
 			l.add(rID);
 			table.put(val, l);
 		}
 	}
-
 	
 	public ArrayList<Integer> get(K attrs){
 		ArrayList<Integer> l = table.get(attrs.toString().hashCode());

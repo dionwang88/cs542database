@@ -336,3 +336,10 @@ Based on the project 1, we add three methods to realize the indexing mechanism. 
 #### remove
 
 We also add two methods, **hashtabToBytes()** and **bytesToHashtab()** to Indexhelper to transform index between memory and physical storage.
+
+##Validation
+Assumption:	
+
+1. Since some attributes contain char ',', which is a separator for csv file, read data from csv file could be a problem. For simplicity, we use '@' as separator.
+2. To store the data, we will convert the string into byte. We treat every character in String as ASCII code, so some uncommon char will be displayed as '?'. In other word, we did not handle the non-ASCII code character problem. 
+2. 
