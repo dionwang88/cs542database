@@ -31,7 +31,7 @@ public class DBManagerTest {
 		List<Pair> attrs = new ArrayList<>();
 		for (int i = 0; i < type.length; i++){
 			int length = 0;
-			if (type[i] == 1) length = 100;
+			if (type[i] == 1) length = 80;
 			else length = 4;
 			attrs.add(new Pair(AttrNames[i],new Pair(type[i],length)));
 		}
@@ -39,7 +39,9 @@ public class DBManagerTest {
 		dbmanager.createTabMete("Movies", attrs);
 		dbmanager.ReadFile("movies.txt", 0);
 		System.out.println(dbmanager.getAttribute(2,"Title"));
-		AttrIndex<Integer> index1 = new AttrIndex<Integer>("Year");
-		System.out.println(index1);
+		ArrayList<String> a = new ArrayList<String>();
+		a.add("Year");
+		dbmanager.CreateIndex(a);
+
 	}
 }

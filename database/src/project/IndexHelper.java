@@ -54,5 +54,5 @@ public interface IndexHelper {
 	Map<Integer, List<Pair>>  bytesToTabMeta(byte[] metadata);
 
 	byte[] hastabToBytes(Map hashTab);
-	Map bytesToHashtab(byte[] metadata);
+	Map<String,Object> bytesToHashtab(byte[] metadata);
 }

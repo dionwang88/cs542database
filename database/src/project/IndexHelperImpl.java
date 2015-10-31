@@ -420,7 +420,7 @@ public class IndexHelperImpl implements IndexHelper {
 		return returned_byte;
 	}
 
-	public Map bytesToHashtab(byte[] metadata){
+	public Map<String,Object> bytesToHashtab(byte[] metadata){
 		Map returned_map = null;
 		int count=1;
 		for(int i=0;i<metadata.length;i+=8)

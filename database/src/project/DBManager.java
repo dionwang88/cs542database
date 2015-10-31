@@ -31,7 +31,7 @@ public class DBManager {
 	 */
 	private Map<Integer, Index> clusteredIndexes;
 
-	private Map<String, Object> unclusteredIndexes;
+	private Map<Integer,Map<String, Object>> unclusteredIndexes;
 
 	private Map<Integer,List<Pair>> tabMetadata;
 	
@@ -88,7 +88,8 @@ public class DBManager {
 			metadata = DBStorage.readMetaData(DB_NAME);
 			clusteredIndexes = indexHelper.bytesToIndex(metadata);
 			tabMetadata=indexHelper.bytesToTabMeta(metadata);
-			unclusteredIndexes = indexHelper.bytesToHashtab(metadata);
+			unclusteredIndexes = new Hashtable<Integer, Map<String,Object>>();
+			unclusteredIndexes.put(0, indexHelper.bytesToHashtab(metadata));
 			indexToSize();
 			logger.info("Free Space left is:" + (DATA_SIZE - DATA_USED));
 			logger.info("Free Meta Space left is:" + (METADATA_SIZE - METADATA_USED));
@@ -310,11 +311,12 @@ public class DBManager {
 		pairs.add(new Pair<>(tid,tableName));
 		pairs.addAll(attr);
 		tabMetadata.put(tid, pairs);
+		unclusteredIndexes.put(tid, new Hashtable<String,Object>());
 	}
 
 	public Map<Integer,List<Pair>> getTabMeta(){return tabMetadata;}
 
-	public Map getUnclstrIndex(){return unclusteredIndexes;}
+	public Map<Integer,Map<String, Object>> getUnclstrIndex(){return unclusteredIndexes;}
 
 	public int get_DATA_USED() {
 		return DATA_USED;
@@ -334,7 +336,7 @@ public class DBManager {
 	}
 
 	public void set_METADATA_USED(){
-		METADATA_USED=indexHelper.hastabToBytes(unclusteredIndexes).length+
+		METADATA_USED=indexHelper.hastabToBytes(unclusteredIndexes.get(0)).length+
 				indexHelper.indexToBytes(clusteredIndexes).length+
 				indexHelper.tabMetaToBytes(tabMetadata).length;
 		}
@@ -352,7 +354,7 @@ public class DBManager {
 			//Setting the metadata buffer in memory to an empty Hashtable
 			tabMetadata=new Hashtable<>();
 			clusteredIndexes=new Hashtable<>();
-			unclusteredIndexes=new Hashtable<>();
+			unclusteredIndexes=new Hashtable<Integer,Map<String, Object>>();
 			logger.info("Clear : Metadata buffer updated");
 			set_METADATA_USED();
 			DBStorage.writeMetaData(DB_NAME, dbManager);
@@ -427,6 +429,22 @@ public class DBManager {
 	}
 	System.out.println("Reading " + Filepath + " is Done");
 	}
+	
+	public void CreateIndex(ArrayList<String> Attrnames){
+		AttrIndex<String> attrindex = new AttrIndex<String>(Attrnames);
+		String attrs = "";
+		if (Attrnames.size() > 1) {
+		for (String s : Attrnames){
+			attrs = attrs + "|" + s;
+		}
+		attrs +="|";
+		}else{
+			attrs = Attrnames.get(0);
+		}
+		this.unclusteredIndexes.get(0).put(attrs, attrindex);
+	}
+	
+	
 	
 	private byte[] concat(byte[] a, byte[] b) {
 		   int aLen = a.length;
