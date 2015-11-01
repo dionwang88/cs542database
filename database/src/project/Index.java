@@ -2,7 +2,7 @@ package project;
 
 import java.util.List;
 
-public class Addr {
+public class Index {
 	/**
 	 * The addr start sign in the meta data file
 	 * could be redundant
@@ -28,7 +28,7 @@ public class Addr {
 	private List<Pair<Integer, Integer>> physAddrList;
 
 	//-------------methods------------
-	public Addr(){}
+	public Index(){}
 	public static byte getSign() {return sign;}
 	public static int getReservedSize(){return RESERVED;}
 	public static int getKeySize(){return KEYSIZE;}
@@ -39,7 +39,7 @@ public class Addr {
 
 	@Override
 	public String toString() {
-		return "Addr [key=" + key +", Address=" + physAddrList + "]";
+		return "Index [key=" + key +", Address=" + physAddrList + "]";
 	}
 
 	@Override
@@ -59,7 +59,7 @@ public class Addr {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		Addr other = (Addr) obj;
+		Index other = (Index) obj;
 		if (physAddrList == null) {
 			if (other.physAddrList != null)
 				return false;

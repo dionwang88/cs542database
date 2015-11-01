@@ -51,7 +51,7 @@ public class IndexHelperImpl implements IndexHelper {
 	 * To solve the fragment problem:
 	 * 
 	 * (1) public List<Integer> getSortedIndexList()
-	 * Get the Addr Buffer from DBManager
+	 * Get the Index Buffer from DBManager
 	 * Loop the indexes in the IndexBuffer Map to get the index pairs list:
 	 * 		Loop the index pairs list:
 	 * 			Get the start-length index pair and change it to start-end index pair
@@ -134,13 +134,13 @@ public class IndexHelperImpl implements IndexHelper {
 		// This list is to save all the index pairs(start, length).
 		List<Integer> index_list = new ArrayList<>();
 		// Get the index buffer object
-		Map<Integer, Addr> indexBuffer = this.dbmanager.getAddr();
+		Map<Integer, Index> indexBuffer = this.dbmanager.getClusteredIndex();
 		// To get all the index list
-		for (Entry<Integer, Addr> entry : indexBuffer.entrySet()) {
-			Addr addr = entry.getValue();
-			List<Pair<Integer, Integer>> lst_p = addr.getPhysAddrList();
+		for (Entry<Integer, Index> entry : indexBuffer.entrySet()) {
+			Index index = entry.getValue();
+			List<Pair<Integer, Integer>> lst_p = index.getPhysAddrList();
 			for(Pair<Integer, Integer> pair : lst_p){
-				//transform the addr pair to start, end
+				//transform the index pair to start, end
 				index_list.add(pair.getLeft());
 				index_list.add(pair.getLeft()+pair.getRight()-1);
 			}
@@ -176,41 +176,41 @@ public class IndexHelperImpl implements IndexHelper {
 	}
 	
 	public int getIndexSize(List<Pair<Integer,Integer>> pairs_list) {
-		return Addr.getReservedSize()+1+ Addr.getKeySize()+pairs_list.size()*2*Integer.BYTES;
+		return Index.getReservedSize()+1+ Index.getKeySize()+pairs_list.size()*2*Integer.BYTES;
 	}
 
-	public byte[] indexToBytes(Map<Integer, Addr> indexes) {
+	public byte[] indexToBytes(Map<Integer, Index> indexes) {
 		// calculate byte array size firstly.
 		int indexpairnumb=0;
 		int indexnumb=indexes.keySet().size();
 		for(int key:indexes.keySet()){
-			Addr addr =indexes.get(key);
-			indexpairnumb+= addr.getPhysAddrList().size();
+			Index index =indexes.get(key);
+			indexpairnumb+= index.getPhysAddrList().size();
 		}
-		byte[] outbyte = new byte[indexnumb*(Addr.getReservedSize()+ Addr.getKeySize()+1)+indexpairnumb*Integer.BYTES*2];
+		byte[] outbyte = new byte[indexnumb*(Index.getReservedSize()+ Index.getKeySize()+1)+indexpairnumb*Integer.BYTES*2];
 
 		//convert indexMap to byte array
 		int offset=0;
 		for(int key:indexes.keySet()){
-			Addr addr =indexes.get(key);
+			Index index =indexes.get(key);
 			//make sure pairs are sorted
-			addr.sortPairs();
+			index.sortPairs();
 			outbyte[offset++]= Addr_START_SIGN;
 
 			//add reserved bytes
-			for (int i = 0; i < Addr.getReservedSize() ; i++) {
+			for (int i = 0; i < Index.getReservedSize() ; i++) {
 				outbyte[offset++]=0;
 			}
 
 			//covert key from int to byte[]
-			if(addr.getKey()<0) throw new Error("Key value can't be negative!");
-			byte[] bytekey = intToByte(addr.getKey());
+			if(index.getKey()<0) throw new Error("Key value can't be negative!");
+			byte[] bytekey = intToByte(index.getKey());
             for (byte aBytekey : bytekey) {
                 outbyte[offset++] = aBytekey;
             }
 
             //convert pairs to byte[]
-            List<Pair<Integer, Integer>> l= addr.getPhysAddrList();
+            List<Pair<Integer, Integer>> l= index.getPhysAddrList();
             for (Pair<Integer, Integer> aL : l) {
                 byte[] bpl = intToByte(aL.getLeft());
                 byte[] bpr = intToByte(aL.getRight());
@@ -225,10 +225,10 @@ public class IndexHelperImpl implements IndexHelper {
 		return outbyte;
 	}
 
-	public Map<Integer, Addr> bytesToIndex(byte[] metadata) {
-		Map<Integer, Addr> returnMap= new Hashtable<>();
+	public Map<Integer, Index> bytesToIndex(byte[] metadata) {
+		Map<Integer, Index> returnMap= new Hashtable<>();
 		int offset=0;
-		int search_span=4+ Addr.getKeySize();
+		int search_span=4+ Index.getKeySize();
 		int pair_size=Integer.BYTES*2;
 		while(offset<metadata.length){
 			//search header
@@ -236,7 +236,7 @@ public class IndexHelperImpl implements IndexHelper {
 
 				//get key
 				int key_in_record;
-				int key_start=offset+1+ Addr.getReservedSize();
+				int key_start=offset+1+ Index.getReservedSize();
 				key_in_record= byteToInt(metadata, key_start);
 
 				//get pairs
@@ -257,12 +257,12 @@ public class IndexHelperImpl implements IndexHelper {
 					if(offset>= metadata.length) break;
 				}
 
-				//make addr
-				Addr addr =new Addr();
-				addr.setKey(key_in_record);
-				addr.setPhysAddrList(pairlist);
+				//make index
+				Index index =new Index();
+				index.setKey(key_in_record);
+				index.setPhysAddrList(pairlist);
 				//add to map
-				returnMap.put(key_in_record, addr);
+				returnMap.put(key_in_record, index);
 
 			} else {
 				offset += search_span;
@@ -419,8 +419,8 @@ public class IndexHelperImpl implements IndexHelper {
 		return returned_byte;
 	}
 
-	public Map<String,Object> bytesToHashtab(byte[] metadata){
-		Map<String,Object> returned_map = null;
+	public Map<Integer, Map<String, AttrIndex>> bytesToHashtab(byte[] metadata){
+		Map<Integer,Map<String, AttrIndex>> returned_map = null;
 		int count=1;
 		for(int i=0;i<metadata.length;i+=8)
 			if(metadata[i]==ATTRINDEX_START_SIGN)
@@ -439,7 +439,7 @@ public class IndexHelperImpl implements IndexHelper {
 		System.arraycopy(transformed_data, 7, trimmed, 0, len);
 
 		try {
-			returned_map= (Map<String,Object>) Serializer.deserialize(trimmed);
+			returned_map= (Map<Integer,Map<String, AttrIndex>>) Serializer.deserialize(trimmed);
 		} catch (IOException | ClassNotFoundException e) {
 			e.printStackTrace();
 		}
@@ -459,7 +459,7 @@ public class IndexHelperImpl implements IndexHelper {
 		 * convert 4 bytes number into an integer, from start_offset to start_offset+3
 		 */
 		int numb = 0;
-		for (int i = start_offset; i < start_offset + Addr.getKeySize(); i++) {
+		for (int i = start_offset; i < start_offset + Index.getKeySize(); i++) {
 			numb <<= Byte.SIZE;
 			int tmp=b[i];
 			numb+=(tmp>=0?tmp:tmp+256);

@@ -3,6 +3,8 @@ package project;
 import test.Clear;
 import test.TestConcurrency;
 import test.TestFragmentation;
+import test.TestReadCSV;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -18,10 +20,10 @@ public class DBTool {
     public static void showWrapped(DBManager dbmanager){
         if (dbmanager!=null) {
             int freeSize = Storage.DATA_SIZE - dbmanager.get_DATA_USED();
-            java.util.List<Pair<Integer, Integer>> al = DBTool.freelist(dbmanager.getAddr());
+            java.util.List<Pair<Integer, Integer>> al = DBTool.freelist(dbmanager.getClusteredIndex());
             DBTool.show(DBTool.minusList(new Pair<>(0, Storage.DATA_SIZE), al), freeSize);
             System.out.println("Keys in database are:");
-            for (Integer k : dbmanager.getAddr().keySet()) System.out.print(k+" ");
+            for (Integer k : dbmanager.getClusteredIndex().keySet()) System.out.print(k+" ");
             System.out.println("\n");
         }
     }
@@ -50,16 +52,16 @@ public class DBTool {
         }
     }
 
-    private static List<Pair<Integer,Integer>> freelist(Map<Integer, Addr> tab){
+    private static List<Pair<Integer,Integer>> freelist(Map<Integer, Index> tab){
         List<Pair<Integer,Integer>> loopList=new ArrayList<>();
         for (int key:tab.keySet()) {
-            Addr tmpList=tab.get(key);
+            Index tmpList=tab.get(key);
             loopList.addAll(tmpList.getPhysAddrList().stream().collect(Collectors.toList()));
         }
-        Addr sortAddr =new Addr();
-        sortAddr.setPhysAddrList(loopList);
-        sortAddr.sortPairs();
-        return sortAddr.getPhysAddrList();
+        Index sortIndex =new Index();
+        sortIndex.setPhysAddrList(loopList);
+        sortIndex.sortPairs();
+        return sortIndex.getPhysAddrList();
     }
 
     private static List<Pair<Integer,Integer>> minusList(Pair<Integer,Integer> F,List<Pair<Integer,Integer>> L){
@@ -112,14 +114,13 @@ public class DBTool {
                     case "fragment":case "f":       TestFragmentation.main(null);break;
                     case "Concurrency":case "c":    TestConcurrency.main(null);break;
                     case "clear":case "cl":         Clear.main(null);break;
+                    case "readcsv":case"r":         TestReadCSV.main(null);break;
                     case "help":
                         System.out.println("Help Information:\nq|Q|quit|Quit\t\tquit the shell\n" +
                                 "show [<filename>]\tshow the space of the database, default file is 'cs542.db'.\n" +
                                 "fragment|f\t\t\tvalidate fragment\n" +
                                 "concurrency|c\t\tvalidate concurrency control\n" +
-                                "clear|cl\t\t\tclear the database");
-
-                        break;
+                                "clear|cl\t\t\tclear the database");break;
                     default:System.out.println("Can't find the command '"+s[0]+"'!\nyou may use 'help' command");
                 }
             } catch (IOException e) {

@@ -1,27 +1,25 @@
 package project;
+
+import java.io.Serializable;
 import java.util.Hashtable;
 import java.util.ArrayList;
 
-public class AttrIndex<K>{
+public class AttrIndex<K>implements Serializable {
 	Hashtable<Integer,ArrayList<Integer>> table;
 
 	public AttrIndex(){table = new Hashtable<>();}
-	public AttrIndex(ArrayList<String> AttrNames){
+	public AttrIndex(ArrayList<String> AttrNames) {
 		this();
-		String attrs = "";
-		if (AttrNames.size() > 1) {
-			for (String s : AttrNames)
-				attrs = attrs + "|" + s;
-			attrs +="|";
-		}else
-			attrs = AttrNames.get(0);
 		DBManager dbm = DBManager.getInstance();
-		for (int i = 1; i <= dbm.getAddr().size(); i++){
-			Object attr = dbm.getAttribute(i, attrs);
-			this.hashPut(attr.toString().hashCode(), i);
+		for (int i = 1; i <= dbm.getClusteredIndex().size(); i++) {
+			int hashValue = 0;
+			for (int j = 0; j < AttrNames.size(); j++) {
+				Object attr = dbm.getAttribute(i, AttrNames.get(j));
+				hashValue += attr.toString().hashCode();
+			}
+			this.hashPut(hashValue, i);
 		}
 	}
-	
 	public void put(int key, K data_value){
 		this.hashPut(data_value.toString().hashCode(), key);
 	}

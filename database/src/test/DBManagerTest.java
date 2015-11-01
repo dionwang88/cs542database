@@ -2,57 +2,28 @@ package test;
 
 import java.util.ArrayList;
 import java.util.List;
-
+import project.Condition;
 import project.DBManager;
 import project.Pair;
-;
+
 public class DBManagerTest {
 	public static void main(String[] args) {
-		DBManager dbmanager = DBManager.getInstance();
-		/**
-		 * 
+		DBManager dbManager=DBManager.getInstance();
 
-		byte[] data = new byte[256 * 1000];
-		for (int i = 0; i < data.length; i++) {
-			data[i] = (byte) ((i) % 127);
-		}
-		for (int key = 0; key < 16; key++) {
-			dbmanager.Put(key, data);
-			System.out.println("Put data key: " + key + ", size:" + data.length);
-		}
-		for (int key = 0; key < 1; key++) {
-			byte[] mydata = dbmanager.Get(0);
-			System.out.println("Get data key:" + key + ",size:" + mydata.length);
-		}
-		dbmanager.readDatabase();
-		*/
-		String[] AttrNames = {"Title", "Year", "Format", "Genre", "Director", "Writer", "Country", "Studio", "Price", "Catalog No"};
-		int[] type = {1,0,1,1,1,1,1,1,1,0};
-		List<Pair> attrs = new ArrayList<>();
-		for (int i = 0; i < type.length; i++){
-			int length;
-			if (type[i] == 1) length = 80;
-			else length = 4;
-			attrs.add(new Pair(AttrNames[i],new Pair(type[i],length)));
-		}
-		dbmanager.clear();
-		dbmanager.createTab("Movies", attrs);
-		dbmanager.ReadFile("movies.txt", 0);
-
-		List<Integer> keys=new ArrayList<>();
-		List<String> names=new ArrayList<>();
-		keys.add(2);
-		keys.add(3);
-		keys.add(1);
-		names.add("Title");
-		names.add("price");
-		names.add("country");
-		dbmanager.printQuery("Movies", keys, names);
-		System.out.println(dbmanager.getAttribute(2,"price"));
+		dbManager.printQuery("movies", dbManager.tabProject("Year"), new Condition(""));
 
 		ArrayList<String> a = new ArrayList<>();
+		//a.add("title");
 		a.add("Year");
-		dbmanager.CreateIndex(a);
+
+		dbManager.CreateIndex(a);
+
+		System.out.println(dbManager.getAttrIndex());
+
+
+
+
+
 
 	}
 }

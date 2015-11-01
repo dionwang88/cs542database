@@ -2,11 +2,12 @@ package project;
 
 import java.io.*;
 import java.util.*;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.Logger;
 
 /**
- * DBManager is to manager database, including manage storage data and the addrMap
+ * DBManager is to manager database, including manage storage data and the clusteredIndex
  * @author wangqian
  *
  */
@@ -24,16 +25,16 @@ public class DBManager {
 	private static String DB_NAME;// Names of Data and Metadata
 
 	/**
-	 * addrMap is to be contain the addrMap in the metadata
+	 * clusteredIndex is to be contain the clusteredIndex in the metadata
 	 * Key is the index key
 	 * List is the index of that key
 	 */
-	private Map<Integer, Addr> addrMap;
+	private Map<Integer, Index> clusteredIndex;
 	/**
 	 * table id
-	 * Addr indexes<int tid, Addr physical address for this attribute> for certain table
+	 * Index indexes<int tid, Index physical address for this attribute> for certain table
 	 */
-	private Map<Integer,Map<String, Object>> attrIndexes;
+	private Map<Integer,Map<String, AttrIndex>> attrIndexes;
 	/**
 	 * table id
 	 * meta info. for certain table
@@ -89,7 +90,7 @@ public class DBManager {
 	}
 	public void set_METADATA_USED(){
 		METADATA_USED=indexHelper.hastabToBytes(attrIndexes.get(0)).length+
-				indexHelper.indexToBytes(addrMap).length+
+				indexHelper.indexToBytes(clusteredIndex).length+
 				indexHelper.tabMetaToBytes(tabMetadata).length;
 	}
 	//public int get_METADATA_USED(){return METADATA_USED;}
@@ -97,22 +98,22 @@ public class DBManager {
 
 	public byte[] getData() {return data;}
 	public void setData(byte[] database) {this.data = database;}
-	private static int[] getAddrSize(Addr addr) {
+	private static int[] getIndexSize(Index index) {
 		int[] result = new int[2];
-		result[1] += Addr.getReservedSize() + 1 + Addr.getKeySize()+
-				2 * Integer.BYTES * addr.getPhysAddrList().size();
-		for (Pair<Integer, Integer> p : addr.getPhysAddrList()) {
+		result[1] += Index.getReservedSize() + 1 + Index.getKeySize()+
+				2 * Integer.BYTES * index.getPhysAddrList().size();
+		for (Pair<Integer, Integer> p : index.getPhysAddrList()) {
 			result[0] += p.getRight();
 		}
 		return result;
 	}
-	public Map<Integer, Addr> getAddr() {return addrMap;}
-	private void addrToSize() {
+	public Map<Integer, Index> getClusteredIndex() {return clusteredIndex;}
+	private void indexToSize() {
 		int indexSize = 0;
 		int dataSize =0;
 		int[] tmp;
-		for (Map.Entry<Integer, Addr> m : addrMap.entrySet()) {
-			tmp = getAddrSize(m.getValue());
+		for (Map.Entry<Integer, Index> m : clusteredIndex.entrySet()) {
+			tmp = getIndexSize(m.getValue());
 			dataSize += tmp[0];
 			indexSize += tmp[1];
 		}
@@ -132,11 +133,11 @@ public class DBManager {
 		}
 		try{
 			metadata = DBStorage.readMetaData(DB_NAME);
-			addrMap = indexHelper.bytesToIndex(metadata);
+			clusteredIndex = indexHelper.bytesToIndex(metadata);
 			tabMetadata=indexHelper.bytesToTabMeta(metadata);
 			attrIndexes = new Hashtable<>();
-			attrIndexes.put(0, indexHelper.bytesToHashtab(metadata));
-			addrToSize();
+			attrIndexes=indexHelper.bytesToHashtab(metadata);
+			indexToSize();
 			logger.info("Free Space left is:" + (DATA_SIZE - DATA_USED));
 			logger.info("Free Meta Space left is:" + (METADATA_SIZE - METADATA_USED));
 			logger.info("Metadata read in Memory");
@@ -162,7 +163,7 @@ public class DBManager {
 			Locker.writeLock();
 			//Setting the metadata buffer in memory to an empty Hashtable
 			tabMetadata=new Hashtable<>();
-			addrMap =new Hashtable<>();
+			clusteredIndex =new Hashtable<>();
 			attrIndexes =new Hashtable<>();
 			logger.info("Clear : Metadata buffer updated");
 			set_METADATA_USED();
@@ -192,7 +193,7 @@ public class DBManager {
 		 * 			including reading threads will wait until the saving thread complete.
 		 * 		2. Locate the saving index:  call the method of findFreeSpaceIndex
 		 * 		3. Save the data to data part.
-		 * 		4. Save the addrMap information to metadata part.
+		 * 		4. Save the clusteredIndex information to metadata part.
 		 * 		5. Update the metadata buffer in memory
 		 *
 		 * Params:  key -- data key
@@ -203,7 +204,7 @@ public class DBManager {
 			Locker.writeLock();
 			logger.info("Attempting to put key: " + key + "to database");
 			//if key already exists in the database, update it by removing it first.
-			if (addrMap.containsKey(key)){
+			if (clusteredIndex.containsKey(key)){
 				Remove(key);
 			}
 			// if database is going to be out of volume, block the put attempt.
@@ -215,8 +216,8 @@ public class DBManager {
 			// Getting the index list of free space in data array;
 			List<Pair<Integer,Integer>> index_pairs = indexHelper.findFreeSpaceIndex(data.length);
 			indexHelper.splitDataBasedOnIndex(data, index_pairs);
-			// Updating the Addr map. If the metadata is out of volume, block the putting attempt.
-			Addr tmpIndex = new Addr();
+			// Updating the Index map. If the metadata is out of volume, block the putting attempt.
+			Index tmpIndex = new Index();
 			tmpIndex.setKey(key);
 			tmpIndex.setPhysAddrList(index_pairs);
 			int indexSize = indexHelper.getIndexSize(index_pairs);
@@ -225,7 +226,7 @@ public class DBManager {
 						+ key + " Failed.");
 				return;
 			}
-			addrMap.put(key, tmpIndex);
+			clusteredIndex.put(key, tmpIndex);
 			set_INDEXES_USED(get_INDEXES_USED() + indexSize);
 			logger.info("Metadata buffer updated");
 
@@ -266,8 +267,8 @@ public class DBManager {
 		try {
 			Locker.ReadLock();
 			logger.info("Attempting to get data mapped to key :" + key);
-			if (addrMap.containsKey(key)) {
-				List<Pair<Integer, Integer>> index = addrMap.get(key).getPhysAddrList();
+			if (clusteredIndex.containsKey(key)) {
+				List<Pair<Integer, Integer>> index = clusteredIndex.get(key).getPhysAddrList();
 				//extracting the mapped data from the data in memory;
 				int start = 0;
 				for (Pair<Integer, Integer> p : index) {
@@ -300,12 +301,12 @@ public class DBManager {
 		try {
 			Locker.writeLock();
 			logger.info("Attempting to remove the data with key :" + key);
-			if (!addrMap.containsKey(key)) {
+			if (!clusteredIndex.containsKey(key)) {
 				System.out.println("No data with key " + key + " exists in database.Failed to remove.");
 			} else {
 				// Removing the key in the metadata buffer and update the metadata file
-				int[] tmp = getAddrSize(addrMap.get(key));
-				addrMap.remove(key);
+				int[] tmp = getIndexSize(clusteredIndex.get(key));
+				clusteredIndex.remove(key);
 				this.set_DATA_USED(get_DATA_USED() - tmp[0]);
 				this.set_INDEXES_USED(get_INDEXES_USED() - tmp[1]);
 				logger.info("Metadata buffer updated");
@@ -358,31 +359,115 @@ public class DBManager {
 		return returnObj;
 	}
 
-	public void printQuery(String table,List<Integer> keys,List<String> attrNames){
+	//fetch the key according to the attributes by using index.
+	public List getKeyFromAttr(List<String> AttrNames,List<String> AttrValues) throws Exception {
+		int tid=0;
+		List res=new ArrayList<>();
+		String attrs = "";
+		if (AttrNames.size() > 1) {
+			for (String s : AttrNames)
+				attrs = attrs + "|" + s.toLowerCase();
+			attrs +="|";
+		}else
+			attrs = AttrNames.get(0);
+
+		if(attrIndexes.get(tid).containsKey(attrs)){
+			int hashValue=0;
+			for(int i=0;i<AttrValues.size();i++) hashValue+=AttrNames.get(0).hashCode();
+			return ((AttrIndex) attrIndexes.get(tid).get(attrs)).get(hashValue);
+		}
+		else{
+			throw new Exception("No Attribute Index!");
+		}
+	}
+
+	public void printQuery(String table,List<String> attrNames,Condition c){
 		//find tid first
-		int tid;
+		int tid=0;
 		for (int id: tabMetadata.keySet()){
 			if(tabMetadata.get(id).get(0).getRight()==table){
 				tid=id;break;
 			}
 		}
-		for(int key:keys){
-			boolean isFirst=true;
-			for(String attrName:attrNames){
-				if(isFirst) {
-					System.out.print(getAttribute(key, attrName));
-					isFirst = false;
-				}
-				else
-					System.out.print("|"+getAttribute(key, attrName));
-			}
-			System.out.print('\n');
+		List<String> addedAttrNames=new ArrayList<>(attrNames);
+		try {
+			if (c.throwCondition()!=null)
+				for(String[] ss:c.throwCondition())
+					if(ss.length==4)
+						addedAttrNames.add(ss[1]);
+		} catch (Exception e) {
+			System.out.println("Unclear condition(s)!");
+			return;
 		}
+
+		//if all the attr are Index
+		boolean all_in=true;
+		if(!isAttrIndex((ArrayList<String>) attrNames)) all_in=false;
+
+		if(all_in){
+			String attrs = "";
+			if (attrNames.size() > 1) {
+				for (String s : attrNames){
+					attrs = attrs + "|" + s.toLowerCase();
+				}
+				attrs +="|";
+			}else{
+				attrs = attrNames.get(tid);
+			}
+			Map<Integer,List> m= attrIndexes.get(tid).get(attrs).table;
+			List<Integer> lkeys=new ArrayList<>();
+			for(int i:m.keySet())
+				lkeys.addAll(m.get(i));
+			for(int i=0;i<lkeys.size();i++){
+				int key=lkeys.get(i);
+				if (false) continue;//conditionssssssssssssssssssssssssss
+				boolean isFirst = true;
+				System.out.print(key + ": ");
+				for (String attrName : attrNames) {
+					if (isFirst) {
+						System.out.print(getAttribute(key, attrName));
+						isFirst = false;
+					} else
+						System.out.print("|" + getAttribute(key, attrName));
+				}
+				System.out.print('\n');
+			}
+		}
+		else {
+			for (int key : clusteredIndex.keySet()) {
+				if (false) continue;//conditionssssssssssssssssssssssssss
+				boolean isFirst = true;
+				System.out.print(key + ": ");
+				for (String attrName : attrNames) {
+					if (isFirst) {
+						System.out.print(getAttribute(key, attrName));
+						isFirst = false;
+					} else
+						System.out.print("|" + getAttribute(key, attrName));
+				}
+				System.out.print('\n');
+			}
+		}
+	}
+
+	public List<String> tabProject(String attrNames){
+		int tid=0;
+		List<String> res = new ArrayList<>();
+		if(attrNames.trim().equals("*")){
+			for(int i =1;i<tabMetadata.get(tid).size();i++)
+				res.add((String) tabMetadata.get(tid).get(i).getLeft());
+		}
+		else {
+			String[] strings = attrNames.split(",");
+			for (String s : strings)
+				res.add(s.trim());
+		}
+		return res;
 	}
 
 	public Map<Integer,List<Pair>> getTabMeta(){return tabMetadata;}
 
-	public Map<Integer,Map<String, Object>> getAttrIndex(){return attrIndexes;}
+	public Map<Integer,Map<String, AttrIndex>> getAttrIndex(){return attrIndexes;}
 
 	public void ReadFile(String Filepath, int TabID, String regSep) {
 		byte[] byteData;
@@ -438,16 +523,45 @@ public class DBManager {
 	public void ReadFile(String Filepath, int TabID){ReadFile(Filepath, TabID, "@");}
 
 	public void CreateIndex(ArrayList<String> AttrNames){
+		Collections.sort(AttrNames);
+		int tid=0;
 		AttrIndex<String> attrindex = new AttrIndex<>(AttrNames);
 		String attrs = "";
 		if (AttrNames.size() > 1) {
 			for (String s : AttrNames){
-				attrs = attrs + "|" + s;
+				attrs = attrs + "|" + s.toLowerCase();
 			}
 			attrs +="|";
 		}else{
-			attrs = AttrNames.get(0);
+			attrs = AttrNames.get(tid);
 		}
-		this.attrIndexes.get(0).put(attrs, attrindex);
+		this.attrIndexes.get(tid).put(attrs, attrindex);
+		try {
+			DBStorage.writeMetaData(DB_NAME,dbManager);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	private boolean isAttrIndex(ArrayList<String> attrNames){
+		int tid=0;
+		String attrs = "";
+		if (attrNames.size() > 1) {
+			for (String s : attrNames){
+				attrs = attrs + "|" + s.toLowerCase();
+			}
+			attrs +="|";
+		}else{
+			attrs = attrNames.get(tid);
+		}
+		return attrIndexes.get(tid).containsKey(attrs);
+	}
+	private boolean isAttribute(String attrName){
+		int tid=0;
+		List<Pair> t_meta=tabMetadata.get(tid);
+		for(int i=1;i<t_meta.size();i++) {
+			if(((String)tabMetadata.get(tid).get(i).getLeft()).toLowerCase().equals(attrName.toLowerCase()))
+				return true;
+		}
+		return false;
 	}
 }

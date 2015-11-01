@@ -43,7 +43,7 @@ public class StorageImpl implements Storage {
 	public void writeMetaData(String fileName,DBManager dbm) throws Exception {
 		//merge three kinds of meta first
 		IndexHelper ih=new IndexHelperImpl();
-		byte[] index_meta=ih.indexToBytes(dbm.getAddr());
+		byte[] index_meta=ih.indexToBytes(dbm.getClusteredIndex());
 		byte[] table_meta=ih.tabMetaToBytes(dbm.getTabMeta());
 		byte[] uncl_index_meta=ih.hastabToBytes(dbm.getAttrIndex());
 		byte[] metadata=new byte[index_meta.length+table_meta.length+uncl_index_meta.length];

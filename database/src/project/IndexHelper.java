@@ -7,7 +7,7 @@ public interface IndexHelper {
 	/**
 	 * The start sign in the metadata file
 	 */
-	byte Addr_START_SIGN = Addr.getSign();
+	byte Addr_START_SIGN = Index.getSign();
 	byte TAB_START_SIGN = -2;
 	byte ATTRINDEX_START_SIGN=-3;
 	byte TAB_META_RESERVED=3;
@@ -39,14 +39,14 @@ public interface IndexHelper {
 	 * @param indexes storage index
 	 * @return the meta data byte array
 	 */
-	byte[] indexToBytes(Map<Integer, Addr> indexes);
+	byte[] indexToBytes(Map<Integer, Index> indexes);
 
 	/**
 	 * convert the meta data to the index Hashtable
 	 * @param metadata byte array
 	 * @return The Hashtable of indexes, key is the index key, value is the index object
 	 */
-	Map<Integer, Addr> bytesToIndex(byte[] metadata);
+	Map<Integer, Index> bytesToIndex(byte[] metadata);
 
 	int getIndexSize(List<Pair<Integer,Integer>> pairs_list);
 
@@ -54,5 +54,5 @@ public interface IndexHelper {
 	Map<Integer, List<Pair>>  bytesToTabMeta(byte[] metadata);
 
 	byte[] hastabToBytes(Map hashTab);
-	Map<String,Object> bytesToHashtab(byte[] metadata);
+	Map<Integer, Map<String, AttrIndex>> bytesToHashtab(byte[] metadata);
 }
