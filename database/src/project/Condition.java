@@ -18,6 +18,7 @@ public class Condition {
             and_conditions.add(or_conditions[ii].split(" and "));
         }
     }
+    public Condition(){this("");}
 
     public List<String[]> throwCondition()throws Exception {
         List<String[]> res=new ArrayList<>();
@@ -54,7 +55,11 @@ public class Condition {
         else throw new Exception("Can't determine the condition");
     }
 
-    private static String removeExtraSpace(String s){
+    private static boolean is_W_or_D(char c){
+        if(64<c&&c<91||96<c&&c<123||47<c&&c<58||c==42) return true;
+        else return false;
+    }
+    static String removeExtraSpace(String s){
         if(s.equals("")) return s;
         char[] returnedChars=new char[s.length()],chars=s.toCharArray();
         char last=chars[0];
@@ -64,7 +69,17 @@ public class Condition {
             if(last==' '&&chars[i]==' ') continue;
             returnedChars[offset++]=chars[i];
         }
-        return new String(returnedChars).trim();
+
+        char[] returnedChars2= new String(returnedChars).trim().toCharArray();
+        offset=0;
+        returnedChars2[offset++]=returnedChars[0];
+        for(int i=1;i<returnedChars.length-1;i++){
+            if(returnedChars[i]!=' ')
+                returnedChars2[offset++]=chars[i];
+            else if(is_W_or_D(returnedChars[i-1])^is_W_or_D(returnedChars[i+1]));
+            else returnedChars2[offset++]=chars[i];
+        }
+        return new String(returnedChars2).trim();
     }
     private static int matchCounter(Matcher m){
         int count=0;
@@ -73,15 +88,8 @@ public class Condition {
     }
 
     public static void main(String[] args){
-        try {
-            Condition c=new Condition(" asasdfddf  =  asdf and asdf=asdf or asdofji<asdf ");
-            for(int i=0;i<3;i++)
-                for(int j=0;j<4;j++)
-            System.out.println(c.throwCondition().get(i)[j]);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
+        Condition c=new Condition("show show show ,asdf , show");
+        System.out.println(Integer.parseInt(""));
 
     }
 

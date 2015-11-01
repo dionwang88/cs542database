@@ -10,20 +10,15 @@ public class DBManagerTest {
 	public static void main(String[] args) {
 		DBManager dbManager=DBManager.getInstance();
 
-		dbManager.printQuery("movies", dbManager.tabProject("Year"), new Condition(""));
+		dbManager.printQuery("movies", dbManager.tabProject("year"), new Condition(""));
 
 		ArrayList<String> a = new ArrayList<>();
-		//a.add("title");
-		a.add("Year");
 
-		dbManager.CreateIndex(a);
+		dbManager.CreateIndex("tiTle,year");
 
+        System.out.println(dbManager.getTabMeta());
 		System.out.println(dbManager.getAttrIndex());
-
-
-
-
-
+        System.out.println(true^true);
 
 	}
 }

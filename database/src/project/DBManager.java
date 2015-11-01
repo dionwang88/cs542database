@@ -1,6 +1,7 @@
 package project;
 
 import java.io.*;
+import java.lang.reflect.Array;
 import java.util.*;
 
 import org.apache.logging.log4j.LogManager;
@@ -152,7 +153,7 @@ public class DBManager {
 		int tid=0;
 		while(tabMetadata.keySet().contains(tid))
 			tid++;
-		pairs.add(new Pair<>(tid,tableName));
+		pairs.add(new Pair<>(tid,tableName.toLowerCase()));
 		pairs.addAll(attr);
 		tabMetadata.put(tid, pairs);
 		attrIndexes.put(tid, new Hashtable<>());
@@ -369,7 +370,7 @@ public class DBManager {
 				attrs = attrs + "|" + s.toLowerCase();
 			attrs +="|";
 		}else
-			attrs = AttrNames.get(0);
+			attrs = AttrNames.get(0).toLowerCase();
 
 		if(attrIndexes.get(tid).containsKey(attrs)){
 			int hashValue=0;
@@ -383,11 +384,15 @@ public class DBManager {
 
 	public void printQuery(String table,List<String> attrNames,Condition c){
 		//find tid first
-		int tid=0;
+		int tid=0;boolean notFound=true;
 		for (int id: tabMetadata.keySet()){
-			if(tabMetadata.get(id).get(0).getRight()==table){
-				tid=id;break;
+			if(tabMetadata.get(id).get(0).getRight().equals(table.toLowerCase())){
+				tid=id;notFound=false;break;
 			}
+		}
+		if(notFound){
+			System.out.println("No table named "+table);
+			return;
 		}
 		List<String> addedAttrNames=new ArrayList<>(attrNames);
 		try {
@@ -458,9 +463,9 @@ public class DBManager {
 				res.add((String) tabMetadata.get(tid).get(i).getLeft());
 		}
 		else {
-			String[] strings = attrNames.split(",");
+			String[] strings = attrNames.toLowerCase().split(",");
 			for (String s : strings)
-				res.add(s.trim());
+				res.add(s.toLowerCase().trim());
 		}
 		return res;
 	}
@@ -500,9 +505,13 @@ public class DBManager {
 						else byteData = IndexHelperImpl.concat(byteData, record[j].getBytes());
 					}
 					else{
-						int v = Integer.parseInt(record[j]);
-						if (byteData == null) byteData = IndexHelperImpl.intToByte(v);
-						else byteData = IndexHelperImpl.concat(byteData, IndexHelperImpl.intToByte(v));
+						int v;
+						if(record[j].trim().equals("")) v=0;
+						else {
+							v = Integer.parseInt(record[j].trim());
+						}
+							if (byteData == null) byteData = IndexHelperImpl.intToByte(v);
+							else byteData = IndexHelperImpl.concat(byteData, IndexHelperImpl.intToByte(v));
 					}
 				}
 				this.Put(i++, byteData);
@@ -522,7 +531,12 @@ public class DBManager {
 	}
 	public void ReadFile(String Filepath, int TabID){ReadFile(Filepath, TabID, "@");}
 
-	public void CreateIndex(ArrayList<String> AttrNames){
+	public void CreateIndex(String str_AttrNames){
+		ArrayList<String> AttrNames = new ArrayList<>();
+		String[] strings = str_AttrNames.toLowerCase().split(",");
+		for (String s : strings)
+			AttrNames.add(s.trim());
+
 		Collections.sort(AttrNames);
 		int tid=0;
 		AttrIndex<String> attrindex = new AttrIndex<>(AttrNames);
@@ -533,7 +547,7 @@ public class DBManager {
 			}
 			attrs +="|";
 		}else{
-			attrs = AttrNames.get(tid);
+			attrs = AttrNames.get(tid).toLowerCase();
 		}
 		this.attrIndexes.get(tid).put(attrs, attrindex);
 		try {
@@ -551,7 +565,7 @@ public class DBManager {
 			}
 			attrs +="|";
 		}else{
-			attrs = attrNames.get(tid);
+			attrs = attrNames.get(tid).toLowerCase();
 		}
 		return attrIndexes.get(tid).containsKey(attrs);
 	}

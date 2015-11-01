@@ -4,7 +4,6 @@ import test.Clear;
 import test.TestConcurrency;
 import test.TestFragmentation;
 import test.TestReadCSV;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -95,18 +94,18 @@ public class DBTool {
     }
 
     private static void shell(){
+        DBManager dbmanager=DBManager.getInstance();
         System.out.println("Welcome! This is a group project of cs542 at WPI\nType help to see commands.");
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         String[] s;
         waiting_command:
         while(true){
             try {
-                s=br.readLine().split(" ");
-                if(s.length>3) {System.out.println("Too many argument!");continue ;}
-                switch (s[0].toLowerCase()) {
+                s=Condition.removeExtraSpace(br.readLine()).toLowerCase().split(" ");
+                if(s.length>10) {System.out.println("Too many argument!");continue ;}
+                switch (s[0]) {
                     case "quit":case "q":           System.out.println("Now Quit Shell.");break waiting_command;
                     case "show":
-                        DBManager dbmanager;
                         if (s.length==1) dbmanager = DBManager.getInstance();
                         else dbmanager=DBManager.getInstance(s[1]);
                         showWrapped(dbmanager);
@@ -115,13 +114,36 @@ public class DBTool {
                     case "Concurrency":case "c":    TestConcurrency.main(null);break;
                     case "clear":case "cl":         Clear.main(null);break;
                     case "readcsv":case"r":         TestReadCSV.main(null);break;
+                    case "select":
+                        if(s.length>3&&s[2].equals("from")){
+                            if(s.length>5&&s[4].equals("where")){
+                                String cond="";
+                                for(int i=5;i<s.length;i++)
+                                    cond+=s[i];
+                                dbmanager.printQuery(s[3],dbmanager.tabProject(s[1]),new Condition(cond));
+                            }
+                            else if (dbmanager != null) {
+                                    dbmanager.printQuery(s[3],dbmanager.tabProject(s[1]),new Condition());
+                            }
+                        }break;
                     case "help":
                         System.out.println("Help Information:\nq|Q|quit|Quit\t\tquit the shell\n" +
                                 "show [<filename>]\tshow the space of the database, default file is 'cs542.db'.\n" +
                                 "fragment|f\t\t\tvalidate fragment\n" +
                                 "concurrency|c\t\tvalidate concurrency control\n" +
-                                "clear|cl\t\t\tclear the database");break;
-                    default:System.out.println("Can't find the command '"+s[0]+"'!\nyou may use 'help' command");
+                                "clear|cl\t\t\tclear the database\n"+
+                                "readcsv|r\t\t\tread movies file and create table\n"+
+                                "select <attribute(s)> from <table> [where <condition(s)>]\n" +
+                                "create index <> on <>\tcreate index\n");break;
+                    case "create":
+                        if(s.length>4){
+                            switch (s[1]){
+                                case "index": if(s[3].equals("on"));break;
+                            }
+                        }
+                        else System.out.println("create index <> on <>");
+                        break;
+                    default:System.out.println("Can't find the command '"+s[0]+"'\nyou may use 'help' command");
                 }
             } catch (IOException e) {
                 e.printStackTrace();

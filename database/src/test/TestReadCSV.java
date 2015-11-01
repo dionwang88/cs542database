@@ -9,7 +9,7 @@ public class TestReadCSV {
     public static void main(String[] args) {
         DBManager dbmanager = DBManager.getInstance();
         String[] AttrNames = {"Title", "Year", "Format", "Genre", "Director", "Writer", "Country", "Studio", "Price", "Catalog No"};
-        int[] type = {1, 0, 1, 1, 1, 1, 1, 1, 1, 0};
+        int[] type = {1, 0, 1, 1, 1, 1, 1, 1, 1, 1};
         List<Pair> attrs = new ArrayList<>();
         for (int i = 0; i < type.length; i++) {
             int length;
