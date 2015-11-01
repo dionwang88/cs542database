@@ -8,7 +8,7 @@ import java.util.List;
 public class TestReadCSV {
     public static void main(String[] args) {
         DBManager dbmanager = DBManager.getInstance();
-        String[] AttrNames = {"Title", "Year", "Format", "Genre", "Director", "Writer", "Country", "Studio", "Price", "Catalog No"};
+        String[] AttrNames = {"Title", "Year", "Format", "Genre", "Director", "Writer", "Country", "Studio", "Price", "CatalogNo"};
         int[] type = {1, 0, 1, 1, 1, 1, 1, 1, 1, 1};
         List<Pair> attrs = new ArrayList<>();
         for (int i = 0; i < type.length; i++) {

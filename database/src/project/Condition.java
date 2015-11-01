@@ -70,16 +70,18 @@ public class Condition {
             returnedChars[offset++]=chars[i];
         }
 
-        char[] returnedChars2= new String(returnedChars).trim().toCharArray();
+        char[] returnedChars2= new char[returnedChars.length];
         offset=0;
         returnedChars2[offset++]=returnedChars[0];
-        for(int i=1;i<returnedChars.length-1;i++){
+        int i;
+        for(i=1;i<returnedChars.length-1;i++){
             if(returnedChars[i]!=' ')
-                returnedChars2[offset++]=chars[i];
+                returnedChars2[offset++]=returnedChars[i];
             else if(is_W_or_D(returnedChars[i-1])^is_W_or_D(returnedChars[i+1]));
-            else returnedChars2[offset++]=chars[i];
+            else returnedChars2[offset++]=returnedChars[i];
         }
-        return new String(returnedChars2).trim();
+        returnedChars2[offset++]=returnedChars[i];
+        return new String(returnedChars2).trim().toLowerCase();
     }
     private static int matchCounter(Matcher m){
         int count=0;
@@ -88,9 +90,8 @@ public class Condition {
     }
 
     public static void main(String[] args){
-        Condition c=new Condition("show show show ,asdf , show");
-        System.out.println(Integer.parseInt(""));
+        Condition c=new Condition("  select   title ,  yEar  ,   format  from   movies  ");
+        System.out.println(removeExtraSpace(c.toString()));
 
     }
-
 }
