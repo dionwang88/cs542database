@@ -382,7 +382,7 @@ public class DBManager {
 		}
 	}
 
-	public void printQuery(String table,List<String> attrNames,Condition c){
+	public void printQuery(String table,List<String> attrNames,Condition c) throws Exception {
 		//find tid first
 		int tid=0;boolean notFound=true;
 		for (int id: tabMetadata.keySet()){
@@ -425,7 +425,7 @@ public class DBManager {
 				lkeys.addAll(m.get(i));
 			for(int i=0;i<lkeys.size();i++){
 				int key=lkeys.get(i);
-				if (false) continue;//conditionssssssssssssssssssssssssss
+				if (Condition.handleCondition(c.throwCondition(),dbManager,key,tid)) continue;
 				boolean isFirst = true;
 				System.out.print(key + ": ");
 				for (String attrName : attrNames) {
@@ -440,7 +440,7 @@ public class DBManager {
 		}
 		else {
 			for (int key : clusteredIndex.keySet()) {
-				if (false) continue;//conditionssssssssssssssssssssssssss
+				if (!Condition.handleCondition(c.throwCondition(),dbManager,key,tid)) continue;
 				boolean isFirst = true;
 				System.out.print(key + ": ");
 				for (String attrName : attrNames) {
@@ -531,14 +531,16 @@ public class DBManager {
 	}
 	public void ReadFile(String Filepath, int TabID){ReadFile(Filepath, TabID, "@");}
 
-	public void CreateIndex(String str_AttrNames){
+	public void createIndex(String tableName,String str_AttrNames){
+		int tid=0;
+
 		ArrayList<String> AttrNames = new ArrayList<>();
 		String[] strings = str_AttrNames.toLowerCase().split(",");
 		for (String s : strings)
 			AttrNames.add(s.trim());
 
 		Collections.sort(AttrNames);
-		int tid=0;
+
 		AttrIndex<String> attrindex = new AttrIndex<>(AttrNames);
 		String attrs = "";
 		if (AttrNames.size() > 1) {
