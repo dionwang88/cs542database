@@ -384,7 +384,7 @@ public class DBManager {
 
 	public void printQuery(String table,List<String> attrNames,Condition c) throws Exception {
 		//find tid first
-		int tid=0;boolean notFound=true;
+		int tid=0,queryHashVal=0;boolean notFound=true;
 		for (int id: tabMetadata.keySet()){
 			if(tabMetadata.get(id).get(0).getRight().equals(table.toLowerCase())){
 				tid=id;notFound=false;break;
@@ -394,19 +394,21 @@ public class DBManager {
 			System.out.println("No table named "+table);
 			return;
 		}
-		List<String> addedAttrNames=new ArrayList<>(attrNames);
+		List<String> addedAttrNames=new ArrayList<>();
 		try {
 			if (c.throwCondition()!=null)
 				for(String[] ss:c.throwCondition())
-					if(ss.length==4)
+					if(ss.length==4) {
 						addedAttrNames.add(ss[1]);
+						queryHashVal+=ss[2].hashCode();
+					}
 		} catch (Exception e) {
 			System.out.println("Unclear condition(s)!");
 			return;
 		}
 
-		//if all the attr are Index
-		boolean all_in=true;
+		//if all the attr are Index or No where condition
+		boolean all_in=!addedAttrNames.isEmpty();
 		if(!isAttrIndex((ArrayList<String>) attrNames)) all_in=false;
 
 		if(all_in){
@@ -419,13 +421,11 @@ public class DBManager {
 			}else{
 				attrs = attrNames.get(tid);
 			}
-			Map<Integer,List> m= attrIndexes.get(tid).get(attrs).table;
-			List<Integer> lkeys=new ArrayList<>();
-			for(int i:m.keySet())
-				lkeys.addAll(m.get(i));
-			for(int i=0;i<lkeys.size();i++){
-				int key=lkeys.get(i);
-				if (Condition.handleCondition(c.throwCondition(),dbManager,key,tid)) continue;
+			AttrIndex attrIndex= attrIndexes.get(tid).get(attrs);
+			List keys=attrIndex.get(queryHashVal);
+			for(int i=0;i<keys.size();i++){
+				int key= (int) keys.get(i);
+				if (!Condition.handleCondition(c.throwCondition(),dbManager,key,tid)) continue;
 				boolean isFirst = true;
 				System.out.print(key + ": ");
 				for (String attrName : attrNames) {

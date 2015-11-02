@@ -170,5 +170,7 @@ public class Condition {
         }
 
         System.out.println(removeExtraSpace("select * from movies where year=1989 and country=\"usa\"").split("\\\"|\\\'")[1]);
+        Object o='1';
+        System.out.println(o.toString().hashCode());
     }
 }

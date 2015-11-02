@@ -3,18 +3,19 @@ package project;
 import java.io.Serializable;
 import java.util.Hashtable;
 import java.util.ArrayList;
+import java.util.List;
 
 public class AttrIndex<K>implements Serializable {
-	Hashtable<Integer,ArrayList<Integer>> table;
+	Hashtable<Integer,List<Integer>> table;
 
 	public AttrIndex(){table = new Hashtable<>();}
-	public AttrIndex(ArrayList<String> AttrNames) {
+	public AttrIndex(List<String> AttrNames) {
 		this();
 		DBManager dbm = DBManager.getInstance();
 		for (int i = 1; i <= dbm.getClusteredIndex().size(); i++) {
 			int hashValue = 0;
-			for (int j = 0; j < AttrNames.size(); j++) {
-				Object attr = dbm.getAttribute(i, AttrNames.get(j));
+			for (String AttrName : AttrNames) {
+				Object attr = dbm.getAttribute(i, AttrName);
 				hashValue += attr.toString().hashCode();
 			}
 			this.hashPut(hashValue, i);
@@ -28,14 +29,14 @@ public class AttrIndex<K>implements Serializable {
 		if (table.containsKey(val)) {
 			table.get(val).add(rID);
 		}else{
-			ArrayList<Integer> l = new ArrayList<>();
+			List<Integer> l = new ArrayList<>();
 			l.add(rID);
 			table.put(val, l);
 		}
 	}
 	
-	public ArrayList<Integer> get(K attrs){
-		ArrayList<Integer> l = table.get(attrs.toString().hashCode());
+	public List<Integer> get(K attrs){
+		List<Integer> l = table.get(attrs);
 		if (l != null) return l;
 		else return null;
 	}
