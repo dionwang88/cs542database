@@ -1,7 +1,8 @@
 #DataBase internal programming project
 ###CS542-F15: database management system
 --
-#Contents		
+#Contents	
+**Project1**	
 [**Framework**](#0)				
 |------[Operating procedure](#9)		
 |------[metadata structure](#11)			
@@ -14,11 +15,18 @@
 |------[IndexHelper](#6)		
 |------[IndexHelperImpl](#7)				
 |------[DBManager](#8)<br/>
-|------[Dblocker](#17)<br/>			
+|------[Dblocker](#17)		
 [Validation](#10)		
 |------[Fragment](#14)		
 |------[Concurrency control](#15)
 [Further Assumptions](#16)
+
+Project2	
+Table Metadata	
+Attribute Index	
+Relation&DBManager	
+Condition		
+Shell Validation
 
 --
 
@@ -329,17 +337,55 @@ tabMateToBytes()
 Return metadata array of table metadata, than when we write metadata into db file, this returned array will concat with index metadata.
 ##Relation And DbManager
 For now, we assumed that we **only have one relation** in our database. We will add relation class in the future project. In other word, we don't have relation class now, and all the interface are under the class DBManager. We will finish this part in the next project.
-##Index
-Based on the project 1, we add three methods to realize the indexing mechanism. In the project 1, we have already realized clustered index, which is based on key, or rather rid. Now we need to construct unclustered index based on other attributes.
+##Attribute Index
+Based on the project 1, we add three methods to realize the indexing mechanism with **Hash Table**. In the project 1, we have already realized clustered index, which is based on key, or rather rid. Now we need to construct unclustered index based on other attributes.
 #### put
 #### get
 #### remove
 
 We also add two methods, **hashtabToBytes()** and **bytesToHashtab()** to Indexhelper to transform index between memory and physical storage.
 
+###Attribute Index structure 
+
+##Condition
+In order to validate the Index function, we consider to implement selection function based on the SQL where-condition. We have created a Condition class, which play a significant role in our query validation.
+###main methods of condition 
+**assertCondition()**		
+Assert the conditions, transform string statement into string array and logic flags.	
+
+**throwCondition()**		
+Throw the condition values which are produced by assertCondition() method.
+
+**handleCondition()**	
+Handle the condition values returned by the throwCondition() and judge the condition is true of false.
+
+**removeExtraSpace()**	
+Remove the meaningless space in the string statement.
+
 ##Validation
 Assumption:	
 
 1. Since some attributes contain char ',', which is a separator for csv file, read data from csv file could be a problem. For simplicity, we use '@' as separator.
 2. To store the data, we will convert the string into byte. We treat every character in String as ASCII code, so some uncommon char will be displayed as '?'. In other word, we did not handle the non-ASCII code character problem. 
-2. 
+2. We have implemented **SQL select statement** and **Create Index statement**, which is pretty closed to the real SELECT. Our SELECT can do PROJECT and SELECT job. SELECT function will be based on a new class Condition, which will convert a String statement into boolean value.
+3. Our Condition class does not support bracket but support multiple logic and/or statement.
+
+###validation instruction:
+Here are our shell commends listed in the tables. Although some of them are validation in the first project including fragment storage and concurrency control. Although our SQL is simple, it contains most common usages, which are projection and equality selection. More functions and commands will provide in the next several projects.
+
+In order to run the shell program, please run the DBTool.shell() function, or run the DBTool.main(). Type help will give you more help information.
+
+|command|function|
+|---|---|
+|q or quit|quit the shell|
+|show [<filename>]|	show the space of the database, default file is 'cs542.db'.|
+|fragment or f|		validate fragment	|
+|concurrency\c|		validate concurrency control
+|clear or cl	|		clear the database	
+|readcsv or r|			read movies file and create table
+
+
+|------SQL------||
+|---|---|
+|select \<attribute(s)\> from \<table\> \[where \<condition(s)\>\]|SELECT STATEMENT|
+|create index \<table(attributeName\[, ...\])\>  |create index 	<table(attributeName[, ...])>|	

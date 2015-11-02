@@ -49,10 +49,12 @@ public interface IndexHelper {
 	Map<Integer, Index> bytesToIndex(byte[] metadata);
 
 	int getIndexSize(List<Pair<Integer,Integer>> pairs_list);
-
+	//transform table metadata into byte array
 	byte[] tabMetaToBytes(Map<Integer, List<Pair>> tabMetadata);
+	//transform back
 	Map<Integer, List<Pair>>  bytesToTabMeta(byte[] metadata);
-
+	//transform hash table into byte array
 	byte[] hastabToBytes(Map hashTab);
+	//transform back
 	Map<Integer, Map<String, AttrIndex>> bytesToHashtab(byte[] metadata);
 }

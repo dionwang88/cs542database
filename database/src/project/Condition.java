@@ -8,10 +8,14 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Condition {
+    //sql where condition
     private String statement;
+    //sub "or" condtions
     String[] or_conditions;
+    //every branch of sub "and" conditions
     List<String[]> and_conditions=new ArrayList<>();
 
+    //initial the statement and sub-conditions
     public Condition(String s) {
         this.statement=removeExtraSpace(s);
         or_conditions=statement.split("\\sor\\s");
@@ -21,6 +25,7 @@ public class Condition {
     }
     public Condition(){this("");}
 
+    //throw every sub statement and some logic flags
     public List<String[]> throwCondition()throws Exception {
         List<String[]> res=new ArrayList<>();
         for(int ii=0;ii<and_conditions.size();ii++)
@@ -28,8 +33,8 @@ public class Condition {
                 res.add(assertCondition(and_conditions.get(ii)[jj],ii));
             }
         return res;}
-    public String toString(){return statement;}
 
+    //handle the conditions which are returned by throwCondition method
     public static boolean handleCondition(List<String[]> conditions, DBManager dbm,int key,int tid) throws Exception {
         List<Pair<String, Boolean>> results = new ArrayList<>();
         if (conditions.get(0).length<4) return true;
@@ -99,6 +104,7 @@ public class Condition {
         return c;
     }
 
+    //transform the subcondition into string array which will be further handled by handleCondition method
     private static String[] assertCondition(String c,int andGroupNo) throws Exception {
         if (c.trim().equals("")) return new String[0];
         String h="(?<=[\\d\\w '\"])",t="(?=[\\d\\w '\"])";
@@ -124,11 +130,12 @@ public class Condition {
         }
         else throw new Exception("Can't determine the condition");
     }
-
+    //is a word or digtal or * or "
     private static boolean is_W_or_D(char c){
         if(64<c&&c<91||96<c&&c<123||47<c&&c<58||c==42||c==34) return true;
         else return false;
     }
+    //trim unnecessary space from the statement
     static String removeExtraSpace(String s){
         if(s.equals("")) return s;
         char[] returnedChars=new char[s.length()],chars=s.toCharArray();
@@ -154,12 +161,15 @@ public class Condition {
         returnedChars2[offset++]=returnedChars[i];
         return new String(returnedChars2).trim().toLowerCase();
     }
+    //count regexp results
     private static int matchCounter(Matcher m){
         int count=0;
         while(m.find()) count++;
         return count;
     }
-
+    // for printing and testing
+    public String toString(){return statement;}
+    //some local test
     public static void main(String[] args){
         Condition c=new Condition("year=1989 and country = \"USA\"");
         System.out.println(removeExtraSpace(c.toString()));

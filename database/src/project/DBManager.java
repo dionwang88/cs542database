@@ -382,6 +382,7 @@ public class DBManager {
 		}
 	}
 
+	//give tablename, the condition and project attributes, print the results
 	public void printQuery(String table,List<String> attrNames,Condition c) throws Exception {
 		//find tid first
 		int tid=0,queryHashVal=0;boolean notFound=true;
@@ -454,7 +455,7 @@ public class DBManager {
 			}
 		}
 	}
-
+	//do projection
 	public List<String> tabProject(String attrNames){
 		int tid=0;
 		List<String> res = new ArrayList<>();
@@ -469,11 +470,12 @@ public class DBManager {
 		}
 		return res;
 	}
-
+	//fetch table metadata
 	public Map<Integer,List<Pair>> getTabMeta(){return tabMetadata;}
-
+	//fetch the attribute based on the rid and attribute name
 	public Map<Integer,Map<String, AttrIndex>> getAttrIndex(){return attrIndexes;}
 
+	//read csv file
 	public void ReadFile(String Filepath, int TabID, String regSep) {
 		byte[] byteData;
 		BufferedReader br = null;
@@ -531,6 +533,7 @@ public class DBManager {
 	}
 	public void ReadFile(String Filepath, int TabID){ReadFile(Filepath, TabID, "@");}
 
+	// create index on certain attribute names
 	public void createIndex(String tableName,String str_AttrNames){
 		int tid=0;
 
@@ -558,6 +561,7 @@ public class DBManager {
 			e.printStackTrace();
 		}
 	}
+	//attribute has index or not
 	private boolean isAttrIndex(ArrayList<String> attrNames){
 		int tid=0;
 		String attrs = "";
@@ -571,6 +575,7 @@ public class DBManager {
 		}
 		return attrIndexes.get(tid).containsKey(attrs);
 	}
+	//used and may be not useful in the future
 	private boolean isAttribute(String attrName){
 		int tid=0;
 		List<Pair> t_meta=tabMetadata.get(tid);
