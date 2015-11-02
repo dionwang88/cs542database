@@ -1,4 +1,4 @@
-#DataBase internal programming project
+﻿#DataBase internal programming project
 ###CS542-F15: database management system
 --
 #Contents	
@@ -339,13 +339,20 @@ Return metadata array of table metadata, than when we write metadata into db fil
 For now, we assumed that we **only have one relation** in our database. We will add relation class in the future project. In other word, we don't have relation class now, and all the interface are under the class DBManager. We will finish this part in the next project.
 ##Attribute Index
 Based on the project 1, we add three methods to realize the indexing mechanism with **Hash Table**. In the project 1, we have already realized clustered index, which is based on key, or rather rid. Now we need to construct unclustered index based on other attributes.
+The AttrIndex is a genric class, which allows easy creation of indexes based on any types of attributes. The default constructor in AttrIndex takes in a List of Strings, where the elements are the to-be-indexed attribute name(s). The class then creates an index based on these attributes by concatenating each value. 
+In the future, B+Tree-based-indexes will be added to allow fast searches on range.
+
 #### put
+This method has two inputs, the rID(keys from the clustered index) which is an integer, and the data value with generic type. Since we are indexing on attributes, the datavalue will be the key. The Hash Table inside AttrIndex will first check if there exists a value that equals to the input datavalue. If such is found, it implies the existence of duplication in this indexed attribute and the corresponding rID is added to a List of Integers under such data value. Otherwise, a new List of integer is generated with the input rID ,and is mapped with the data value from the hash table.
 #### get
+This method takes in the data value with generic type, and seeks the corresponding list of rIDs inside the Hash Table. If not found, null is return.
 #### remove
+This method removes the mapping from the given data value to its corresponding list of rIds.
 
 We also add two methods, **hashtabToBytes()** and **bytesToHashtab()** to Indexhelper to transform index between memory and physical storage.
 
 ###Attribute Index structure 
+Hashtable<\Integer, List<\Integer>>
 
 ##Condition
 In order to validate the Index function, we consider to implement selection function based on the SQL where-condition. We have created a Condition class, which play a significant role in our query validation.
