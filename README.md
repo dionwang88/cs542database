@@ -1,4 +1,4 @@
-﻿#DataBase internal programming project
+#DataBase internal programming project
 ###CS542-F15: database management system
 --
 #Contents	
@@ -21,7 +21,7 @@
 |------[Concurrency control](#15)
 [Further Assumptions](#16)
 
-Project2	
+**Project2**	
 Table Metadata	
 Attribute Index	
 Relation&DBManager	
@@ -380,7 +380,7 @@ Assumption:
 ###validation instruction:
 Here are our shell commends listed in the tables. Although some of them are validation in the first project including fragment storage and concurrency control. Although our SQL is simple, it contains most common usages, which are projection and equality selection. More functions and commands will provide in the next several projects.
 
-In order to run the shell program, please run the DBTool.shell() function, or run the DBTool.main(). Type help will give you more help information.
+In order to run the shell program, please run the DBTool.shell() function, or run the **DBTool.main()**. Type help will give you more help information.
 
 |command|function|
 |---|---|
@@ -396,3 +396,125 @@ In order to run the shell program, please run the DBTool.shell() function, or ru
 |---|---|
 |select \<attribute(s)\> from \<table\> \[where \<condition(s)\>\]|SELECT STATEMENT|
 |create index \<table(attributeName\[, ...\])\>  |create index 	<table(attributeName[, ...])>|	
+
+Here is specific command in our shell:
+
+1) run DBTooL.main(). Type:
+
+>help
+ 
+will give more command details. Note that the command is **not case sensitive**.
+
+
+2) Read csv from movies data file. Type "readcsv" or "r" for short.
+>readcsv
+
+3) CREATE INDEX movieInd ON Movie(year, format). In our SQL grammer, please type:
+>create index movies(year,format)
+
+Query:
+Find all DVD movies made in 1977.
+>select * from movies where format="DVD" and year=1977
+
+Find all VHS movies made in 1990.
+>select * from movies where format="VHS" and year=1990
+
+Find all DVD movies made in 2001.
+>select * from movies where format="DVD" and year=2001
+
+4) index yrInd ON Movie(year).
+>create index movies(year)
+
+Find all movies made in 2000.
+>select * from movies where year=2000
+
+Find all movies made in 2005.
+>select * from movies where year=2005
+
+Find all movies made in 2010.
+>select * from movies where year=2010
+
+Here is output sample:
+
+	>>help
+	Help Information:
+	q|Q|quit|Quit		quit the shell
+	show [<filename>]	show the space of the database, default file is 'cs542.db'.
+	fragment|f			validate fragment
+	concurrency|c		validate concurrency control
+	clear|cl			clear the database
+	readcsv|r			read movies file and create table
+	
+	------SQL-----
+	select <attribute(s)> from <table> [where <condition(s)>]
+	create index <table(attributeName[, ...])>
+	
+	>>r
+	Data related to key is 1, and size is 724 have written to cs542.db
+	Data related to key is 2, and size is 724 have written to cs542.db
+	Data related to key is 3, and size is 724 have written to cs542.db
+	Data related to key is 4, and size is 724 have written to cs542.db
+	Data related to key is 5, and size is 724 have written to cs542.db
+	Data related to key is 6, and size is 724 have written to cs542.db
+	Data related to key is 7, and size is 724 have written to cs542.db
+	Data related to key is 8, and size is 724 have written to cs542.db
+	Data related to key is 9, and size is 724 have written to cs542.db
+	Data related to key is 10, and size is 724 have written to cs542.db
+	Data related to key is 11, and size is 724 have written to cs542.db
+	Data related to key is 12, and size is 724 have written to cs542.db
+	Data related to key is 13, and size is 724 have written to cs542.db
+	Data related to key is 14, and size is 724 have written to cs542.db
+	Data related to key is 15, and size is 724 have written to cs542.db
+	Data related to key is 16, and size is 724 have written to cs542.db
+	Data related to key is 17, and size is 724 have written to cs542.db
+	Data related to key is 18, and size is 724 have written to cs542.db
+	Data related to key is 19, and size is 724 have written to cs542.db
+	Data related to key is 20, and size is 724 have written to cs542.db
+	Data related to key is 21, and size is 724 have written to cs542.db
+	Data related to key is 22, and size is 724 have written to cs542.db
+	Data related to key is 23, and size is 724 have written to cs542.db
+	Data related to key is 24, and size is 724 have written to cs542.db
+	Data related to key is 25, and size is 724 have written to cs542.db
+	Data related to key is 26, and size is 724 have written to cs542.db
+	Data related to key is 27, and size is 724 have written to cs542.db
+	Data related to key is 28, and size is 724 have written to cs542.db
+	Data related to key is 29, and size is 724 have written to cs542.db
+	Data related to key is 30, and size is 724 have written to cs542.db
+	Data related to key is 31, and size is 724 have written to cs542.db
+	Data related to key is 32, and size is 724 have written to cs542.db
+	Data related to key is 33, and size is 724 have written to cs542.db
+	Data related to key is 34, and size is 724 have written to cs542.db
+	Data related to key is 35, and size is 724 have written to cs542.db
+	Data related to key is 36, and size is 724 have written to cs542.db
+	Data related to key is 37, and size is 724 have written to cs542.db
+	Data related to key is 38, and size is 724 have written to cs542.db
+	Data related to key is 39, and size is 724 have written to cs542.db
+	Data related to key is 40, and size is 724 have written to cs542.db
+	Data related to key is 41, and size is 724 have written to cs542.db
+	Data related to key is 42, and size is 724 have written to cs542.db
+	Data related to key is 43, and size is 724 have written to cs542.db
+	Data related to key is 44, and size is 724 have written to cs542.db
+	Data related to key is 45, and size is 724 have written to cs542.db
+	Reading movies.txt is Done
+	
+	>>create index movies(year,format)
+	>>select * from movies where format="DVD" and year=1977
+	>>select * from movies where format="VHS" and year=1990
+	39: Pacific Heights|1990|VHS|Thriller|John Schlesinger|Daniel Pyne|USA|20th Century Fox|$15.00|0286
+	>>select * from movies where format="DVD" and year=2001
+	20: Moulin Rouge|2001|DVD|Musical|Baz Luhrmann|Craig Pearce|USA|20th Century Fox|$15.00|0260
+	16: The Lord of the Rings: The Fellowship of the Ring|2001|DVD|Action|Peter Jackson|Phillippa Boyens|USA|New Line Cinema|$13.81|0707
+	15: Legally Blonde|2001|DVD|Comedy|Robert Luketic|Karen McCullah Lutz|USA|MGM|$15.00|0231
+	5: A Beautiful Mind|2001|DVD|Drama|Ron Howard|Akiva Goldsman|USA|Universal Pictures|$15.00|0054
+	2: Amelie|2001|DVD|Comedy|Jean-Pierre Jeunet|Guillaume Laurant|France|Miramax|$15.00|0022
+	
+	>>create index movies(year)
+	>>select * from where year=2000
+	No table named where
+	>>select * from movies where year=2000
+	17: Malena|2000|DVD|Drama|Giuseppe Tornatore|Giuseppe Tornatore|Italy|Miramax|$15.00|0243
+	9: Gladiator|2000|DVD|Epic|Ridley Scott|John Logan|USA|DreamWorks / Universal  (Foreign)|$15.00|0169
+	7: Crouching Tiger, Hidden Dragon|2000|DVD|Action|Ang Lee|Du Lu Wang|Taiwan|Asia / Columbia Pictures / Good Machine / Sony Pic|$15.00|0528
+	>>select * from movies where year=2005
+	21: Mr. & Mrs. Smith|2005|DVD|Action|Doug Liman|Simon Kinberg|USA|20th Century Fox|$15.00|0261
+	>>select * from movies where year=2010
