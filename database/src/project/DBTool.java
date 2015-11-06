@@ -121,21 +121,11 @@ public class DBTool {
                                 String cond = "";
                                 for (int i = 5; i < s.length; i++)
                                     cond += s[i];
-                                dbmanager.printQuery(s[3], dbmanager.tabProject(s[1]), new Condition(input.split("where")[1]));
+                                dbmanager.printQuery(dbmanager.getTabID(s[3]), dbmanager.tabProject(s[1]), new Condition(input.split("where")[1]));
                             } else if (dbmanager != null) {
-                                dbmanager.printQuery(s[3], dbmanager.tabProject(s[1]), new Condition());
+                                dbmanager.printQuery(dbmanager.getTabID(s[3]), dbmanager.tabProject(s[1]), new Condition());
                             }
                         }break;
-                    case "help":case "h":
-                        System.out.println("Help Information:\nq|Q|quit|Quit\t\tquit the shell\n" +
-                                "show [<filename>]\tshow the space of the database, default file is 'cs542.db'.\n" +
-                                "fragment|f\t\t\tvalidate fragment\n" +
-                                "concurrency|c\t\tvalidate concurrency control\n" +
-                                "clear|cl\t\t\tclear the database\n"+
-                                "readcsv|r\t\t\tread movies file and create table\n" +
-                                "\n------SQL-----\n"+
-                                "select <attribute(s)> from <table> [where <condition(s)>]\n" +
-                                "create index <table(attributeName[, ...])>\n");break;
                     case "create":
                         if(s.length>2)
                             switch (s[1]){
@@ -152,6 +142,16 @@ public class DBTool {
                                 default:System.out.println("Can't resolve SQL");
                             }
                         else System.out.println("Not Enough parameters!");break;
+                    case "help":case "h":
+                        System.out.println("Help Information:\nq|Q|quit|Quit\t\tquit the shell\n" +
+                                "show [<filename>]\tshow the space of the database, default file is 'cs542.db'.\n" +
+                                "fragment|f\t\t\tvalidate fragment\n" +
+                                "concurrency|c\t\tvalidate concurrency control\n" +
+                                "clear|cl\t\t\tclear the database\n"+
+                                "readcsv|r\t\t\tread movies file and create table\n" +
+                                "\n------SQL-----\n"+
+                                "select <attribute(s)> from <table> [where <condition(s)>]\n" +
+                                "create index <table(attributeName[, ...])>\n");break;
                     default:System.out.println("Can't find the command '"+s[0]+"'\nyou may use 'help' command");
                 }
             } catch (Exception e) {

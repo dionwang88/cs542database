@@ -382,19 +382,30 @@ public class DBManager {
 		}
 	}
 
-	//give tablename, the condition and project attributes, print the results
-	public void printQuery(String table,List<String> attrNames,Condition c) throws Exception {
-		//find tid first
-		int tid=0,queryHashVal=0;boolean notFound=true;
-		for (int id: tabMetadata.keySet()){
-			if(tabMetadata.get(id).get(0).getRight().equals(table.toLowerCase())){
-				tid=id;notFound=false;break;
+	//find tid through table names
+	public int getTabID(String tables) {
+		int tid = 0;boolean notFound=true;
+		for (int id : tabMetadata.keySet()) {
+			if (tabMetadata.get(id).get(0).getRight().equals(tables.toLowerCase())) {
+				tid = id;
+				notFound = false;
+				break;
 			}
 		}
-		if(notFound){
-			System.out.println("No table named "+table);
+		if(notFound) return -1;
+		else return tid;
+	}
+
+	//give table id, the condition and project attributes, print the results
+	public void printQuery(int tid,List<String> attrNames,Condition c) throws Exception {
+
+		int queryHashVal=0;
+		//not table found
+		if(tid==-1){
+			System.out.println("No table(s) found");
 			return;
 		}
+		//extract attribute names from condition
 		List<String> addedAttrNames=new ArrayList<>();
 		try {
 			if (c.throwCondition()!=null)
@@ -408,10 +419,10 @@ public class DBManager {
 			return;
 		}
 
-		//if all the attr are Index or No where condition
+		//if all the attr are Index or No where-condition
 		boolean all_in=!addedAttrNames.isEmpty();
 		if(!isAttrIndex((ArrayList<String>) attrNames)) all_in=false;
-
+		//if so
 		if(all_in){
 			String attrs = "";
 			if (attrNames.size() > 1) {
@@ -439,6 +450,7 @@ public class DBManager {
 				System.out.print('\n');
 			}
 		}
+		//if nor, or no index on the attribute(s)
 		else {
 			for (int key : clusteredIndex.keySet()) {
 				if (!Condition.handleCondition(c.throwCondition(),dbManager,key,tid)) continue;

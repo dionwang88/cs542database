@@ -10,7 +10,7 @@ public class DBManagerTest {
 		DBManager dbManager=DBManager.getInstance();
 
 		try {
-			dbManager.printQuery("movies", dbManager.tabProject("year"), new Condition(""));
+			dbManager.printQuery(dbManager.getTabID("movies"), dbManager.tabProject("year"), new Condition(""));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
