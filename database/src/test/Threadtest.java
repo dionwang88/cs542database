@@ -42,7 +42,7 @@ public class Threadtest implements Runnable{
 	}
 	private void write(){
 		System.out.println(Thread.currentThread() + " is waiting to write data:" + Threadtest.byteArrayToInt(data));
-		db.Put(num, data);
+		db.Put(0,num, data);
 	}
 	private void remove(){
 		System.out.println(Thread.currentThread() + " is waiting to remove data.");

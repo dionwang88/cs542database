@@ -23,6 +23,10 @@ public class Index {
 	 */
 	private int key;
 	/**
+	 * tid: the table id of the data
+	 */
+	private int tid;
+	/**
 	 * the pairs of (offset, length) of the data blocks in the data file, ordered by offset
 	 */
 	private List<Pair<Integer, Integer>> physAddrList;
@@ -32,8 +36,10 @@ public class Index {
 	public static byte getSign() {return sign;}
 	public static int getReservedSize(){return RESERVED;}
 	public static int getKeySize(){return KEYSIZE;}
-	public int getKey() {return key;}
+	public int getKey() {return this.key;}
 	public void setKey(int key) {this.key = key;}
+	public int getTID() {return this.tid;}
+	public void setTID(int tid) {this.tid=tid;}
 	public List<Pair<Integer, Integer>> getPhysAddrList() {return physAddrList;}
 	public void setPhysAddrList(List<Pair<Integer, Integer>> l) {this.physAddrList = l;}
 

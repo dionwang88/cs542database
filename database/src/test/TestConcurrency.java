@@ -16,7 +16,7 @@ public class TestConcurrency {
 		for(int i=0;i<data.length;i++){
 			data2[i] = (byte) ((5*i)%127);
 		}
-		dbmanager.Put(11, data);
+		dbmanager.Put(0,11, data);
 		System.out.println("Data : " + Threadtest.byteArrayToInt(data) + " , Data 2: " 
 				+ Threadtest.byteArrayToInt(data2));
 		Threadtest t1 = new Threadtest(11, data, dbmanager);

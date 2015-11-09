@@ -186,7 +186,7 @@ public class DBManager {
 	}
 
 	//*******three main methods*********
-	public void Put(int key, byte[] data) {
+	public void Put(int tid,int key, byte[] data) {
 		/**
 		 * In order to avoid during saving period rebooting, we save the data file first and then save the metadata.
 		 * Saving process:
@@ -220,6 +220,7 @@ public class DBManager {
 			// Updating the Index map. If the metadata is out of volume, block the putting attempt.
 			Index tmpIndex = new Index();
 			tmpIndex.setKey(key);
+			tmpIndex.setTID(tid);
 			tmpIndex.setPhysAddrList(index_pairs);
 			int indexSize = indexHelper.getIndexSize(index_pairs);
 			if (indexSize + METADATA_USED > METADATA_SIZE) {
@@ -514,7 +515,7 @@ public class DBManager {
 							else byteData = IndexHelperImpl.concat(byteData, IndexHelperImpl.intToByte(v));
 					}
 				}
-				this.Put(i++, byteData);
+				this.Put(0,i++, byteData);
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
