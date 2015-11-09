@@ -382,20 +382,6 @@ public class DBManager {
 		}
 	}
 
-	//find tid through table names
-	public int getTabID(String tables) {
-		int tid = 0;boolean notFound=true;
-		for (int id : tabMetadata.keySet()) {
-			if (tabMetadata.get(id).get(0).getRight().equals(tables.toLowerCase())) {
-				tid = id;
-				notFound = false;
-				break;
-			}
-		}
-		if(notFound) return -1;
-		else return tid;
-	}
-
 	//give table id, the condition and project attributes, print the results
 	public void printQuery(int tid,List<String> attrNames,Condition c) throws Exception {
 

@@ -92,6 +92,20 @@ public class DBTool {
         return rList;
     }
 
+    //find tid through table names
+    public static int getTabID(DBManager dbm,String tables) {
+        int tid = 0;boolean notFound=true;
+        for (int id : dbm.getTabMeta().keySet()) {
+            if (dbm.getTabMeta().get(id).get(0).getRight().equals(tables.toLowerCase())) {
+                tid = id;
+                notFound = false;
+                break;
+            }
+        }
+        if(notFound) return -1;
+        else return tid;
+    }
+
     private static void shell(){
         System.out.println("Welcome! This is a group project of cs542 at WPI\nType help to see commands.");
         DBManager dbmanager;
@@ -121,9 +135,9 @@ public class DBTool {
                                 String cond = "";
                                 for (int i = 5; i < s.length; i++)
                                     cond += s[i];
-                                dbmanager.printQuery(dbmanager.getTabID(s[3]), dbmanager.tabProject(s[1]), new Condition(input.split("where")[1]));
+                                dbmanager.printQuery(getTabID(dbmanager,s[3]), dbmanager.tabProject(s[1]), new Condition(input.split("where")[1]));
                             } else if (dbmanager != null) {
-                                dbmanager.printQuery(dbmanager.getTabID(s[3]), dbmanager.tabProject(s[1]), new Condition());
+                                dbmanager.printQuery(getTabID(dbmanager,s[3]), dbmanager.tabProject(s[1]), new Condition());
                             }
                         }break;
                     case "create":

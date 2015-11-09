@@ -4,13 +4,14 @@ import java.util.ArrayList;
 
 import project.Condition;
 import project.DBManager;
+import project.DBTool;
 
 public class DBManagerTest {
 	public static void main(String[] args) {
 		DBManager dbManager=DBManager.getInstance();
 
 		try {
-			dbManager.printQuery(dbManager.getTabID("movies"), dbManager.tabProject("year"), new Condition(""));
+			dbManager.printQuery(DBTool.getTabID(dbManager,"movies"), dbManager.tabProject("year"), new Condition(""));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
