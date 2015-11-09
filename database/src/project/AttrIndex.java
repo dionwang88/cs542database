@@ -1,6 +1,4 @@
-package project.index;
-
-import project.DBManager;
+package project;
 
 import java.io.Serializable;
 import java.util.Hashtable;

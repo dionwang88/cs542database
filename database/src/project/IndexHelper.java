@@ -1,6 +1,4 @@
-package project.index;
-
-import project.storage.Pair;
+package project;
 
 import java.util.List;
 import java.util.Map;

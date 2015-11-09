@@ -1,4 +1,4 @@
-package project.storage;
+package project;
 
 import java.io.Serializable;
 

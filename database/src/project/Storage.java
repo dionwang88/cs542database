@@ -1,6 +1,4 @@
-package project.storage;
-
-import project.DBManager;
+package project;
 
 import java.io.IOException;
 /**

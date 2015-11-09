@@ -1,18 +1,11 @@
 package project;
 
 import java.io.*;
+import java.lang.reflect.Array;
 import java.util.*;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.Logger;
-import project.dbtool.Condition;
-import project.index.AttrIndex;
-import project.index.Index;
-import project.index.IndexHelper;
-import project.index.IndexHelperImpl;
-import project.storage.Pair;
-import project.storage.Storage;
-import project.storage.StorageImpl;
 
 /**
  * DBManager is to manager database, including manage storage data and the clusteredIndex

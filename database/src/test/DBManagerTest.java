@@ -2,9 +2,9 @@ package test;
 
 import java.util.ArrayList;
 
-import project.dbtool.Condition;
+import project.Condition;
 import project.DBManager;
-import project.dbtool.DBTool;
+import project.DBTool;
 
 public class DBManagerTest {
 	public static void main(String[] args) {

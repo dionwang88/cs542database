@@ -1,6 +1,6 @@
 package test;
 import project.DBManager;
-import project.dbtool.DBTool;
+import project.DBTool;
 
 public class TestFragmentation {
 

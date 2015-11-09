@@ -1,9 +1,7 @@
-package project.dbtool;
+package project;
 
 
-import project.DBManager;
-import project.storage.Pair;
-
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -138,7 +136,7 @@ public class Condition {
         else return false;
     }
     //trim unnecessary space from the statement
-    public static String removeExtraSpace(String s){
+    static String removeExtraSpace(String s){
         if(s.equals("")) return s;
         char[] returnedChars=new char[s.length()],chars=s.toCharArray();
         char last=chars[0];

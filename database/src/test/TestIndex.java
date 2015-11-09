@@ -1,7 +1,7 @@
 package test;
 
-import project.index.Index;
-import project.storage.Pair;
+import project.Index;
+import project.Pair;
 
 import java.util.ArrayList;
 import java.util.List;
