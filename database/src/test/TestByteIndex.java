@@ -1,9 +1,9 @@
 package test;
 
-import project.Index;
-import project.IndexHelper;
-import project.IndexHelperImpl;
-import project.Pair;
+import project.index.Index;
+import project.index.IndexHelper;
+import project.index.IndexHelperImpl;
+import project.storage.Pair;
 
 import java.util.*;
 

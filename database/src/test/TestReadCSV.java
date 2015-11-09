@@ -1,7 +1,7 @@
 package test;
 
 import project.DBManager;
-import project.Pair;
+import project.storage.Pair;
 import java.util.ArrayList;
 import java.util.List;
 

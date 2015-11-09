@@ -1,4 +1,6 @@
-package project;
+package project.index;
+
+import project.storage.Pair;
 
 import java.util.List;
 

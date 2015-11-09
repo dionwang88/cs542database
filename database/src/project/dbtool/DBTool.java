@@ -1,5 +1,9 @@
-package project;
+package project.dbtool;
 
+import project.DBManager;
+import project.index.Index;
+import project.storage.Pair;
+import project.storage.Storage;
 import test.Clear;
 import test.TestConcurrency;
 import test.TestFragmentation;
@@ -114,7 +118,7 @@ public class DBTool {
         waiting_command:
         while(true){
             try {
-                String input=Condition.removeExtraSpace(br.readLine()).toLowerCase();
+                String input= Condition.removeExtraSpace(br.readLine()).toLowerCase();
                 s=input.split(" ");
                 if(s.length>10) {System.out.println("Too many argument!");continue ;}
                 switch (s[0]) {

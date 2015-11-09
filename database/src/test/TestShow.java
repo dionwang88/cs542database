@@ -1,12 +1,7 @@
 package test;
 
 import project.DBManager;
-import project.DBTool;
-import project.Pair;
-import project.Storage;
-
-import java.awt.*;
-import java.util.*;
+import project.dbtool.DBTool;
 
 /**
  * Created by vincent on 10/1/15.

@@ -1,5 +1,5 @@
 package test;
-import project.AttrIndex;
+import project.index.AttrIndex;
 public class TestHashIndex {
 	public static void main(String[] args) {
 		AttrIndex<String> h = new AttrIndex<String>();

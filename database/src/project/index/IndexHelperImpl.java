@@ -1,4 +1,4 @@
-package project;
+package project.index;
 
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
@@ -6,6 +6,10 @@ import java.util.*;
 import java.util.Map.Entry;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.Logger;
+import project.DBManager;
+import project.storage.Pair;
+import project.storage.Storage;
+
 import java.io.IOException;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -80,7 +84,7 @@ public class IndexHelperImpl implements IndexHelper {
 	 * 
 	 */
 	@Override
-	public List<Pair<Integer,Integer>> findFreeSpaceIndex(int size) {		
+	public List<Pair<Integer,Integer>> findFreeSpaceIndex(int size) {
 		// Temp variable to record the left size of the data
 		int left_size = size;
 		List<Pair<Integer, Integer>> list_freeSpace = new ArrayList<>();

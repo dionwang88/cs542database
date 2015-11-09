@@ -1,8 +1,11 @@
-package project;
+package project.storage;
 
 import java.io.*;
 import java.util.Arrays;
 import org.apache.commons.io.IOUtils;
+import project.DBManager;
+import project.index.IndexHelper;
+import project.index.IndexHelperImpl;
 
 
 /**
@@ -40,7 +43,7 @@ public class StorageImpl implements Storage {
 	}
 
 	//write given metadata into file
-	public void writeMetaData(String fileName,DBManager dbm) throws Exception {
+	public void writeMetaData(String fileName, DBManager dbm) throws Exception {
 		//merge three kinds of meta first
 		IndexHelper ih=new IndexHelperImpl();
 		byte[] index_meta=ih.indexToBytes(dbm.getClusteredIndex());
@@ -75,7 +78,7 @@ public class StorageImpl implements Storage {
 			FileOutputStream fos=null;
 			try{
 				fos = new FileOutputStream(fileName);
-				byte[] empty=new byte[Storage.DATA_SIZE];
+				byte[] empty=new byte[DATA_SIZE];
 				for (int i = 0; i <empty.length;i++) {
 					empty[i]=0;
 				}
