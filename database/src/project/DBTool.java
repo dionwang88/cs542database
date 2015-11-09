@@ -54,12 +54,12 @@ public class DBTool {
         List<Pair<Integer,Integer>> loopList=new ArrayList<>();
         for (int key:tab.keySet()) {
             Index tmpList=tab.get(key);
-            loopList.addAll(tmpList.getPhysAddrList().stream().collect(Collectors.toList()));
+            loopList.addAll(tmpList.getIndexList().stream().collect(Collectors.toList()));
         }
         Index sortIndex =new Index();
         sortIndex.setPhysAddrList(loopList);
         sortIndex.sortPairs();
-        return sortIndex.getPhysAddrList();
+        return sortIndex.getIndexList();
     }
 
     private static List<Pair<Integer,Integer>> minusList(Pair<Integer,Integer> F,List<Pair<Integer,Integer>> L){

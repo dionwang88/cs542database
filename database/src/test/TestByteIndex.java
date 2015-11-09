@@ -37,7 +37,12 @@ public class TestByteIndex extends IndexHelperImpl {
 
         //test printing output byte[]
         IndexHelper indexHelper = new TestByteIndex();
-        byte[] returnedbytes =indexHelper.indexToBytes(map);
+        byte[] returnedbytes = new byte[0];
+        try {
+            returnedbytes = indexHelper.indexToBytes(map);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         for (byte aBytecode : returnedbytes) {
             System.out.print(aBytecode + " ");
         }

@@ -18,7 +18,7 @@ public class TestIndex {
 		index.setPhysAddrList(l);
 		
 		System.out.println(index.toString());
-		List<Pair<Integer, Integer>> indexes = index.getPhysAddrList();
+		List<Pair<Integer, Integer>> indexes = index.getIndexList();
 		
 		for( Pair<Integer, Integer> p : indexes){
 			System.out.println(p.getLeft() + "," + p.getRight());

@@ -139,7 +139,7 @@ public class IndexHelperImpl implements IndexHelper {
 		// To get all the index list
 		for (Entry<Integer, Index> entry : indexBuffer.entrySet()) {
 			Index index = entry.getValue();
-			List<Pair<Integer, Integer>> lst_p = index.getPhysAddrList();
+			List<Pair<Integer, Integer>> lst_p = index.getIndexList();
 			for(Pair<Integer, Integer> pair : lst_p){
 				//transform the index pair to start, end
 				index_list.add(pair.getLeft());
@@ -177,18 +177,18 @@ public class IndexHelperImpl implements IndexHelper {
 	}
 	
 	public int getIndexSize(List<Pair<Integer,Integer>> pairs_list) {
-		return Index.getReservedSize()+1+ Index.getKeySize()+pairs_list.size()*2*Integer.BYTES;
+		return Index.getReservedSize()+1+1+ Index.getKeySize()+pairs_list.size()*2*Integer.BYTES;
 	}
 
-	public byte[] indexToBytes(Map<Integer, Index> indexes) {
+	public byte[] indexToBytes(Map<Integer, Index> indexes) throws Exception {
 		// calculate byte array size firstly.
 		int indexpairnumb=0;
 		int indexnumb=indexes.keySet().size();
 		for(int key:indexes.keySet()){
 			Index index =indexes.get(key);
-			indexpairnumb+= index.getPhysAddrList().size();
+			indexpairnumb+= index.getIndexList().size();
 		}
-		byte[] outbyte = new byte[indexnumb*(Index.getReservedSize()+ Index.getKeySize()+1)+indexpairnumb*Integer.BYTES*2];
+		byte[] outbyte = new byte[indexnumb*(Index.getReservedSize()+ 1 + Index.getKeySize()+1)+indexpairnumb*Integer.BYTES*2];
 
 		//convert indexMap to byte array
 		int offset=0;
@@ -196,7 +196,15 @@ public class IndexHelperImpl implements IndexHelper {
 			Index index =indexes.get(key);
 			//make sure pairs are sorted
 			index.sortPairs();
-			outbyte[offset++]= Addr_START_SIGN;
+			outbyte[offset++]= START_SIGN;
+
+			//table id
+			byte[] tmpTID=intToByte(indexes.get(key).getTID());
+			if (tmpTID[1]==0&&tmpTID[2]==0&&tmpTID[3]==0){
+				outbyte[offset++]=tmpTID[0];
+			}else{
+				throw new Exception("table id should be between 0 and 127(included).");
+			}
 
 			//add reserved bytes
 			for (int i = 0; i < Index.getReservedSize() ; i++) {
@@ -211,7 +219,7 @@ public class IndexHelperImpl implements IndexHelper {
             }
 
             //convert pairs to byte[]
-            List<Pair<Integer, Integer>> l= index.getPhysAddrList();
+            List<Pair<Integer, Integer>> l= index.getIndexList();
             for (Pair<Integer, Integer> aL : l) {
                 byte[] bpl = intToByte(aL.getLeft());
                 byte[] bpr = intToByte(aL.getRight());
@@ -237,9 +245,11 @@ public class IndexHelperImpl implements IndexHelper {
 
 				//get key
 				int key_in_record;
-				int key_start=offset+1+ Index.getReservedSize();
+				int key_start=offset+1+1+Index.getReservedSize();
 				key_in_record= byteToInt(metadata, key_start);
 
+				//get tid
+				int tid=metadata[offset+1];
 				//get pairs
 				offset+=search_span;// skip the head to pairs
 				List<Pair<Integer, Integer>> pairlist = new ArrayList<>();
@@ -261,6 +271,7 @@ public class IndexHelperImpl implements IndexHelper {
 				//make index
 				Index index =new Index();
 				index.setKey(key_in_record);
+				index.setTID(tid);
 				index.setPhysAddrList(pairlist);
 				//add to map
 				returnMap.put(key_in_record, index);

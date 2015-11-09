@@ -17,7 +17,7 @@ public class Index {
 	 * for a record, is (1+3+key size+pair size).
 	 * Now it is 16 bytes
 	 */
-	private static final byte RESERVED=3;
+	private static final byte RESERVED=2;
 	/**
 	 * key: the key of the data
 	 */
@@ -40,7 +40,7 @@ public class Index {
 	public void setKey(int key) {this.key = key;}
 	public int getTID() {return this.tid;}
 	public void setTID(int tid) {this.tid=tid;}
-	public List<Pair<Integer, Integer>> getPhysAddrList() {return physAddrList;}
+	public List<Pair<Integer, Integer>> getIndexList() {return physAddrList;}
 	public void setPhysAddrList(List<Pair<Integer, Integer>> l) {this.physAddrList = l;}
 
 	@Override

@@ -1,7 +1,6 @@
 package project;
 
 import java.io.*;
-import java.lang.reflect.Array;
 import java.util.*;
 
 import org.apache.logging.log4j.LogManager;
@@ -90,10 +89,14 @@ public class DBManager {
 		set_METADATA_USED();
 	}
 	public void set_METADATA_USED(){
-		METADATA_USED=indexHelper.hastabToBytes(attrIndexes.get(0)).length+
-				indexHelper.indexToBytes(clusteredIndex).length+
-				indexHelper.tabMetaToBytes(tabMetadata).length;
-	}
+        try {
+            METADATA_USED=indexHelper.hastabToBytes(attrIndexes.get(0)).length+
+                    indexHelper.indexToBytes(clusteredIndex).length+
+                    indexHelper.tabMetaToBytes(tabMetadata).length;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 	//public int get_METADATA_USED(){return METADATA_USED;}
 	public int getFreeSpace() {return DATA_SIZE - DATA_USED;}
 
@@ -101,9 +104,9 @@ public class DBManager {
 	public void setData(byte[] database) {this.data = database;}
 	private static int[] getIndexSize(Index index) {
 		int[] result = new int[2];
-		result[1] += Index.getReservedSize() + 1 + Index.getKeySize()+
-				2 * Integer.BYTES * index.getPhysAddrList().size();
-		for (Pair<Integer, Integer> p : index.getPhysAddrList()) {
+		result[1] += Index.getReservedSize() + 1 + 1 + Index.getKeySize()+
+				2 * Integer.BYTES * index.getIndexList().size();
+		for (Pair<Integer, Integer> p : index.getIndexList()) {
 			result[0] += p.getRight();
 		}
 		return result;
@@ -251,7 +254,7 @@ public class DBManager {
 		}
 	}
 
-	public byte[] Get(int key) {
+	public byte[] Get(int tid,int key) {
 		/**
 		 * Returns the data that is mapped to the given key; If no
 		 * such key exists in database, return null and Print a message
@@ -270,7 +273,8 @@ public class DBManager {
 			Locker.ReadLock();
 			logger.info("Attempting to get data mapped to key :" + key);
 			if (clusteredIndex.containsKey(key)) {
-				List<Pair<Integer, Integer>> index = clusteredIndex.get(key).getPhysAddrList();
+                if(clusteredIndex.get(key).getTID()!=tid) return null;
+				List<Pair<Integer, Integer>> index = clusteredIndex.get(key).getIndexList();
 				//extracting the mapped data from the data in memory;
 				int start = 0;
 				for (Pair<Integer, Integer> p : index) {
@@ -327,6 +331,8 @@ public class DBManager {
 		}
 
 	}
+
+    public byte[] Get(int key){return Get(0,key);}
 
 	//retrieve attribute value according to the rid and attribute name
 	public Object getAttribute(int key, String Attr_name){
