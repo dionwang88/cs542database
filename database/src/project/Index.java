@@ -2,18 +2,9 @@ package project;
 
 import java.util.List;
 
-/**
- * Index Class
- * @author wangqian
- * @param sign: the separator of record's indexes
- * @param key: the key of the data
- * @param index_num: how many blocks to save the data in the data file
- * @param indexes: the pairs of (index, length) of the data blocks in the data file, ordered by index
- */
-
 public class Index {
 	/**
-	 * The index start sign in the meta data file
+	 * The addr start sign in the meta data file
 	 * could be redundant
 	 */
 	private static final byte sign = -1;
@@ -26,58 +17,45 @@ public class Index {
 	 * for a record, is (1+3+key size+pair size).
 	 * Now it is 16 bytes
 	 */
-	private static final byte RESERVED=3;
+	private static final byte RESERVED=2;
 	/**
 	 * key: the key of the data
 	 */
 	private int key;
 	/**
-	 * the pairs of (index, length) of the data blocks in the data file, ordered by index
+	 * tid: the table id of the data
 	 */
-	private List<Pair<Integer, Integer>> indexes;
+	private int tid;
+	/**
+	 * the pairs of (offset, length) of the data blocks in the data file, ordered by offset
+	 */
+	private List<Pair<Integer, Integer>> physAddrList;
 
-
-
+	//-------------methods------------
 	public Index(){}
-	
-	public static int getReservedSize(){
-		return RESERVED;
-	}
-	public static int getKeySize(){
-		return KEYSIZE;
-	}
-	public int getKey() {
-		return key;
-	}
-	public void setKey(int key) {
-		this.key = key;
-	}
+	public static byte getSign() {return sign;}
+	public static int getReservedSize(){return RESERVED;}
+	public static int getKeySize(){return KEYSIZE;}
+	public int getKey() {return this.key;}
+	public void setKey(int key) {this.key = key;}
+	public int getTID() {return this.tid;}
+	public void setTID(int tid) {this.tid=tid;}
+	public List<Pair<Integer, Integer>> getIndexList() {return physAddrList;}
+	public void setPhysAddrList(List<Pair<Integer, Integer>> l) {this.physAddrList = l;}
 
-	public List<Pair<Integer, Integer>> getIndexes() {
-		return indexes;
-	}
-	public void setIndexes(List<Pair<Integer, Integer>> l) {
-		this.indexes = l;
-	}
-	public static byte getSign() {
-		return sign;
-	}
-	
 	@Override
 	public String toString() {
-		return "Index [key=" + key +", indexes=" + indexes + "]";
+		return "Index [key=" + key +", Address=" + physAddrList + "]";
 	}
-
 
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((indexes == null) ? 0 : indexes.hashCode());
+		result = prime * result + ((physAddrList == null) ? 0 : physAddrList.hashCode());
 		result = prime * result + key;
 		return result;
 	}
-
 
 	@Override
 	public boolean equals(Object obj) {
@@ -88,24 +66,22 @@ public class Index {
 		if (getClass() != obj.getClass())
 			return false;
 		Index other = (Index) obj;
-		if (indexes == null) {
-			if (other.indexes != null)
+		if (physAddrList == null) {
+			if (other.physAddrList != null)
 				return false;
-		} else if (!indexes.equals(other.indexes))
+		} else if (!physAddrList.equals(other.physAddrList))
 			return false;
-		if (key != other.key)
-			return false;
-		return true;
+		return key == other.key;
 	}
 
-	public void sortpairs(){
-		Pair<Integer,Integer> tmp=null;
-		for (int i = indexes.size(); i>0; i--) {
+	public void sortPairs(){
+		Pair<Integer,Integer> tmp;
+		for (int i = physAddrList.size(); i>0; i--) {
 			for (int j = 0; j < i-1 ; j++) {
-				if(indexes.get(j).getLeft()>indexes.get(j+1).getLeft()){
-					tmp=indexes.get(j+1);
-					indexes.set(j+1,indexes.get(j));
-					indexes.set(j,tmp);
+				if(physAddrList.get(j).getLeft()> physAddrList.get(j+1).getLeft()){
+					tmp= physAddrList.get(j+1);
+					physAddrList.set(j+1, physAddrList.get(j));
+					physAddrList.set(j,tmp);
 				}
 			}
 

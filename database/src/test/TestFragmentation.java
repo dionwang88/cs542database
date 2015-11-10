@@ -17,28 +17,28 @@ public class TestFragmentation {
 		dbmanager.clear();
 		DBTool.showWrapped(dbmanager);
 		for (int key = 0 ; key < 4; key ++ ) {
-			dbmanager.Put(key, bigdata);
+			dbmanager.Put(0,key, bigdata);
 			DBTool.showWrapped(dbmanager);
 		}
 		dbmanager.Remove(1);
 		DBTool.showWrapped(dbmanager);
 
-		dbmanager.Put(4, smalldata);
+		dbmanager.Put(0,4, smalldata);
 		DBTool.showWrapped(dbmanager);
 
-		dbmanager.Put(5, bigdata); // Failure Expected.
+		dbmanager.Put(0,5, bigdata); // Failure Expected.
 		DBTool.showWrapped(dbmanager);
 
 		dbmanager.Remove(2);
 		DBTool.showWrapped(dbmanager);
 
-		dbmanager.Put(6, bigdata); // Should succeed
+		dbmanager.Put(0,6, bigdata); // Should succeed
 		DBTool.showWrapped(dbmanager);
 
 		dbmanager.Remove(4);
 		DBTool.showWrapped(dbmanager);
 
-		dbmanager.Put(7, bigdata); // Should succeed
+		dbmanager.Put(0,7, bigdata); // Should succeed
 		DBTool.showWrapped(dbmanager);
 	}
 

@@ -21,7 +21,7 @@ public class DbLocker {
 	 *  multiple reading accesses.
 	 */
 	private Map<Thread, Integer> readingThreads =
-		       new HashMap<Thread, Integer>();
+		       new HashMap<>();
     
 	/**
 	 * Number of currently writing accesses of one thread. 
@@ -57,15 +57,11 @@ public class DbLocker {
 	 * 		1.Other thread is writing.
 	 * 		2.There are threads waiting to write.
 	 * @param callingThread : Thread under consideration.
-	 * @return
+	 * @return true or false
 	 */
-	private boolean canGrantReadAccess(Thread callingThread){
-		if(isWriter(callingThread)) return true;
-		if(hasWriter()) return false;
-		if(isReader(callingThread)) return true;
-		if(hasWriteRequests()) return false;
-		return true;
-		}
+	private boolean canGrantReadAccess(Thread callingThread) {
+		return isWriter(callingThread) || !hasWriter() && (isReader(callingThread) || !hasWriteRequests());
+	}
 
     /**
      * Unlocks the ReadLock.
@@ -135,39 +131,33 @@ public class DbLocker {
 	* 		1.This thread is not the current writing thread.
 	* 		2.Has readers other than the current thread.
 	* @param callingThread : Thread under consideration.
-	* @return
+	* @return true of false
 	*/		  
-	private boolean canWrite(Thread callingThread){
-		if(isOnlyReader(callingThread)) return true;
-		if(hasReaders()) return false;
-		if(writingThread == null) return true;
-		if(!isWriter(callingThread)) return false;
-		return true;
-		}
+	private boolean canWrite(Thread callingThread) {
+		return isOnlyReader(callingThread) || !hasReaders() && (writingThread == null || isWriter(callingThread));
+	}
 	
 	/**
 	 * Returns the number of read accesses of the current thread.
 	 * @param callingThread :Thread under consideration
-	 * @return
+	 * @return read counter
 	 */
 	private int getReadCount(Thread callingThread){
 		Integer Count = readingThreads.get(callingThread);
 		if(Count == null) return 0;
-		return Count.intValue();
+		return Count;
 	}
 	
 	/**
 	 * Returns if there are threads currently reading.
-	 * @return
+	 * @return true or false
 	 */
-	private boolean hasReaders(){
-		return readingThreads.size() > 0;
-	}
+	private boolean hasReaders(){return readingThreads.size() > 0;}
 	
 	/**
 	 * Returns if the thread is reading.
 	 * @param callingThread : Thread under consideration.
-	 * @return
+	 * @return true or false
 	 */
 	private boolean isReader(Thread callingThread){
 		return readingThreads.get(callingThread) != null;
@@ -177,7 +167,7 @@ public class DbLocker {
 	* Determines if this thread is the only one that is reading.
 	* For Implementation of Read-to-Write Re-entrance.
 	* @param callingThread : Thread under consideration
-	* @return
+	* @return true or false
 	*/
 	private boolean isOnlyReader(Thread callingThread){
 		return readingThreads.size() == 1 &&
@@ -186,7 +176,7 @@ public class DbLocker {
     
 	/**
      * Determines if there are any threads writing.
-     * @return
+     * @return true or false
      */
 	private boolean hasWriter(){
 		return writingThread != null;
@@ -195,7 +185,7 @@ public class DbLocker {
 	/**
 	 * Determines if the thread is writing.
 	 * @param callingThread : Thread under consideration.
-	 * @return
+	 * @return true or false
 	 */
 	private boolean isWriter(Thread callingThread){
 		 return writingThread == callingThread;
@@ -203,7 +193,7 @@ public class DbLocker {
 	
 	/**
 	 * Determines if there are writing requests.
-	 * @return
+	 * @return true or false
 	 */
 	private boolean hasWriteRequests(){
 		return this.writeRequests > 0;

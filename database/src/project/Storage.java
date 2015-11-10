@@ -1,6 +1,5 @@
 package project;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 /**
  * @title: Storage data management interface
@@ -9,45 +8,40 @@ import java.io.IOException;
  */
 
 public interface Storage {
-	/**
-	 * The size of a block
-	 */
-	public static final int BLOCK_SIZE = 128;
+
 	// The size of data file
-	public static final int DATA_SIZE = 4096000;
+	int DATA_SIZE = 4096000;
 	// The size of metadata file
-	public static final int METADATA_SIZE = 1024000;
+	int METADATA_SIZE = 1024000;
 	
 	/**
 	 * write the data into file
 	 * @param fileName: data file name
-	 * @param data
+	 * @param data: data bytes
 	 * @throws Exception 
 	 */
-	public void writeData(String fileName, byte[] data) throws Exception;
+	void writeData(String fileName, byte[] data) throws Exception;
 	
 	/**
 	 * read the data file into memory
-	 * @param fileName
+	 * @param fileName: data file name
 	 * @return data list
-	 * @throws FileNotFoundException 
 	 * @throws IOException 
 	 */
-	public byte[] readData(String fileName) throws IOException;
+	byte[] readData(String fileName) throws IOException;
 
 	/**
 	 * write the index into metadata
-	 * @param fileName
-	 * @param metadata
+	 * @param fileName: data file name
 	 * @throws Exception 
 	 */
-	public void writeMetaData(String fileName, byte[] metadata) throws Exception;
+	void writeMetaData(String fileName, DBManager dbm) throws Exception;
 	
 	/**
 	 * read indexes from metadata
-	 * @param fileName
+	 * @param fileName: data file name
 	 * @return index list
 	 * @throws IOException 
 	 */
-	public byte[] readMetaData(String fileName) throws IOException;
+	byte[] readMetaData(String fileName) throws IOException;
 }

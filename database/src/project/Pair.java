@@ -1,5 +1,7 @@
 package project;
 
+import java.io.Serializable;
+
 /**
  * Pair class is to be used to save the index and the data length in the data file
  * @author wangqian
@@ -7,7 +9,7 @@ package project;
  * @param <L>: Left is the index in meta data file
  * @param <R>: right is the length of the consecutive data
  */
-public class Pair<L,R> {
+public class Pair<L,R> implements Serializable {
 
 	  private final L left;
 	  private final R right;

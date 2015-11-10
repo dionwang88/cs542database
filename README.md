@@ -1,13 +1,12 @@
 #DataBase internal programming project
 ###CS542-F15: database management system
 --
-#Contents		
+#Contents	
+**Project1**	
 [**Framework**](#0)				
 |------[Operating procedure](#9)		
 |------[metadata structure](#11)			
-|------[metadata transformation](#12)		
-|------[Physical data storage](#13)
-
+|------[Physical data storage](#13)<br/>
 [Main classes](#1)		
 |------[Storage](#2)		
 |------[StorageImpl](#3)		
@@ -15,18 +14,22 @@
 |------[Index](#5)			
 |------[IndexHelper](#6)		
 |------[IndexHelperImpl](#7)				
-|------[DBManager](#8)<br>
-|------[Dblocker](#17)				
+|------[DBManager](#8)<br/>
+|------[Dblocker](#17)		
 [Validation](#10)		
 |------[Fragment](#14)		
 |------[Concurrency control](#15)
+[Further Assumptions](#16)
+
+**Project2**	
+Table Metadata	
+Attribute Index	
+Relation&DBManager	
+Condition		
+Shell Validation
 
 --
 
----
-#Shell Location:
-database/show.sh </br>
-Execute: ./database/show.sh
 
 #Framework<span id = "0"\>：
 ##Operating procedure<span id = "9"\>
@@ -37,7 +40,15 @@ The data/metadata will be stored as byte array. *StorageImpl* class will be resp
 The required functions--put, get and remove--are implemented within the *DBManager*. The *Index* will be modified after these operations. All these execution will happen in the main memory. Before the database is closed, all the *Index* in memory will be transformed back to byte array and then this array will be re-written into the disk.
 
 ##Metadata structure:<span id = "11"\>
-  
+ 
+### Storage-Metadata
+Assumptions & decisions:
+
+1. The start sign is one-byte number, which is -1. There is no other numbers--key, offset or length--to be negative. Any negative indexes are forbidden.
+2. Pair list in the class *Index* are sorted. Every times *indextobytes()* are called, the pair list in an index will be sorted by L's value.
+3. All the metadata will be converted into byte array. In this case, integer will be convert into 4 byte numbers. In other word, the key, offset and length all will be converted into 4 byte numbers. 
+4. There will be a three-byte reserved space for each record. They will be active when it's necessary in the future.
+
 #### indexMap:		
 This is a hash table: *Map\<K, V\>*. This structure will be used in the main memory.
 *K* is *Integer*, and *V* is a class of *Index*. indexMap will include the metadata in our database, and more detail will be stored in the class *Index*.
@@ -56,14 +67,9 @@ This class will contain metadata of a certain record, which key and index pairs.
 Pair class,*Pair\<L,R\>*, contains start position(or offset in data array) and length. Typically, one record will have one pair, but when free space are not available in whole multiple indexes are introduced to arrange the data into fragmental space. 	
 L is for array offset in data array, and R is for the length of the respective record(or the fragment of that record). Both L and R are int number, which is 4 bytes.
 
-##Physical/Memory metadata storage & transformation:<span id = "12"\>
-
-### Assumptions & decisions:
-
-1. The start sign is one-byte number, which is -1. There is no other numbers--key, offset or length--to be negative. Any negative indexes are forbidden.
-2. Pair list in the class *Index* are sorted. Every times *indextobytes()* are called, the pair list in an index will be sorted by L's value.
-3. All the metadata will be converted into byte array. In this case, integer will be convert into 4 byte numbers. In other word, the key, offset and length all will be converted into 4 byte numbers. 
-4. There will be a three-byte reserved space for each record. They will be active when it's necessary in the future.
+### *Table-Metadata*
+Assumptions & decisions:
+1. The start sign is one-byte number, which is -2. Still, there is no other numbers to be negative. 
 
 ##Data storage form<span id = "13"\>
 ### Assumptions & decisions:
@@ -120,7 +126,7 @@ A self-defined class. It is an offset-length pair for some record. The record ca
 |private static final byte KEYSIZE = Integer.BYTES|The size of the key. Since key is *int*, the size is 4 bytes.
 |private static final byte RESERVED=3|3 reserved byte-size numbers for the unexpected usage.
 |private int key|Key value of the record
-|private List<Pair<Integer, Integer>> indexes|A list of Pair class. It can store all the offset-length pairs for single record.
+|private List\< Pair\<Integer, Integer> > indexes|A list of Pair class. It can store all the offset-length pairs for single record.
 #####Method:
 |method name|description|
 |---|---|
@@ -179,7 +185,7 @@ DbLocker will provide DBManger with a re-entrant ReadWrite lock so as to ensure 
 |ReadUnlock()|Unlocks the ReadLock.
 |writeLock()|Grant write access to the current thread.
 |writeUnlock()|Unlocks the writeLock.
-#Validation<span id = "10"\>
+#Validation(P1)<span id = "10"\>
 ##Fragment <span id = "14"\>
 
 ### To solve the fragment problem:
@@ -212,9 +218,8 @@ Loop the free (start,end) pair in free space list: <br />
 ----Get the free length = end - start <br />
 ----copy the same length in saving data to the (start, end) in the database <br />
 ----next loop <br />
-<br /> 
 
------
+--
 ### Assumptions & decisions:
 
 ### Results
@@ -267,7 +272,7 @@ To validate concurrency control over the database, we tried the following experi
 
 We wrote a class named Threadtest that can carry out a specific list of operations on the database according to the user's request. Then we instantiated several Threads of this and assigned different tasks to them. These tasks should be carried out in a sequence that follows our assumption and decisions of concurrency control.
 
-There are three threads in our experiment, and named as Thread 1, 2 and 3. All threads are assigned the same key (key 11), but with different value. Thread 1's tasks are to read and remove; Thread 2's are to write and read; Thread 3 is schedlued to remove and write. Thread got 66051 , Thread 2 got 330255 and Thread 3 is 660510. For test purposes the key 11 is put with 66051 first.
+There are three threads in our experiment, and named as Thread 1, 2 and 3. All threads are assigned the same key (key 11), but with different value. Thread 1's tasks are to read and remove; Thread 2's are to write and read; Thread 3 is scheduled to remove and write. Thread got 66051 , Thread 2 got 330255 and Thread 3 is 660510. For test purposes the key 11 is put with 66051 first.
 
 Below are the test results:
 
@@ -277,4 +282,239 @@ From above we can see after all three threads hadstarted, the first task of Thre
 
 
 ---	
+# Further Assumptions in Project 2<span id = "16"\>
 
+##Table-Metadata
+We add a new type of metadata--table metadata--to store the table information so that multi-attribute based on project 1 can be implemented.	
+
+###Assumptions:
+
+1. Table metadata contains start sign, reserved bytes(3 bytes), table id, table name, attributes numbers, attribute names and lengths.
+1. The start sign of table-metadata is one-byte number, which is -2. Still, there is no other numbers to be negative.
+2. There are some reserved bytes, which could be used in an unexpected way and make flag searching efficient.
+2. table id, is 4-byte integer and non-negative, so max table number is 2^31.
+3. Table names will occupy 16 bytes, including 2-byte flags and max 14 table name length.
+4. Attribute number is 4-byte integer and non-negative. 
+5. Attribute names will occupy 16 bytes, including 2-byte flags and max 14 table name length.
+6. Attribute type is 4 bytes and indicates the data type of the domain. We assumed 1 is int, and 0 is String.
+4. Attribute length is 4-byte integer and non-negative. We also assumed that all the attributes have fixed length, so length may be pre-set.
+
+
+#### Physical Structure
+|start sign(1B)|reserved bytes(3B)|tab id(4B)|tab name(16B)|attribute 1(24B)|attribute 2(24B)|...
+|---|---|---|---|---|---|---|---|---|
+For each attribute:
+
+|attribute name(16B)|attribute type(4B)|attribute length(4B)|
+|---|---|---|
+Every attribute/table name are divided into two parts, which are both 7 bytes.
+
+|search flag(1B)|attribute/table name part 1(7B)|search flag(1B)|attribute/table name part 2(7B)|
+|---|---|---|---|
+
+#### Memory Structure
+Table metadata:
+> Map\<int tid, List\<Pair\> tableMeta\>
+	
+tableMetadata
+> List\<Pair pairs\>
+
+First pair in the list:
+>Pair\<int tab\_id,String tab\_name\>
+
+The rest of pairs:
+>Pair\<String attribute\_name,Pair attribute\_info\_Pair\>
+
+attribute\_info\_Pair\:
+>Pair\<int attribute\_type, int attribute\_length\>
+
+#### Table Metadata transformation
+We add two more functions in IndexHelper to transform the physical metadata into memory, and from memory back to physical as well.
+
+bytesToTabMeta()
+Load table metadata from metadata byte array. This function needs to identify the correct metadata, which could be mixed with index metadata.
+tabMateToBytes()
+Return metadata array of table metadata, than when we write metadata into db file, this returned array will concat with index metadata.
+##Relation And DbManager
+For now, we assumed that we **only have one relation** in our database. We will add relation class in the future project. In other word, we don't have relation class now, and all the interface are under the class DBManager. We will finish this part in the next project.
+##Attribute Index
+Based on the project 1, we add three methods to realize the indexing mechanism with **Hash Table**. In the project 1, we have already realized clustered index, which is based on key, or rather rid. Now we need to construct unclustered index based on other attributes.
+The AttrIndex is a genric class, which allows easy creation of indexes based on any types of attributes. The default constructor in AttrIndex takes in a List of Strings, where the elements are the to-be-indexed attribute name(s). The class then creates an index based on these attributes by concatenating each value. 
+In the future, B+Tree-based-indexes will be added to allow fast searches on range.
+
+#### put
+This method has two inputs, the rID(keys from the clustered index) which is an integer, and the data value with generic type. Since we are indexing on attributes, the datavalue will be the key. The Hash Table inside AttrIndex will first check if there exists a value that equals to the input datavalue. If such is found, it implies the existence of duplication in this indexed attribute and the corresponding rID is added to a List of Integers under such data value. Otherwise, a new List of integer is generated with the input rID ,and is mapped with the data value from the hash table.
+#### get
+This method takes in the data value with generic type, and seeks the corresponding list of rIDs inside the Hash Table. If not found, null is return.
+#### remove
+This method removes the mapping from the given data value to its corresponding list of rIds.
+
+We also add two methods, **hashtabToBytes()** and **bytesToHashtab()** to Indexhelper to transform index between memory and physical storage.
+
+###Attribute Index structure 
+Hashtable<\Integer, List<\Integer>>
+
+##Condition
+In order to validate the Index function, we consider to implement selection function based on the SQL where-condition. We have created a Condition class, which play a significant role in our query validation.
+###main methods of condition 
+**assertCondition()**		
+Assert the conditions, transform string statement into string array and logic flags.	
+
+**throwCondition()**		
+Throw the condition values which are produced by assertCondition() method.
+
+**handleCondition()**	
+Handle the condition values returned by the throwCondition() and judge the condition is true of false.
+
+**removeExtraSpace()**	
+Remove the meaningless space in the string statement.
+
+##Validation
+Assumption:	
+
+1. Since some attributes contain char ',', which is a separator for csv file, read data from csv file could be a problem. For simplicity, we use '@' as separator.
+2. To store the data, we will convert the string into byte. We treat every character in String as ASCII code, so some uncommon char will be displayed as '?'. In other word, we did not handle the non-ASCII code character problem. 
+2. We have implemented **SQL select statement** and **Create Index statement**, which is pretty closed to the real SELECT. Our SELECT can do PROJECT and SELECT job. SELECT function will be based on a new class Condition, which will convert a String statement into boolean value.
+3. Our Condition class does not support bracket but support multiple logic and/or statement.
+
+###validation instruction:
+Here are our shell commends listed in the tables. Although some of them are validation in the first project including fragment storage and concurrency control. Although our SQL is simple, it contains most common usages, which are projection and equality selection. More functions and commands will provide in the next several projects.
+
+In order to run the shell program, please run the DBTool.shell() function, or run the **DBTool.main()**. Type help will give you more help information.
+
+|command|function|
+|---|---|
+|q or quit|quit the shell|
+|show [<filename>]|	show the space of the database, default file is 'cs542.db'.|
+|fragment or f|		validate fragment	|
+|concurrency\c|		validate concurrency control
+|clear or cl	|		clear the database	
+|readcsv or r|			read movies file and create table
+
+
+|------SQL------||
+|---|---|
+|select \<attribute(s)\> from \<table\> \[where \<condition(s)\>\]|SELECT STATEMENT|
+|create index \<table(attributeName\[, ...\])\>  |create index 	<table(attributeName[, ...])>|	
+
+Here is specific command in our shell:
+
+1) run DBTooL.main(). Type:
+
+>help
+ 
+will give more command details. Note that the command is **not case sensitive**.
+
+
+2) Read csv from movies data file. Type "readcsv" or "r" for short.
+>readcsv
+
+3) CREATE INDEX movieInd ON Movie(year, format). In our SQL grammer, please type:
+>create index movies(year,format)
+
+Query:
+Find all DVD movies made in 1977.
+>select * from movies where format="DVD" and year=1977
+
+Find all VHS movies made in 1990.
+>select * from movies where format="VHS" and year=1990
+
+Find all DVD movies made in 2001.
+>select * from movies where format="DVD" and year=2001
+
+4) index yrInd ON Movie(year).
+>create index movies(year)
+
+Find all movies made in 2000.
+>select * from movies where year=2000
+
+Find all movies made in 2005.
+>select * from movies where year=2005
+
+Find all movies made in 2010.
+>select * from movies where year=2010
+
+Here is output sample:
+
+	>>help
+	Help Information:
+	q|Q|quit|Quit		quit the shell
+	show [<filename>]	show the space of the database, default file is 'cs542.db'.
+	fragment|f			validate fragment
+	concurrency|c		validate concurrency control
+	clear|cl			clear the database
+	readcsv|r			read movies file and create table
+	
+	------SQL-----
+	select <attribute(s)> from <table> [where <condition(s)>]
+	create index <table(attributeName[, ...])>
+	
+	>>r
+	Data related to key is 1, and size is 724 have written to cs542.db
+	Data related to key is 2, and size is 724 have written to cs542.db
+	Data related to key is 3, and size is 724 have written to cs542.db
+	Data related to key is 4, and size is 724 have written to cs542.db
+	Data related to key is 5, and size is 724 have written to cs542.db
+	Data related to key is 6, and size is 724 have written to cs542.db
+	Data related to key is 7, and size is 724 have written to cs542.db
+	Data related to key is 8, and size is 724 have written to cs542.db
+	Data related to key is 9, and size is 724 have written to cs542.db
+	Data related to key is 10, and size is 724 have written to cs542.db
+	Data related to key is 11, and size is 724 have written to cs542.db
+	Data related to key is 12, and size is 724 have written to cs542.db
+	Data related to key is 13, and size is 724 have written to cs542.db
+	Data related to key is 14, and size is 724 have written to cs542.db
+	Data related to key is 15, and size is 724 have written to cs542.db
+	Data related to key is 16, and size is 724 have written to cs542.db
+	Data related to key is 17, and size is 724 have written to cs542.db
+	Data related to key is 18, and size is 724 have written to cs542.db
+	Data related to key is 19, and size is 724 have written to cs542.db
+	Data related to key is 20, and size is 724 have written to cs542.db
+	Data related to key is 21, and size is 724 have written to cs542.db
+	Data related to key is 22, and size is 724 have written to cs542.db
+	Data related to key is 23, and size is 724 have written to cs542.db
+	Data related to key is 24, and size is 724 have written to cs542.db
+	Data related to key is 25, and size is 724 have written to cs542.db
+	Data related to key is 26, and size is 724 have written to cs542.db
+	Data related to key is 27, and size is 724 have written to cs542.db
+	Data related to key is 28, and size is 724 have written to cs542.db
+	Data related to key is 29, and size is 724 have written to cs542.db
+	Data related to key is 30, and size is 724 have written to cs542.db
+	Data related to key is 31, and size is 724 have written to cs542.db
+	Data related to key is 32, and size is 724 have written to cs542.db
+	Data related to key is 33, and size is 724 have written to cs542.db
+	Data related to key is 34, and size is 724 have written to cs542.db
+	Data related to key is 35, and size is 724 have written to cs542.db
+	Data related to key is 36, and size is 724 have written to cs542.db
+	Data related to key is 37, and size is 724 have written to cs542.db
+	Data related to key is 38, and size is 724 have written to cs542.db
+	Data related to key is 39, and size is 724 have written to cs542.db
+	Data related to key is 40, and size is 724 have written to cs542.db
+	Data related to key is 41, and size is 724 have written to cs542.db
+	Data related to key is 42, and size is 724 have written to cs542.db
+	Data related to key is 43, and size is 724 have written to cs542.db
+	Data related to key is 44, and size is 724 have written to cs542.db
+	Data related to key is 45, and size is 724 have written to cs542.db
+	Reading movies.txt is Done
+	
+	>>create index movies(year,format)
+	>>select * from movies where format="DVD" and year=1977
+	>>select * from movies where format="VHS" and year=1990
+	39: Pacific Heights|1990|VHS|Thriller|John Schlesinger|Daniel Pyne|USA|20th Century Fox|$15.00|0286
+	>>select * from movies where format="DVD" and year=2001
+	20: Moulin Rouge|2001|DVD|Musical|Baz Luhrmann|Craig Pearce|USA|20th Century Fox|$15.00|0260
+	16: The Lord of the Rings: The Fellowship of the Ring|2001|DVD|Action|Peter Jackson|Phillippa Boyens|USA|New Line Cinema|$13.81|0707
+	15: Legally Blonde|2001|DVD|Comedy|Robert Luketic|Karen McCullah Lutz|USA|MGM|$15.00|0231
+	5: A Beautiful Mind|2001|DVD|Drama|Ron Howard|Akiva Goldsman|USA|Universal Pictures|$15.00|0054
+	2: Amelie|2001|DVD|Comedy|Jean-Pierre Jeunet|Guillaume Laurant|France|Miramax|$15.00|0022
+	
+	>>create index movies(year)
+	>>select * from where year=2000
+	No table named where
+	>>select * from movies where year=2000
+	17: Malena|2000|DVD|Drama|Giuseppe Tornatore|Giuseppe Tornatore|Italy|Miramax|$15.00|0243
+	9: Gladiator|2000|DVD|Epic|Ridley Scott|John Logan|USA|DreamWorks / Universal  (Foreign)|$15.00|0169
+	7: Crouching Tiger, Hidden Dragon|2000|DVD|Action|Ang Lee|Du Lu Wang|Taiwan|Asia / Columbia Pictures / Good Machine / Sony Pic|$15.00|0528
+	>>select * from movies where year=2005
+	21: Mr. & Mrs. Smith|2005|DVD|Action|Doug Liman|Simon Kinberg|USA|20th Century Fox|$15.00|0261
+	>>select * from movies where year=2010

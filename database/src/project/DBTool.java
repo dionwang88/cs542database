@@ -1,39 +1,33 @@
 package project;
 
+import test.*;
 
-import test.Clear;
-import test.TestConcurrency;
-import test.TestFragmentation;
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-/**
- * Created by vincent on 9/30/15.
- */
 public class DBTool {
 
     private DBTool(){}
 
     public static void showWrapped(DBManager dbmanager){
-        if (dbmanager==null) ;
-        else {
-            int freesize = Storage.DATA_SIZE - dbmanager.get_DATA_USED();
-            java.util.List<Pair<Integer, Integer>> al = DBTool.freelist(dbmanager.getIndexBuffer());
-            DBTool.show(DBTool.minusList(new Pair<>(0, Storage.DATA_SIZE), al), freesize);
+        if (dbmanager!=null) {
+            int freeSize = Storage.DATA_SIZE - dbmanager.get_DATA_USED();
+            java.util.List<Pair<Integer, Integer>> al = DBTool.freelist(dbmanager.getClusteredIndex());
+            DBTool.show(DBTool.minusList(new Pair<>(0, Storage.DATA_SIZE), al), freeSize);
             System.out.println("Keys in database are:");
-            for (Integer k : dbmanager.getIndexBuffer().keySet()) System.out.print(k+" ");
+            for (Integer k : dbmanager.getClusteredIndex().keySet()) System.out.print(k+" ");
             System.out.println("\n");
         }
     }
 
     private static void show(List<Pair<Integer, Integer>> freelist, int free){
         if (free==0){
-            System.out.println("Total space is " + Storage.DATA_SIZE + "byte(s).\nUsed space is " + Storage.DATA_SIZE + "byte(s).\nUnused is " + 0 + "byte(s).");
+            System.out.println("Total space is " + Storage.DATA_SIZE + "byte(s).\nUsed space is "
+                    + Storage.DATA_SIZE + "byte(s).\nUnused is " + 0 + "byte(s).");
             System.out.println("Free space location:");
             System.out.println("---[]--- Database is full!");}
         else if(freelist==null) {System.out.println("metadata disorder");}
@@ -45,7 +39,8 @@ public class DBTool {
                 lset[i] = freelist.get(i).getLeft();
                 rset[i] = freelist.get(i).getRight() - 1;
             }
-            System.out.println("Total space is " + total + "byte(s).\nUsed space is " + (total - free) + "byte(s).\nUnused is " + free + "byte(s).");
+            System.out.println("Total space is " + total + "byte(s).\nUsed space is "
+                    + (total - free) + "byte(s).\nUnused is " + free + " byte(s).");
             System.out.println("Free space location:");
             for (int i = 0; i < freelist.size(); i++) {
                 System.out.println("---[" + lset[i] + " , " + (lset[i] + rset[i]) + "]---");
@@ -53,36 +48,36 @@ public class DBTool {
         }
     }
 
-    private static List<Pair<Integer,Integer>> freelist(Map<Integer,Index> tab){
-        List<Pair<Integer,Integer>> looplist=new ArrayList<>();
+    private static List<Pair<Integer,Integer>> freelist(Map<Integer, Index> tab){
+        List<Pair<Integer,Integer>> loopList=new ArrayList<>();
         for (int key:tab.keySet()) {
-            Index tmplist=tab.get(key);
-            looplist.addAll(tmplist.getIndexes().stream().collect(Collectors.toList()));
+            Index tmpList=tab.get(key);
+            loopList.addAll(tmpList.getIndexList().stream().collect(Collectors.toList()));
         }
-        Index sortIndex=new Index();
-        sortIndex.setIndexes(looplist);
-        sortIndex.sortpairs();
-        return sortIndex.getIndexes();
+        Index sortIndex =new Index();
+        sortIndex.setPhysAddrList(loopList);
+        sortIndex.sortPairs();
+        return sortIndex.getIndexList();
     }
 
     private static List<Pair<Integer,Integer>> minusList(Pair<Integer,Integer> F,List<Pair<Integer,Integer>> L){
-        List<Pair<Integer,Integer>> rlist=new ArrayList<>();
+        List<Pair<Integer,Integer>> rList=new ArrayList<>();
         if(L.size()==0){
-            rlist.add(F);
-            return rlist;
+            rList.add(F);
+            return rList;
         }
         else if((L.get(0).getLeft()<F.getLeft())
                 ||(L.get(L.size()-1).getLeft()+L.get(L.size()-1).getRight()-1>F.getRight())){
             return null;
         }
 
-        int ii=F.getLeft(),ll=0;
+        int ii=F.getLeft(),ll;
         for(Pair<Integer,Integer> p:L){
             ll=p.getLeft();
             if(ll==ii){
                 ii=ll+p.getRight();
             } else if(ii<ll){
-                rlist.add(new Pair<>(ii,ll-ii));
+                rList.add(new Pair<>(ii, ll - ii));
                 ii=ll+p.getRight();
             }
             else{
@@ -90,26 +85,38 @@ public class DBTool {
                 return null;
             }
         }
-        if (ii<F.getRight()){
-            rlist.add(new Pair<>(ii,F.getRight()-ii));
-        }
+        if (ii<F.getRight())
+            rList.add(new Pair<>(ii,F.getRight()-ii));
+        return rList;
+    }
 
-        return rlist;
+    //find tid through table names
+    public static int tabNameToID(DBManager dbm, String tables) throws Exception {
+        int tid=-1;
+        for (int id : dbm.getTabMeta().keySet()) {
+            if (dbm.getTabMeta().get(id).get(0).getRight().equals(tables.toLowerCase())) {
+                tid = id;
+                break;
+            }
+        }
+        if(tid==-1){throw new Exception("No such table");}
+        return tid;
     }
 
     private static void shell(){
         System.out.println("Welcome! This is a group project of cs542 at WPI\nType help to see commands.");
+        DBManager dbmanager;
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         String[] s;
         waiting_command:
         while(true){
             try {
-                s=br.readLine().split(" ");
-                if(s.length>3) {System.out.println("Too many argument!");continue ;}
-                switch (s[0].toLowerCase()) {
+                String input=Condition.removeExtraSpace(br.readLine()).toLowerCase();
+                s=input.split(" ");
+                if(s.length>10) {System.out.println("Too many argument!");continue ;}
+                switch (s[0]) {
                     case "quit":case "q":           System.out.println("Now Quit Shell.");break waiting_command;
                     case "show":
-                        DBManager dbmanager;
                         if (s.length==1) dbmanager = DBManager.getInstance();
                         else dbmanager=DBManager.getInstance(s[1]);
                         showWrapped(dbmanager);
@@ -117,23 +124,62 @@ public class DBTool {
                     case "fragment":case "f":       TestFragmentation.main(null);break;
                     case "Concurrency":case "c":    TestConcurrency.main(null);break;
                     case "clear":case "cl":         Clear.main(null);break;
-                    case "help":
+                    case "readcsv":case"r":         TestReadCSV.main(null);break;
+                    case "mtable":case"m":          TestMultab.main(null);break;
+                    case "select":
+                        if(s.length>3&&s[2].equals("from")){
+                            dbmanager = DBManager.getInstance();
+                            if (s.length > 5 && s[4].equals("where")) {
+                                String cond = "";
+                                for (int i = 5; i < s.length; i++)
+                                    cond += s[i];
+                                dbmanager.printQuery(tabNameToID(dbmanager,s[3]), dbmanager.tabProject(s[1]), new Condition(input.split("where")[1]));
+                            } else if (dbmanager != null) {
+                                dbmanager.printQuery(tabNameToID(dbmanager,s[3]), dbmanager.tabProject(s[1]), new Condition());
+                            }
+                        }break;
+                    case "create":
+                        dbmanager=DBManager.getInstance();
+                        if(s.length>2)
+                            switch (s[1]){
+                                case "index":
+                                    if(s.length==3){
+                                        String[] schema=s[2].split("\\(|\\)");
+                                        if(schema.length==2)
+                                            dbmanager.createIndex(schema[0],schema[1]);
+                                        else System.out.println("Can't resolve SQL");
+                                    }
+                                    else System.out.println("Can't resolve SQL");
+                                    break;
+                                case "table":
+                                    if(s.length>=3) {
+                                        String[] schema = input.split("table\\s|\\(|\\)");
+                                        if(schema.length==3)
+                                            dbmanager.createTab(schema[1],schema[2]);
+                                        else System.out.println("Can't resolve SQL");
+                                    }
+                                    break;
+                                default:System.out.println("Can't resolve SQL");
+                            }
+                        else System.out.println("Not Enough parameters!");break;
+                    case "help":case "h":
                         System.out.println("Help Information:\nq|Q|quit|Quit\t\tquit the shell\n" +
                                 "show [<filename>]\tshow the space of the database, default file is 'cs542.db'.\n" +
                                 "fragment|f\t\t\tvalidate fragment\n" +
                                 "concurrency|c\t\tvalidate concurrency control\n" +
-                                "clear|cl\t\t\tclear the database");
-
-                        break;
-                    default:System.out.println("Can't find the command '"+s[0]+"'!\nyou may use 'help' command");
+                                "clear|cl\t\t\tclear the database\n"+
+                                "readcsv|r\t\t\tread movies file and create table\n" +
+                                "\n------SQL-----\n"+
+                                "select <attribute(s)> from <table> [where <condition(s)>]\n" +
+                                "create index <table(attributeName[, ...])>\n");break;
+                    default:System.out.println("Can't find the command '"+s[0]+"'\nyou may use 'help' command");
                 }
-            } catch (IOException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
+                //System.out.print(e.getMessage()+'\n');
             }
         }
     }
 
-    public static void main(String[] args){
-        shell();
-    }
+    public static void main(String[] args){shell();}
 }
