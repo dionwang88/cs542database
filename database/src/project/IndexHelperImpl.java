@@ -6,6 +6,8 @@ import java.util.*;
 import java.util.Map.Entry;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.Logger;
+import test.TestReadCSV;
+
 import java.io.IOException;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -200,8 +202,8 @@ public class IndexHelperImpl implements IndexHelper {
 
 			//table id
 			byte[] tmpTID=intToByte(indexes.get(key).getTID());
-			if (tmpTID[1]==0&&tmpTID[2]==0&&tmpTID[3]==0){
-				outbyte[offset++]=tmpTID[0];
+			if (tmpTID[1]==0&&tmpTID[2]==0&&tmpTID[0]==0){
+				outbyte[offset++]=tmpTID[3];
 			}else{
 				throw new Exception("table id should be between 0 and 127(included).");
 			}
@@ -288,7 +290,7 @@ public class IndexHelperImpl implements IndexHelper {
 		for(int tid:tabMetadata.keySet())
 			count+=tabMetadata.get(tid).size();
 		//init the byte array
-		byte[] return_byte=new byte[count*(1+3+16+4)];
+		byte[] return_byte=new byte[count*(4+16+4)];
 		for(int tid:tabMetadata.keySet()){
 			//start flag
 			return_byte[offset]=TAB_START_SIGN;
@@ -491,9 +493,15 @@ public class IndexHelperImpl implements IndexHelper {
 	public static void main(String[] args){
 		DBManager dbm= DBManager.getInstance();
 		IndexHelper ih=new IndexHelperImpl();
-		byte[] b=ih.hastabToBytes(dbm.getTabMeta());
-		Map m=ih.bytesToHashtab(b);
-			System.out.println(m);
+        TestReadCSV.main(null);
+        byte[] b= new byte[0];
+        try {
+            b = ih.indexToBytes(dbm.getClusteredIndex());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        Map m=ih.bytesToIndex(b);
+			System.out.println(b+"\n"+m);
 
 	}
 }

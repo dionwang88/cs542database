@@ -11,13 +11,15 @@ public class AttrIndex<K>implements Serializable {
 
 	//init the attribute and establish the index of certain attributes when creating a new instance
 	public AttrIndex(){table = new Hashtable<>();}
-	public AttrIndex(List<String> AttrNames) {
+	public AttrIndex(int tid,List<String> AttrNames) {
 		this();
 		DBManager dbm = DBManager.getInstance();
 		for (int i = 1; i <= dbm.getClusteredIndex().size(); i++) {
 			int hashValue = 0;
 			for (String AttrName : AttrNames) {
-				Object attr = dbm.getAttribute(i, AttrName);
+				byte[] tuple=dbm.Get(tid,i);
+				if(tuple==null) continue;
+				Object attr = dbm.getAttribute(tid,tuple,AttrName);
 				hashValue += attr.toString().hashCode();
 			}
 			this.hashPut(hashValue, i);

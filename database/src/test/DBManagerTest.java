@@ -11,7 +11,7 @@ public class DBManagerTest {
 		DBManager dbManager=DBManager.getInstance();
 
 		try {
-			dbManager.printQuery(DBTool.getTabID(dbManager,"movies"), dbManager.tabProject("year"), new Condition(""));
+			dbManager.printQuery(DBTool.tabNameToID(dbManager,"movies"), dbManager.tabProject("year"), new Condition(""));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

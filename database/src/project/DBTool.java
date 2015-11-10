@@ -1,9 +1,7 @@
 package project;
 
-import test.Clear;
-import test.TestConcurrency;
-import test.TestFragmentation;
-import test.TestReadCSV;
+import test.*;
+
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
@@ -93,17 +91,16 @@ public class DBTool {
     }
 
     //find tid through table names
-    public static int getTabID(DBManager dbm,String tables) {
-        int tid = 0;boolean notFound=true;
+    public static int tabNameToID(DBManager dbm, String tables) throws Exception {
+        int tid=-1;
         for (int id : dbm.getTabMeta().keySet()) {
             if (dbm.getTabMeta().get(id).get(0).getRight().equals(tables.toLowerCase())) {
                 tid = id;
-                notFound = false;
                 break;
             }
         }
-        if(notFound) return -1;
-        else return tid;
+        if(tid==-1){throw new Exception("No such table");}
+        return tid;
     }
 
     private static void shell(){
@@ -128,6 +125,7 @@ public class DBTool {
                     case "Concurrency":case "c":    TestConcurrency.main(null);break;
                     case "clear":case "cl":         Clear.main(null);break;
                     case "readcsv":case"r":         TestReadCSV.main(null);break;
+                    case "mtable":case"m":          TestMultab.main(null);break;
                     case "select":
                         if(s.length>3&&s[2].equals("from")){
                             dbmanager = DBManager.getInstance();
@@ -135,23 +133,31 @@ public class DBTool {
                                 String cond = "";
                                 for (int i = 5; i < s.length; i++)
                                     cond += s[i];
-                                dbmanager.printQuery(getTabID(dbmanager,s[3]), dbmanager.tabProject(s[1]), new Condition(input.split("where")[1]));
+                                dbmanager.printQuery(tabNameToID(dbmanager,s[3]), dbmanager.tabProject(s[1]), new Condition(input.split("where")[1]));
                             } else if (dbmanager != null) {
-                                dbmanager.printQuery(getTabID(dbmanager,s[3]), dbmanager.tabProject(s[1]), new Condition());
+                                dbmanager.printQuery(tabNameToID(dbmanager,s[3]), dbmanager.tabProject(s[1]), new Condition());
                             }
                         }break;
                     case "create":
+                        dbmanager=DBManager.getInstance();
                         if(s.length>2)
                             switch (s[1]){
                                 case "index":
                                     if(s.length==3){
                                         String[] schema=s[2].split("\\(|\\)");
-                                        dbmanager=DBManager.getInstance();
                                         if(schema.length==2)
                                             dbmanager.createIndex(schema[0],schema[1]);
                                         else System.out.println("Can't resolve SQL");
                                     }
                                     else System.out.println("Can't resolve SQL");
+                                    break;
+                                case "table":
+                                    if(s.length>=3) {
+                                        String[] schema = input.split("table\\s|\\(|\\)");
+                                        if(schema.length==3)
+                                            dbmanager.createTab(schema[1],schema[2]);
+                                        else System.out.println("Can't resolve SQL");
+                                    }
                                     break;
                                 default:System.out.println("Can't resolve SQL");
                             }
@@ -170,6 +176,7 @@ public class DBTool {
                 }
             } catch (Exception e) {
                 e.printStackTrace();
+                //System.out.print(e.getMessage()+'\n');
             }
         }
     }

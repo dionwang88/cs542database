@@ -39,8 +39,10 @@ public class Condition {
         List<Pair<String, Boolean>> results = new ArrayList<>();
         if (conditions.get(0).length<4) return true;
         for (String[] ss : conditions) {
+            byte[] tuple=dbm.Get(tid,key);
+            if(tuple==null) return false;
             int type = -1;
-            Object valInCondtn = ss[2], valInTab = dbm.getAttribute(key, ss[1]);
+            Object valInCondtn = ss[2], valInTab = dbm.getAttribute(tid,tuple,ss[1]);
             for (int j = 1; j < dbm.getTabMeta().get(tid).size(); j++) {
                 Pair p = dbm.getTabMeta().get(tid).get(j);
                 if (ss[1].equals(((String) p.getLeft()).toLowerCase())) {
