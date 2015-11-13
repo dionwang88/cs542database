@@ -3,6 +3,8 @@ package project.relations;
 import java.util.ArrayList;
 import java.util.List;
 
+import project.Pair;
+
 /**
  * Created by wangqian on 11/9/15.
  */
@@ -23,28 +25,14 @@ public class ProjectOperator implements AlgebraNode {
         return this.receivedData;
     }
     
-	//do projection
-	public List<String> tabProject(Relation r, String attrNames){
-		List<String> res = new ArrayList<>();
-		if(attrNames.trim().equals("*")){
-			for(int i =1;i<tabMetadata.get(tid).size();i++)
-				res.add((String) tabMetadata.get(tid).get(i).getLeft());
-		}
-		else {
-			String[] strings = attrNames.toLowerCase().split(",");
-			for (String s : strings)
-				res.add(s.toLowerCase().trim());
-		}
-		return res;
-	}
-    
     @Override
     public void open() {
 
     }
 
     @Override
-    public void getNext() {
+    public List<Pair<Integer,Integer>> getNext() {
+    	return null;
 
     }
 
@@ -53,10 +41,6 @@ public class ProjectOperator implements AlgebraNode {
 
     }
 
-    @Override
-    public void publish() {
-
-    }
 
     public static String getOperator_name() {
         return operator_name;

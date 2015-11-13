@@ -5,6 +5,9 @@ import java.util.Hashtable;
 import java.util.ArrayList;
 import java.util.List;
 
+import project.relations.AlgebraNode;
+import project.relations.Relation;
+
 public class AttrIndex<K>implements Serializable {
 	//store the attribute index infomation
 	Hashtable<Integer,List<Integer>> table;

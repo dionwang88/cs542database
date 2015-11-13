@@ -363,11 +363,6 @@ public class DBManager {
 
     public byte[] Get(int key){return Get(0,key);}
     
-    
-    public Object getIndexedAttribute(int tid, List<String> AttrNames){
-    	
-    	return null;
-    }
 
 	//retrieve attribute value according to the rid and attribute name
 	public Object getAttribute(int tid,byte[] record, String Attr_name){
@@ -628,8 +623,10 @@ public class DBManager {
 			e.printStackTrace();
 		}
 	}
-	//attribute has index or not
-	private boolean isAttrIndex(int tid,ArrayList<String> attrNames){
+
+	
+	
+	private AttrIndex<?> getIndex(int tid, ArrayList<String> attrNames){
 		String attrs = "";
 		if (attrNames.size() > 1) {
 			for (String s : attrNames){
@@ -639,7 +636,12 @@ public class DBManager {
 		}else{
 			attrs = attrNames.get(0).toLowerCase();
 		}
-		return attrIndexes.get(tid).containsKey(attrs);
+		return attrIndexes.get(tid).get(attrs);
+	}
+	
+	//attribute has index or not
+	public boolean isAttrIndex(int tid,ArrayList<String> attrNames){
+		return getIndex(tid,attrNames) == null;
 	}
 	//used and may be not useful in the future
 	public boolean isAttribute(int tid, String attrName){
@@ -649,5 +651,21 @@ public class DBManager {
 				return true;
 		}
 		return false;
+	}
+	
+	//Returns a sorted List of List<Integers> based on the attributes
+	public Map<String,List<Integer>> Indexsort(int tid, ArrayList<String> attrNames){
+		TreeMap<String,List<Integer>> t= new TreeMap<String,List<Integer>>();
+		AttrIndex Aindex = getIndex(tid,attrNames);
+		for (Object hashval : Aindex.table.keySet()){
+			List<Integer> keys = Aindex.get(hashval);
+			byte[] tuple = this.Get(tid,keys.get(0));
+			String toSearch = "";
+			for (String attr : attrNames){
+				toSearch = toSearch + this.getAttribute(tid, tuple, attr);
+			}
+			t.put(toSearch, keys);
+			}
+		return t;
 	}
 }

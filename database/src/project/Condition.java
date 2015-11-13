@@ -174,7 +174,7 @@ public class Condition {
     public String toString(){return statement;}
     //some local test
     public static void main(String[] args){
-        Condition c=new Condition("year=1989 and country = \"USA\"");
+        Condition c=new Condition("a.attr1 > 2 * b.attr2 and a. attr < b.attr");
         System.out.println(removeExtraSpace(c.toString()));
         try {
             System.out.println(handleCondition(c.throwCondition(), DBManager.getInstance(),1,0));
