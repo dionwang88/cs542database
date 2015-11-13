@@ -46,7 +46,7 @@ public class SelectOperator implements AlgebraNode {
     public List<Pair<Integer,Integer>> getNext() {
     	List<Pair<Integer,Integer>> l = null;
     	//if (!hasNext()){
-    	//	publishers.get(CNode).close();
+    	//	publishers.Get(CNode).close();
     	//	if (CNode < publishers.size()){
     	//	CNode ++;
     	//	}

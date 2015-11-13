@@ -1,7 +1,6 @@
 package project;
 
 import test.*;
-
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
@@ -130,12 +129,9 @@ public class DBTool {
                         if(s.length>3&&s[2].equals("from")){
                             dbmanager = DBManager.getInstance();
                             if (s.length > 5 && s[4].equals("where")) {
-                                String cond = "";
-                                for (int i = 5; i < s.length; i++)
-                                    cond += s[i];
-                                dbmanager.printQuery(tabNameToID(dbmanager,s[3]), dbmanager.tabProject(s[1]), new Condition(input.split("where")[1]));
+                                dbmanager.printQuery(tabNameToID(dbmanager,s[3]), dbmanager.tabProject(s[3],s[1]), new Condition(input.split("where")[1]));
                             } else if (dbmanager != null) {
-                                dbmanager.printQuery(tabNameToID(dbmanager,s[3]), dbmanager.tabProject(s[1]), new Condition());
+                                dbmanager.printQuery(tabNameToID(dbmanager,s[3]), dbmanager.tabProject(s[3],s[1]), new Condition());
                             }
                         }break;
                     case "create":

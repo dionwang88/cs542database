@@ -6,7 +6,6 @@ import java.util.*;
 import java.util.Map.Entry;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.Logger;
-import test.TestReadCSV;
 
 import java.io.IOException;
 import java.io.ByteArrayInputStream;
@@ -47,7 +46,7 @@ public class IndexHelperImpl implements IndexHelper {
 		return indexHelper;
 	}
 	/**
-	 * find the indexes list of free spaces based on the data size get all free space based on the delete sign and 
+	 * find the indexes list of free spaces based on the data size Get all free space based on the delete sign and
 	 * amount blocks to find some enough space to save the data.
 	 * In pair object, left is start index, right is the size
 	 * 
@@ -55,7 +54,7 @@ public class IndexHelperImpl implements IndexHelper {
 	 * 
 	 * (1) public List<Integer> getSortedIndexList()
 	 * Get the Index Buffer from DBManager
-	 * Loop the indexes in the IndexBuffer Map to get the index pairs list:
+	 * Loop the indexes in the IndexBuffer Map to Get the index pairs list:
 	 * 		Loop the index pairs list:
 	 * 			Get the start-length index pair and change it to start-end index pair
 	 * 			add the start-end index into a start-end list
@@ -138,7 +137,7 @@ public class IndexHelperImpl implements IndexHelper {
 		List<Integer> index_list = new ArrayList<>();
 		// Get the index buffer object
 		Map<Integer, Index> indexBuffer = this.dbmanager.getClusteredIndex();
-		// To get all the index list
+		// To Get all the index list
 		for (Entry<Integer, Index> entry : indexBuffer.entrySet()) {
 			Index index = entry.getValue();
 			List<Pair<Integer, Integer>> lst_p = index.getIndexList();
@@ -157,14 +156,14 @@ public class IndexHelperImpl implements IndexHelper {
 	public void splitDataBasedOnIndex(byte[] data_to_save, List<Pair<Integer,Integer>> indexes) {
 		/**
 		 * Split the data into several parts based on the free indexes list
-		 * Then get the split data from data_to_save, and save the split data to the db_data file based on the indexes
+		 * Then Get the split data from data_to_save, and save the split data to the db_data file based on the indexes
 		 */
 		// load the database file from memory
 		byte[] db_data = dbmanager.getData();
 		int index_in_data_to_save = 0;
 		// loop all the free space indexes
 		for (Pair<Integer, Integer> pair : indexes){
-			// get the start index on the db_data file
+			// Get the start index on the db_data file
 			int start = pair.getLeft();
 			// The length of split data
 			int length = pair.getRight();
@@ -245,23 +244,23 @@ public class IndexHelperImpl implements IndexHelper {
 			//search header
 			if (metadata[offset]==-1){
 
-				//get key
+				//Get key
 				int key_in_record;
 				int key_start=offset+1+1+Index.getReservedSize();
 				key_in_record= byteToInt(metadata, key_start);
 
-				//get tid
+				//Get tid
 				int tid=metadata[offset+1];
-				//get pairs
+				//Get pairs
 				offset+=search_span;// skip the head to pairs
 				List<Pair<Integer, Integer>> pairlist = new ArrayList<>();
 				while(metadata[offset]>=0) {
 					int l,r;
-					//get L,R in the current pair
+					//Get L,R in the current pair
 					l= byteToInt(metadata, offset);
 					r= byteToInt(metadata, offset + Integer.BYTES);
 					Pair<Integer,Integer> pair=new Pair<>(l,r);
-					//get pair to list
+					//Get pair to list
 					pairlist.add(pair);
 					//go to next pair
 					offset+=pair_size;
@@ -367,7 +366,7 @@ public class IndexHelperImpl implements IndexHelper {
 				} catch (UnsupportedEncodingException e) {
 					e.printStackTrace();
 				}
-				//put first pair
+				//oldPut first pair
 				Pair<Integer,String> p1=new Pair<>(tid,tab_str_name);
 				pairList.add(pair_no++, p1);
 
@@ -396,7 +395,7 @@ public class IndexHelperImpl implements IndexHelper {
 					Pair<String,Pair> p3=new Pair<>(attr_str_name,p2);
 					pairList.add(pair_no++, p3);
 				}
-				//put tab into map
+				//oldPut tab into map
 				return_map.put(tid,pairList);
 			}
 			else offset+=search_span;
@@ -467,7 +466,7 @@ public class IndexHelperImpl implements IndexHelper {
         return ByteBuffer.allocate(Integer.BYTES).putInt(intnumb).array();
     }
 	
-	static byte[] FloatToByte(float floatnumb){
+	static byte[] floatToByte(float floatnumb){
 		return ByteBuffer.allocate(Float.BYTES).putFloat(floatnumb).array();
 	}
 
@@ -485,6 +484,10 @@ public class IndexHelperImpl implements IndexHelper {
 		return numb;
 	}
 
+	public static float byteToFloat(byte[] b) {
+		return ByteBuffer.wrap(b).asFloatBuffer().get();
+	}
+
 	static byte[] concat(byte[] a, byte[] b) {
 		int aLen = a.length;
 		int bLen = b.length;
@@ -495,17 +498,9 @@ public class IndexHelperImpl implements IndexHelper {
 	}
 
 	public static void main(String[] args){
-		DBManager dbm= DBManager.getInstance();
-		IndexHelper ih=new IndexHelperImpl();
-        TestReadCSV.main(null);
-        byte[] b= new byte[0];
-        try {
-            b = ih.indexToBytes(dbm.getClusteredIndex());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        Map m=ih.bytesToIndex(b);
-			System.out.println(b+"\n"+m);
-
+        byte[] b;
+     	b=IndexHelperImpl.floatToByte(-1.34f);
+		for (byte aB : b) System.out.println(aB);
+		System.out.print(IndexHelperImpl.byteToFloat(b));
 	}
 }

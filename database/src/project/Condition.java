@@ -1,7 +1,5 @@
 package project;
 
-
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -19,8 +17,8 @@ public class Condition {
     public Condition(String s) {
         this.statement=removeExtraSpace(s);
         or_conditions=statement.split("\\sor\\s");
-        for(int ii=0;ii<or_conditions.length;ii++){
-            and_conditions.add(or_conditions[ii].split("\\sand\\s"));
+        for (String or_condition : or_conditions) {
+            and_conditions.add(or_condition.split("\\sand\\s"));
         }
     }
     public Condition(){this("");}

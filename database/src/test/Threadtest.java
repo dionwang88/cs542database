@@ -20,7 +20,7 @@ public class Threadtest implements Runnable{
 					write();
 				} else if (str == "read") {
 					read();
-				} else if (str == "remove") {
+				} else if (str == "Remove") {
 					remove();
 				} else {
 					continue;
@@ -45,7 +45,7 @@ public class Threadtest implements Runnable{
 		db.Put(0,num, data);
 	}
 	private void remove(){
-		System.out.println(Thread.currentThread() + " is waiting to remove data.");
+		System.out.println(Thread.currentThread() + " is waiting to Remove data.");
 		db.Remove(num);
 	}
 	private void read(){
