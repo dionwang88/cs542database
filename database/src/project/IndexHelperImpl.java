@@ -449,6 +449,7 @@ public class IndexHelperImpl implements IndexHelper {
 			else offset++;
 		}
 		int len=byteToInt(transformed_data,3);
+		if (len==0) return new Hashtable<>();
 		byte[] trimmed= new byte[len];
 		System.arraycopy(transformed_data, 7, trimmed, 0, len);
 
