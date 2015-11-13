@@ -1,5 +1,6 @@
 package project.relations;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -21,6 +22,22 @@ public class ProjectOperator implements AlgebraNode {
     public List getReceivedData(){
         return this.receivedData;
     }
+    
+	//do projection
+	public List<String> tabProject(Relation r, String attrNames){
+		List<String> res = new ArrayList<>();
+		if(attrNames.trim().equals("*")){
+			for(int i =1;i<tabMetadata.get(tid).size();i++)
+				res.add((String) tabMetadata.get(tid).get(i).getLeft());
+		}
+		else {
+			String[] strings = attrNames.toLowerCase().split(",");
+			for (String s : strings)
+				res.add(s.toLowerCase().trim());
+		}
+		return res;
+	}
+    
     @Override
     public void open() {
 

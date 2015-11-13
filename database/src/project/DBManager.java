@@ -179,6 +179,8 @@ public class DBManager {
             }
             else if(a_t[1].toLowerCase().equals("char")){
                 attr_type=1;len_attr= Integer.parseInt(a_t[2]);
+            }else if (a_t[1].toLowerCase().equals("float")){
+            	attr_type=2;len_attr= 4;
             }
             else throw new Exception("Unknown type: "+a_t[1]);
             pairs.add(new Pair<>(a_t[0].toLowerCase(),new Pair<>(attr_type,len_attr)));
@@ -360,10 +362,17 @@ public class DBManager {
 	}
 
     public byte[] Get(int key){return Get(0,key);}
+    
+    
+    public Object getIndexedAttribute(int tid, List<String> AttrNames){
+    	
+    	return null;
+    }
 
 	//retrieve attribute value according to the rid and attribute name
 	public Object getAttribute(int tid,byte[] record, String Attr_name){
 		Object returnObj=null;
+		if (isAttribute(tid,Attr_name)){
 		List<Pair> l=tabMetadata.get(tid);
 		int type=-1,length=0,offset=0;
 		for(int i=1;i<l.size();i++){
@@ -386,10 +395,11 @@ public class DBManager {
 				e.printStackTrace();
 			}
 		}
+		}
 		return returnObj;
 	}
 
-	//fetch the key according to the attributes by using index.
+	//fetch the key according to the attributes by using index. Return a List of RIDs.
 	public List getKeyFromAttr(List<String> AttrNames,List<String> AttrValues) throws Exception {
 		int tid=0;
 		List res=new ArrayList<>();
@@ -411,7 +421,13 @@ public class DBManager {
 		}
 	}
 
-	//give table id, the condition and project attributes, print the results
+	/**
+	 * Give table id, the condition and project attributes, print the results
+	 * @param tid
+	 * @param attrNames
+	 * @param c
+	 * @throws Exception
+	 */
 	public void printQuery(int tid,List<String> attrNames,Condition c) throws Exception {
 		//not table found
 		if(tid==-1){
@@ -446,7 +462,7 @@ public class DBManager {
 			}
 			AttrIndex attrIndex= attrIndexes.get(tid).get(attrs);
 			for(Object queryHashVal:attrIndex.table.keySet()) {
-                List keys = attrIndex.get(queryHashVal);
+                List keys = attrIndex.get(queryHashVal);//Getting RIDs
                 if (!Condition.handleCondition(c.throwCondition(), dbManager, (int) keys.get(0), tid)) continue;
                 for (Object key1 : keys) {
                     int key = (int) key1;
@@ -484,7 +500,11 @@ public class DBManager {
 			}
 		}
 	}
-	//do projection
+	/**
+	 * Returns a list of Projected Attribute Names
+	 * @param attrNames
+	 * @return
+	 */
 	public List<String> tabProject(String attrNames){
 		int tid=0;
 		List<String> res = new ArrayList<>();
@@ -524,7 +544,19 @@ public class DBManager {
 				String[] record = line.split(regSep);
 				byteData = null;
 				for (int j = 0; j < record.length; j ++){
-					if (AttrType[j] == 1) {
+					switch(AttrType[j]){
+					case 0:
+						int v;
+						if(record[j].trim().equals("")) v=0;
+						else if (record[j].trim().equals("NULL")) v = -1;
+						else{
+							Double t = Double.parseDouble(record[j].trim());
+							v = t.intValue();
+						}
+						if (byteData == null) byteData = IndexHelperImpl.intToByte(v);
+						else byteData = IndexHelperImpl.concat(byteData, IndexHelperImpl.intToByte(v));
+						break;
+					case 1:
 						if (AttrLength[j] > record[j].length()){
 							for (; AttrLength[j]>record[j].length();){
 								record[j] = record[j] +" ";
@@ -534,15 +566,15 @@ public class DBManager {
 						}
 						if (byteData == null) byteData = record[j].getBytes();
 						else byteData = IndexHelperImpl.concat(byteData, record[j].getBytes());
-					}
-					else{
-						int v;
-						if(record[j].trim().equals("")) v=0;
-						else {
-							v = Integer.parseInt(record[j].trim());
-						}
-							if (byteData == null) byteData = IndexHelperImpl.intToByte(v);
-							else byteData = IndexHelperImpl.concat(byteData, IndexHelperImpl.intToByte(v));
+						break;
+					case 2:
+						float f;
+						if(record[j].trim().equals("")) f=0;
+						else if (record[j].trim().equals("NULL")) f = -1.0f;
+						else f = Float.parseFloat(record[j].trim());
+						if (byteData == null) byteData = IndexHelperImpl.FloatToByte(f);
+						else byteData = IndexHelperImpl.concat(byteData, IndexHelperImpl.FloatToByte(f));
+						break;
 					}
 				}
                 while(clusteredIndex.keySet().contains(i)) i++;
@@ -610,8 +642,7 @@ public class DBManager {
 		return attrIndexes.get(tid).containsKey(attrs);
 	}
 	//used and may be not useful in the future
-	private boolean isAttribute(String attrName){
-		int tid=0;
+	public boolean isAttribute(int tid, String attrName){
 		List<Pair> t_meta=tabMetadata.get(tid);
 		for(int i=1;i<t_meta.size();i++) {
 			if(((String)tabMetadata.get(tid).get(i).getLeft()).toLowerCase().equals(attrName.toLowerCase()))

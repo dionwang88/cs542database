@@ -466,6 +466,10 @@ public class IndexHelperImpl implements IndexHelper {
 		 */
         return ByteBuffer.allocate(Integer.BYTES).putInt(intnumb).array();
     }
+	
+	static byte[] FloatToByte(float floatnumb){
+		return ByteBuffer.allocate(Float.BYTES).putFloat(floatnumb).array();
+	}
 
 	static int byteToInt(byte[] b, int start_offset) {
 		/**

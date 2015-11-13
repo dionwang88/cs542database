@@ -43,6 +43,7 @@ public class Condition {
             if(tuple==null) return false;
             int type = -1;
             Object valInCondtn = ss[2], valInTab = dbm.getAttribute(tid,tuple,ss[1]);
+            if (valInTab == null) continue;
             for (int j = 1; j < dbm.getTabMeta().get(tid).size(); j++) {
                 Pair p = dbm.getTabMeta().get(tid).get(j);
                 if (ss[1].equals(((String) p.getLeft()).toLowerCase())) {

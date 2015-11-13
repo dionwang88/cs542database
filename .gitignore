@@ -1,2 +1,3 @@
 *.class
 database/bin/.DS_Store
+database/all.log
