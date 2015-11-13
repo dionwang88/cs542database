@@ -1,6 +1,9 @@
 package project.relations;
 
+import java.util.ArrayList;
 import java.util.List;
+
+import project.Pair;
 
 /**
  * Created by wangqian on 11/9/15.
@@ -21,13 +24,15 @@ public class ProjectOperator implements AlgebraNode {
     public List getReceivedData(){
         return this.receivedData;
     }
+    
     @Override
     public void open() {
 
     }
 
     @Override
-    public void getNext() {
+    public List<Pair<Integer,Integer>> getNext() {
+    	return null;
 
     }
 
@@ -36,10 +41,6 @@ public class ProjectOperator implements AlgebraNode {
 
     }
 
-    @Override
-    public void publish() {
-
-    }
 
     public static String getOperator_name() {
         return operator_name;

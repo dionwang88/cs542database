@@ -7,7 +7,7 @@ public interface IndexHelper {
 	/**
 	 * The start sign in the metadata file
 	 */
-	byte Addr_START_SIGN = Index.getSign();
+	byte START_SIGN = Index.getSign();
 	byte TAB_START_SIGN = -2;
 	byte ATTRINDEX_START_SIGN=-3;
 	byte TAB_META_RESERVED=3;
@@ -39,7 +39,7 @@ public interface IndexHelper {
 	 * @param indexes storage index
 	 * @return the meta data byte array
 	 */
-	byte[] indexToBytes(Map<Integer, Index> indexes);
+	byte[] indexToBytes(Map<Integer, Index> indexes) throws Exception;
 
 	/**
 	 * convert the meta data to the index Hashtable

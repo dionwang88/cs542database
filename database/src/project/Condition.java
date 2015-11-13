@@ -39,8 +39,11 @@ public class Condition {
         List<Pair<String, Boolean>> results = new ArrayList<>();
         if (conditions.get(0).length<4) return true;
         for (String[] ss : conditions) {
+            byte[] tuple=dbm.Get(tid,key);
+            if(tuple==null) return false;
             int type = -1;
-            Object valInCondtn = ss[2], valInTab = dbm.getAttribute(key, ss[1]);
+            Object valInCondtn = ss[2], valInTab = dbm.getAttribute(tid,tuple,ss[1]);
+            if (valInTab == null) continue;
             for (int j = 1; j < dbm.getTabMeta().get(tid).size(); j++) {
                 Pair p = dbm.getTabMeta().get(tid).get(j);
                 if (ss[1].equals(((String) p.getLeft()).toLowerCase())) {
@@ -171,7 +174,7 @@ public class Condition {
     public String toString(){return statement;}
     //some local test
     public static void main(String[] args){
-        Condition c=new Condition("year=1989 and country = \"USA\"");
+        Condition c=new Condition("a.attr1 > 2 * b.attr2 and a. attr < b.attr");
         System.out.println(removeExtraSpace(c.toString()));
         try {
             System.out.println(handleCondition(c.throwCondition(), DBManager.getInstance(),1,0));

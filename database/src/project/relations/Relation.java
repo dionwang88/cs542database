@@ -1,37 +1,48 @@
 package project.relations;
 
 import java.util.List;
+import java.util.ArrayList;
+import project.Index;
+import project.DBManager;
+import project.Pair;
+import java.util.Map;
 
 /**
  * Created by wangqian on 11/9/15.
  */
-public class Relation implements AlgebraNode {
+public class Relation implements AlgebraNode{
     private int relation_id;
     private String relation_name;
-    private List<AlgebraNode> observers;
+    List<Integer> rIDs;
+    int current;
 
-    public void attach(AlgebraNode node){
-        this.observers.add(node);
-    }
-    public void dettach(AlgebraNode node){
-        this.observers.remove(node);
-    }
-
-    @Override
-    public void publish(){
-
-    }
 
     public Relation(){}
 
     @Override
     public void open() {
-
+    	//table-scan;pre-fetch everything
+    	DBManager dbm = DBManager.getInstance();
+    	this.rIDs = new ArrayList<Integer>();
+    	Map<Integer, Index> cIndex = dbm.getClusteredIndex();
+    	for (int i =1; i < cIndex.size(); i ++){
+    		int tID = cIndex.get(i).getTID();
+    		if (relation_id == tID) rIDs.add(i);
+    	}
+    	current = 1;
     }
 
     @Override
-    public void getNext() {
-
+    public List<Pair<Integer,Integer>> getNext() {
+    	//May need to change later. Depends on how we send the data;
+    	if (hasNext()) {
+    		int rID = rIDs.get(current - 1);
+    		current ++;
+    		List<Pair<Integer,Integer>> l = new ArrayList<Pair<Integer,Integer>>();
+    		l.add(new Pair(relation_id,rID));
+    		return l;
+    	}
+    	else return null; // null represents notFound
     }
 
     @Override
@@ -54,4 +65,19 @@ public class Relation implements AlgebraNode {
     public void setRelation_name(String relation_name) {
         this.relation_name = relation_name;
     }
+    
+    public static void main(String[] args) {
+    	Relation r1 = new Relation();
+    	r1.setRelation_name("Country");
+    	r1.open();
+    	List<Pair<Integer,Integer>> l;
+    	while((l = r1.getNext()) != null){
+    		System.out.println(l.get(0).getRight());
+    	}
+    }
+
+	private boolean hasNext() {
+		return current <= rIDs.size();
+	}
+
 }
