@@ -133,31 +133,7 @@ public class Condition {
         else throw new Exception("Can't determine the condition");
     }
     
-    private String[] AttrParser(String s, DBManager dbm){
-    	String[] results = new String[2];
-    	int start,end;
-    	int tid;
-    	Pattern operators = Pattern.compile("[\\+\\-\\*\\/]");
-    	Matcher m = operators.matcher(s);
-    	m.find();
-    	start = 0;
-    	int groups = m.groupCount();
-    	for (int i=1; i <= groups; i ++){
-    		end = m.start(i);
-    		String[] tmps = AttrRetriever(s.substring(start, end));
-    		
-    		start = end;
-    	}
-    	Pattern dot =Pattern.compile("\\."); 
-		Matcher m = dot.matcher(attr);
-		if(m.find()){
-			int loc = m.start();
-			results[1] = attr.substring(loc).trim();
-			results[0] = attr.substring(0, loc).trim();
-		}
-		return results;
-		
-    }
+
     private String[] AttrRetriever(String s){
     	String[] results = new String[2];
     	Pattern dot =Pattern.compile("\\."); 
