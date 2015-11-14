@@ -11,7 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Parser {
-	List<String> attrnames;
+	Map<Integer,List<String>> attrnames;
 	List<Relation> Relations; //temporary; will change to List<Relation> later
 	List<Pair<Integer,String>> On_Conditions;
     //sub "or" condtions
@@ -23,7 +23,7 @@ public class Parser {
     		new HashMap<Pair<Integer,Integer>, Pair<String,Pair>>();
     DBManager dbm = DBManager.getInstance();
 	public Parser(String query){
-		attrnames = new ArrayList<String>();
+		attrnames = new HashMap<Integer,List<String>>();
 		Relations = new ArrayList<Relation>();
 		On_Conditions = new ArrayList<Pair<Integer,String>>();
 		query = query.trim().toLowerCase();
@@ -52,7 +52,20 @@ public class Parser {
 	private void Select(String s){
 		s = s.substring(7);
 		String[] attrs = s.split("\\s*,\\s*");
-		attrnames = Arrays.asList(attrs);
+		for (String ss : attrs){
+			String[] tmp = ss.split("\\.");
+			try{
+			int tID = DBTool.tabNameToID(dbm, tmp[0]);
+			if (tID != -1){
+			if (!attrnames.containsKey(tID)) attrnames.put(tID, new ArrayList<String>());
+			attrnames.get(tID).add(tmp[1]);
+			}else{
+				continue;
+			}
+		}catch (Exception e){
+			e.printStackTrace();
+		}
+		}
 		//for (String e : attrnames){
 		//	System.out.println(e);
 		//}
@@ -189,10 +202,13 @@ public class Parser {
 	    public List<Pair<Integer,String>> getJInfo(){
 	    	return this.On_Conditions;
 	    }
+	    public Map<Integer,List<String>> getAttrnames(){
+	    	return this.attrnames;
+	    }
 	
     
     public static void main(String[] args){
-    	Parser par = new Parser("select x1,x3,x4 from Movies, Movies1 on Movies.year = Movies1.year"
+    	Parser par = new Parser("select Movies.x1,Movies.x3,Movies1.x4 from Movies, Movies1 on Movies.year = Movies1.year"
     			+ " where Movies.year > 0.8 * Movies1.year and Movies.price > 1  and Movies.Title = \"dsdsdssd\" or Movies.country=\"usa\" ");
     }
 	

@@ -17,6 +17,8 @@ public class Pipline {
     public Pipline(Parser p){
     	Dispatched = p.getDispatched();
     	CrossTable = p.getCrossTable();
+    	attrnames = p.getAttrnames();
+    	On_Conditions = p.getJInfo();
 
     }
 }

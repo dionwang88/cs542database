@@ -194,8 +194,8 @@ public class SelectOperator implements AlgebraNode {
     	((Relation)r1).setRelation_name("movies");
     	AlgebraNode r2 = new Relation();
     	((Relation)r2).setRelation_name("movies1");
-    	Parser p = new Parser("select x1,x3,x4 from Movies, Movies1 on Movies.year = Movies1.year"
-    			+ " where Movies.year > 1960 and Movies.title = \"The Abyss\" or Movies.country=\"usa\" ");
+    	Parser p = new Parser("select Movies.x1,Movies.x3,Movies1.x4 from Movies, Movies1 on Movies.year = Movies1.year"
+    			+ " where Movies.year > 1960 and Movies.title = \"the abyss\"");
     	SelectOperator s1 = new SelectOperator(p.getDispatched(),null);
     	s1.attach(r1);
     	s1.open();

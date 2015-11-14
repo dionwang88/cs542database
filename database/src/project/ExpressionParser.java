@@ -193,7 +193,12 @@ public class ExpressionParser {
 		return new Pair<String,Object>(type,finalval);
 	}
 		 private String[] exprStr2terms() {
-		  return exprString.split(" ");
+		if (exprString.charAt(0) != '"') return exprString.split("\\s");
+		else{
+			String[] s = new String[1];
+			s[0] = exprString.split("\"")[1];
+			return s;
+		}
 		 }
 		 
 	public static void main(String[] args) {
