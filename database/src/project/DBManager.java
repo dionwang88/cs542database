@@ -175,12 +175,12 @@ public class DBManager {
                 return;
             }
             if(a_t[1].toLowerCase().equals("int")){
-                attr_type=0;len_attr=4;
+                attr_type=0;len_attr=Integer.BYTES;
             }
             else if(a_t[1].toLowerCase().equals("char")){
                 attr_type=1;len_attr= Integer.parseInt(a_t[2]);
             }else if (a_t[1].toLowerCase().equals("float")){
-            	attr_type=2;len_attr= 4;
+            	attr_type=2;len_attr=Float.BYTES;
             }
             else throw new Exception("Unknown type: "+a_t[1]);
             pairs.add(new Pair<>(a_t[0].toLowerCase(),new Pair<>(attr_type,len_attr)));
@@ -235,12 +235,12 @@ public class DBManager {
 		 */
 		try {
 			Locker.writeLock();
-			logger.info("Attempting to put key: " + key + "to database");
+			logger.info("Attempting to oldPut key: " + key + "to database");
 			//if key already exists in the database, update it by removing it first.
 			if (clusteredIndex.containsKey(key)){
 				Remove(key);
 			}
-			// if database is going to be out of volume, block the put attempt.
+			// if database is going to be out of volume, block the oldPut attempt.
 			if (data.length + get_DATA_USED() > DATA_SIZE) {
 				System.out.println("Not enough data space left. Put Attempt with key "
 						+ key + " Failed.");
@@ -300,7 +300,7 @@ public class DBManager {
 		byte[] returnData = null;
 		try {
 			Locker.ReadLock();
-			logger.info("Attempting to get data mapped to key :" + key);
+			logger.info("Attempting to Get data mapped to key :" + key);
 			if (clusteredIndex.containsKey(key)) {
                 if(clusteredIndex.get(key).getTID()!=tid) return null;
 				List<Pair<Integer, Integer>> index = clusteredIndex.get(key).getIndexList();
@@ -335,9 +335,9 @@ public class DBManager {
 		 */
 		try {
 			Locker.writeLock();
-			logger.info("Attempting to remove the data with key :" + key);
+			logger.info("Attempting to Remove the data with key :" + key);
 			if (!clusteredIndex.containsKey(key)) {
-				System.out.println("No data with key " + key + " exists in database.Failed to remove.");
+				System.out.println("No data with key " + key + " exists in database.Failed to Remove.");
 			} else {
 				// Removing the key in the metadata buffer and update the metadata file
 				int[] tmp = getIndexSize(clusteredIndex.get(key));
@@ -362,34 +362,38 @@ public class DBManager {
 	}
 
     public byte[] Get(int key){return Get(0,key);}
-    
+
 
 	//retrieve attribute value according to the rid and attribute name
 	public Object getAttribute(int tid,byte[] record, String Attr_name){
 		Object returnObj=null;
 		if (isAttribute(tid,Attr_name)){
-		List<Pair> l=tabMetadata.get(tid);
-		int type=-1,length=0,offset=0;
-		for(int i=1;i<l.size();i++){
-			Pair p= (Pair) l.get(i).getRight();
-			offset+=length;
-			type= (int) p.getLeft();
-			length= (int) p.getRight();
-			if(((String)l.get(i).getLeft()).toLowerCase().equals(Attr_name.toLowerCase())) break;
-		}
-		byte[] tmp= new byte[length];
-		if(type==0){
-			System.arraycopy(record,offset,tmp,0,length);
-			returnObj=IndexHelperImpl.byteToInt(tmp,0);
-		}
-		if(type==1){
-			System.arraycopy(record,offset,tmp,0,length);
-			try {
-				returnObj=new String(tmp,"UTF-8").trim();
-			} catch (UnsupportedEncodingException e) {
-				e.printStackTrace();
+			List<Pair> l=tabMetadata.get(tid);
+			int type=-1,length=0,offset=0;
+			for(int i=1;i<l.size();i++){
+				Pair p= (Pair) l.get(i).getRight();
+				offset+=length;
+				type= (int) p.getLeft();
+				length= (int) p.getRight();
+				if(((String)l.get(i).getLeft()).toLowerCase().equals(Attr_name.toLowerCase())) break;
 			}
-		}
+			byte[] tmp= new byte[length];
+			if(type==0){
+				System.arraycopy(record,offset,tmp,0,length);
+				returnObj=IndexHelperImpl.byteToInt(tmp,0);
+			}
+			if(type==1){
+				System.arraycopy(record,offset,tmp,0,length);
+				try {
+					returnObj=new String(tmp,"UTF-8").trim();
+				} catch (UnsupportedEncodingException e) {
+					e.printStackTrace();
+				}
+			}
+			if(type==2){
+				System.arraycopy(record,offset,tmp,0,length);
+				returnObj=IndexHelperImpl.byteToFloat(tmp);
+			}
 		}
 		return returnObj;
 	}
@@ -397,7 +401,6 @@ public class DBManager {
 	//fetch the key according to the attributes by using index. Return a List of RIDs.
 	public List getKeyFromAttr(List<String> AttrNames,List<String> AttrValues) throws Exception {
 		int tid=0;
-		List res=new ArrayList<>();
 		String attrs = "";
 		if (AttrNames.size() > 1) {
 			for (String s : AttrNames)
@@ -409,20 +412,13 @@ public class DBManager {
 		if(attrIndexes.get(tid).containsKey(attrs)){
 			int hashValue=0;
 			for(int i=0;i<AttrValues.size();i++) hashValue+=AttrNames.get(0).hashCode();
-			return ((AttrIndex) attrIndexes.get(tid).get(attrs)).get(hashValue);
+			return attrIndexes.get(tid).get(attrs).Get(hashValue);
 		}
 		else{
 			throw new Exception("No Attribute Index!");
 		}
 	}
 
-	/**
-	 * Give table id, the condition and project attributes, print the results
-	 * @param tid
-	 * @param attrNames
-	 * @param c
-	 * @throws Exception
-	 */
 	public void printQuery(int tid,List<String> attrNames,Condition c) throws Exception {
 		//not table found
 		if(tid==-1){
@@ -457,7 +453,7 @@ public class DBManager {
 			}
 			AttrIndex attrIndex= attrIndexes.get(tid).get(attrs);
 			for(Object queryHashVal:attrIndex.table.keySet()) {
-                List keys = attrIndex.get(queryHashVal);//Getting RIDs
+                List keys = attrIndex.Get(queryHashVal);//Getting RIDs
                 if (!Condition.handleCondition(c.throwCondition(), dbManager, (int) keys.get(0), tid)) continue;
                 for (Object key1 : keys) {
                     int key = (int) key1;
@@ -495,13 +491,9 @@ public class DBManager {
 			}
 		}
 	}
-	/**
-	 * Returns a list of Projected Attribute Names
-	 * @param attrNames
-	 * @return
-	 */
-	public List<String> tabProject(String attrNames){
-		int tid=0;
+
+	public List<String> tabProject(String tabName,String attrNames) throws Exception {
+		int tid=DBTool.tabNameToID(dbManager,tabName);
 		List<String> res = new ArrayList<>();
 		if(attrNames.trim().equals("*")){
 			for(int i =1;i<tabMetadata.get(tid).size();i++)
@@ -567,8 +559,8 @@ public class DBManager {
 						if(record[j].trim().equals("")) f=0;
 						else if (record[j].trim().equals("NULL")) f = -1.0f;
 						else f = Float.parseFloat(record[j].trim());
-						if (byteData == null) byteData = IndexHelperImpl.FloatToByte(f);
-						else byteData = IndexHelperImpl.concat(byteData, IndexHelperImpl.FloatToByte(f));
+						if (byteData == null) byteData = IndexHelperImpl.floatToByte(f);
+						else byteData = IndexHelperImpl.concat(byteData, IndexHelperImpl.floatToByte(f));
 						break;
 					}
 				}
@@ -588,7 +580,6 @@ public class DBManager {
 		}
 		System.out.println("Reading " + Filepath + " is Done");
 	}
-	public void ReadFile(String Filepath, int TabID){ReadFile(Filepath, TabID, "@");}
 
 	// create index on certain attribute names
 	public void createIndex(String tableName,String str_AttrNames){
@@ -624,8 +615,6 @@ public class DBManager {
 		}
 	}
 
-	
-	
 	private AttrIndex<?> getIndex(int tid, ArrayList<String> attrNames){
 		String attrs = "";
 		if (attrNames.size() > 1) {
@@ -641,7 +630,16 @@ public class DBManager {
 	
 	//attribute has index or not
 	public boolean isAttrIndex(int tid,ArrayList<String> attrNames){
-		return getIndex(tid,attrNames) == null;
+		String attrs = "";
+		if (attrNames.size() > 1) {
+			for (String s : attrNames){
+				attrs = attrs + "|" + s.toLowerCase();
+			}
+			attrs +="|";
+		}else{
+			attrs = attrNames.get(0).toLowerCase();
+		}
+		return attrIndexes.get(tid).containsKey(attrs);
 	}
 	//used and may be not useful in the future
 	public boolean isAttribute(int tid, String attrName){
@@ -658,7 +656,7 @@ public class DBManager {
 		TreeMap<String,List<Integer>> t= new TreeMap<String,List<Integer>>();
 		AttrIndex Aindex = getIndex(tid,attrNames);
 		for (Object hashval : Aindex.table.keySet()){
-			List<Integer> keys = Aindex.get(hashval);
+			List<Integer> keys = Aindex.Get(hashval);
 			byte[] tuple = this.Get(tid,keys.get(0));
 			String toSearch = "";
 			for (String attr : attrNames){

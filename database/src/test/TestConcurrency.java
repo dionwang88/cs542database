@@ -24,7 +24,7 @@ public class TestConcurrency {
 		Threadtest t3 = new Threadtest(11, data, dbmanager);
 		String[] task1 = {"read","write"};
 		t1.addtask(task1);
-		String[] task3 = {"remove","write"};
+		String[] task3 = {"Remove","write"};
 		t3.addtask(task3);
 		String[] task2 = {"write","read"};
 		t2.addtask(task2);

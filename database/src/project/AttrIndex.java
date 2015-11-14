@@ -5,11 +5,8 @@ import java.util.Hashtable;
 import java.util.ArrayList;
 import java.util.List;
 
-import project.relations.AlgebraNode;
-import project.relations.Relation;
-
 public class AttrIndex<K>implements Serializable {
-	//store the attribute index infomation
+	//store the attribute index information
 	Hashtable<Integer,List<Integer>> table;
 
 	//init the attribute and establish the index of certain attributes when creating a new instance
@@ -25,17 +22,17 @@ public class AttrIndex<K>implements Serializable {
 				Object attr = dbm.getAttribute(tid,tuple,AttrName);
 				hashValue += attr.toString().hashCode();
 			}
-			this.hashPut(hashValue, i);
+			this.Put(hashValue, i);
 		}
 	}
 
-	//put hash value of the datavalue and rid into the table member
-	public void put(int key, K data_value){
-		this.hashPut(data_value.toString().hashCode(), key);
+	//oldPut hash value of the datavalue and rid into the table member
+	public void oldPut(int key, K data_value){
+		this.Put(data_value.toString().hashCode(), key);
 	}
 
-	//put hash value of the datavalue and rid into the table member
-	private void hashPut(int val, int rID){
+	//oldPut hash value of the datavalue and rid into the table member
+	private void Put(int val, int rID){
 		if (table.containsKey(val)) {
 			table.get(val).add(rID);
 		}else{
@@ -46,14 +43,14 @@ public class AttrIndex<K>implements Serializable {
 	}
 
 	//return the key list of the certain values
-	public List<Integer> get(K attrs){
+	public List<Integer> Get(K attrs){
 		List<Integer> l = table.get(attrs);
 		if (l != null) return l;
 		else return null;
 	}
 
-	//remove the index of the certain key
-	public void remove(K attrs){
+	//Remove the index of the certain key
+	public void Remove(K attrs){
 		table.remove(attrs.toString().hashCode());
 	}
 	

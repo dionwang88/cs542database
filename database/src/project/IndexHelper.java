@@ -13,7 +13,7 @@ public interface IndexHelper {
 	byte TAB_META_RESERVED=3;
 
 	/**
-	 * find the indexes list of free spaces based on the data size get all free space based on the delete sign and
+	 * find the indexes list of free spaces based on the data size Get all free space based on the delete sign and
 		 * amount blocks to find some enough space to save the data.
 	 * @param size : the size of data that to be saved
 	 * @return The indexes list of data file
