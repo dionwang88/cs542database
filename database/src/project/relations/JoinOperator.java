@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import project.DBManager;
 import project.Pair;
+import project.Parser;
+
 import java.util.Comparator;
 import java.util.LinkedList;
 /**
@@ -76,7 +78,6 @@ public class JoinOperator implements AlgebraNode {
     	for (List<Pair<Integer,Integer>> a : TuplesofLeft){
     		int key = a.get(0).getRight();
     		byte[] tuple = dbm.Get(a.get(0).getLeft(),key);
-    		System.out.println(dbm.getAttribute(a.get(0).getLeft(), tuple,JoinInfo.get(a.get(0).getLeft())));
     	}
     	right.open();
     }
@@ -125,10 +126,12 @@ public class JoinOperator implements AlgebraNode {
 
     }
     
-    public void setCondition(Pair<Integer,String> Info){
-    	int corTID = Info.getLeft();
-    	String attr = Info.getRight();
-    	JoinInfo.put(corTID, attr);
+    public void setCondition(List<Pair<Integer,String>> Info){
+    	for (Pair<Integer,String> p : Info){
+        	int corTID = p.getLeft();
+        	String attr = p.getRight();
+        	JoinInfo.put(corTID, attr);
+    	}
     }
 
 
@@ -143,9 +146,10 @@ public class JoinOperator implements AlgebraNode {
     	((Relation)r1).setRelation_name("movies");
     	AlgebraNode r2 = new Relation();
     	((Relation)r2).setRelation_name("movies1");
+    	Parser p = new Parser("select x1,x3,x4 from Movies, Movies1 on Movies.year = Movies1.year"
+    			+ " where Movies.year > 1960 and Movies.title = \"The Abyss\" or Movies.country=\"usa\" ");
     	JoinOperator j1 = new JoinOperator();
-    	j1.setCondition(new Pair(0,"year"));
-    	j1.setCondition(new Pair(1,"year"));
+    	j1.setCondition(p.getJInfo());
     	j1.attach(r1);
     	j1.attach(r2);
     	j1.open();

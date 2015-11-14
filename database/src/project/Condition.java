@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
+import java.util.Map;
 public class Condition {
     //sql where condition
     private String statement;
@@ -14,6 +14,7 @@ public class Condition {
     String[] or_conditions;
     //every branch of sub "and" conditions
     List<String[]> and_conditions=new ArrayList<>();
+    Map<String, String> Attrs;
 
     //initial the statement and sub-conditions
     public Condition(String s) {
@@ -133,6 +134,44 @@ public class Condition {
         }
         else throw new Exception("Can't determine the condition");
     }
+    
+    private String[] AttrParser(String s, DBManager dbm){
+    	String[] results = new String[2];
+    	int start,end;
+    	int tid;
+    	Pattern operators = Pattern.compile("[\\+\\-\\*\\/]");
+    	Matcher m = operators.matcher(s);
+    	m.find();
+    	start = 0;
+    	int groups = m.groupCount();
+    	for (int i=1; i <= groups; i ++){
+    		end = m.start(i);
+    		String[] tmps = AttrRetriever(s.substring(start, end));
+    		
+    		start = end;
+    	}
+    	Pattern dot =Pattern.compile("\\."); 
+		Matcher m = dot.matcher(attr);
+		if(m.find()){
+			int loc = m.start();
+			results[1] = attr.substring(loc).trim();
+			results[0] = attr.substring(0, loc).trim();
+		}
+		return results;
+		
+    }
+    private String[] AttrRetriever(String s){
+    	String[] results = new String[2];
+    	Pattern dot =Pattern.compile("\\."); 
+		Matcher m = dot.matcher(s);
+		if(m.find()){
+			int loc = m.start();
+			results[1] = s.substring(loc).trim();
+			results[0] = s.substring(0, loc).trim();
+			return results;
+		}
+		return null;
+    }
     //is a word or digtal or * or "
     private static boolean is_W_or_D(char c){
         if(64<c&&c<91||96<c&&c<123||47<c&&c<58||c==42||c==34) return true;
@@ -170,13 +209,15 @@ public class Condition {
         while(m.find()) count++;
         return count;
     }
+    
     // for printing and testing
     public String toString(){return statement;}
     //some local test
     public static void main(String[] args){
-        Condition c=new Condition("a.attr1 > 2 * b.attr2 and a. attr < b.attr");
+        Condition c=new Condition("dshjdkshdjksjdhsjhj sle from where a.attr1 > 2 * b.attr2 and a. attr < b.attr");
         System.out.println(removeExtraSpace(c.toString()));
         try {
+        	c.throwCondition();
             System.out.println(handleCondition(c.throwCondition(), DBManager.getInstance(),1,0));
         } catch (Exception e) {
             e.printStackTrace();
