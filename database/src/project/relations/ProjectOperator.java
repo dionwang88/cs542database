@@ -31,31 +31,52 @@ public class ProjectOperator implements AlgebraNode {
     }
     
     @Override
-    public void open() {publisher.open();}
+    public void open() {
+    	publisher.open();
+    	String tbname;
+    	boolean isFirst = true;
+    	for (Map.Entry<Integer, List<String>> Entry : attrNames.entrySet()){
+    		int ID = Entry.getKey();
+    		if (ID ==0) tbname = "Country";
+    		else tbname = "City";
+    		for (String s : Entry.getValue()){
+        		if (isFirst){
+        			System.out.print(tbname +"."+s);
+        			isFirst = false;
+        		}else{
+        			System.out.print("|"+tbname +"."+s);
+        		}
+    		}
+
+    	}
+    	System.out.print('\n');
+    	}
 
     @Override
     public List<Pair<Integer, Integer>> getNext() {
-        List<Pair<Integer,Integer>> l;
-        if((l=publisher.getNext())!=null){
-            for(Pair p:l){
+        List<Pair<Integer,Integer>> receivedData = publisher.getNext();
+        if(receivedData !=null){
+            boolean isFirst = true;
+            for(Pair p:receivedData){
                 int tid= (int) p.getLeft();
                 int rid= (int) p.getRight();
                 byte[] tuple=dbm.Get(tid,rid);
                 if (tuple == null) continue;
-                boolean isFirst = true;
-                System.out.print(rid + ": ");
-                for(String attrName:attrNames.get(tid)) {
+                List<String> names = attrNames.get(tid);
+                if (names != null){
+                for(String attrName : names) {
                     if (isFirst) {
-                        System.out.print(dbm.getAttribute(rid, tuple, attrName));
+                        System.out.print(dbm.getAttribute(tid, tuple, attrName));
                         isFirst = false;
                     } else
-                        System.out.print("|" + dbm.getAttribute(rid, tuple, attrName));
+                        System.out.print("|" + dbm.getAttribute(tid, tuple, attrName));
                 }
-                System.out.print('\n');
+            }else continue;
             }
+            System.out.print('\n');
             return new ArrayList<>();
         }
-        else return null;
+        return receivedData;
     }
 
     @Override

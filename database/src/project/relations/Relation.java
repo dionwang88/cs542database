@@ -29,7 +29,12 @@ public class Relation implements AlgebraNode{
 
     public Relation(String rname){
         this.relation_name = rname;
-        relation_id = -1;
+		try{
+			int tid = DBTool.tabNameToID(dbm,rname);
+			if (tid >= 0) relation_id = tid;
+		}catch (Exception e){
+			e.printStackTrace();
+		}
         this.rIDs = new ArrayList<Integer>();
         this.Attrnames = new ArrayList<String>();
         isOpen = false;
@@ -95,9 +100,6 @@ public class Relation implements AlgebraNode{
         return relation_id;
     }
 
-    public void setRelation_id(int relation_id) {
-        this.relation_id = relation_id;
-    }
 
     public String getRelation_name() {
         return relation_name;
@@ -109,7 +111,6 @@ public class Relation implements AlgebraNode{
 
     public static void main(String[] args) {
     	Relation r1 = new Relation("city");
-    	r1.setRelation_id(1);
     	r1.addSortattrs("countrycode");
     	r1.open();
     	List<Pair<Integer,Integer>> l;
