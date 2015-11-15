@@ -23,6 +23,9 @@ public class Relation implements AlgebraNode{
     private int current;
     private DBManager dbm = DBManager.getInstance();
 
+    public String toString(){
+        return "Relation: "+relation_name+"-"+relation_id;
+    }
 
     public Relation(String rname){
         this.relation_name = rname;
@@ -103,7 +106,7 @@ public class Relation implements AlgebraNode{
     public void addSortattrs(String attr){
     	Attrnames.add(attr);
     }
-    
+
     public static void main(String[] args) {
     	Relation r1 = new Relation("city");
     	r1.setRelation_id(1);

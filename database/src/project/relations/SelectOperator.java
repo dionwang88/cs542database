@@ -1,12 +1,10 @@
 package project.relations;
 
-import java.util.List;
-import java.util.ArrayList;
+
+import java.util.*;
 import project.DBManager;
 import project.Pair;
 import project.ExpressionParser;
-import java.util.Map;
-import java.util.HashMap;
 import project.Parser;
 /**
  * Created by wangqian on 11/9/15.
@@ -18,8 +16,11 @@ public class SelectOperator implements AlgebraNode {
     private Map<Integer,List<Pair>> SingleTBCdt;
     private Map<Pair<Integer,Integer>, Pair<String,Pair>> CrossTbCdt;
     private int CNode;
-    
-    public SelectOperator(Map<Integer,List<Pair>> singTB, Map<Pair<Integer,Integer>, Pair<String,Pair>> CrossTB){
+
+	public String toString(){
+		return operator_name+" : publisher-"+publishers.toString();
+	}
+    public SelectOperator(Map<Integer, List<Pair>> singTB, Map<Pair<Integer,Integer>, Pair<String,Pair>> CrossTB){
     	publishers = new ArrayList<AlgebraNode>();
     	CrossTbCdt = CrossTB;
     	//Pre-processing single TB info;Currently do not support or conditions
@@ -190,7 +191,10 @@ public class SelectOperator implements AlgebraNode {
     public static String getOperator_name() {
         return operator_name;
     }
-
+	//Useless Method here
+	public boolean hasNext() {
+		return CNode < publishers.size();
+	}
 	
     public static void main(String[] args) {
     	DBManager dbm = DBManager.getInstance();
@@ -202,12 +206,12 @@ public class SelectOperator implements AlgebraNode {
     	j1.attach(r1);
     	j1.attach(r2);
     	SelectOperator s1 = new SelectOperator(null,p.getCrossTable());
-    	/**If Single Table
+    	//if Single Table
     	Map<Integer,List<Pair>> Dispatched = p.getDispatched().get(0);
     	for (int tid : Dispatched.keySet()){
     		SelectOperator sI = new SelectOperator(Dispatched,null);
     	}
-    	*/ 
+
     	s1.attach(j1);
     	s1.open();
     	List<Pair<Integer,Integer>> l;
@@ -226,8 +230,5 @@ public class SelectOperator implements AlgebraNode {
     	}
     	System.out.println("Done!");
     }
-    //Useless Method here
-	public boolean hasNext() {
-		return CNode < publishers.size();
-	}
+
 }

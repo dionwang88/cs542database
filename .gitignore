@@ -1,7 +1,7 @@
+*.db
+*.iml
 *.class
-<<<<<<< HEAD
-database/bin/.DS_Store
-database/all.log
-=======
-database/bin/.DS_Store
->>>>>>> refs/heads/proj3
+.DS_Store
+*.log
+.gitignore
+database/.idea/*
