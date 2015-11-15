@@ -42,10 +42,12 @@ public class Parser {
 	private static int[] find(String s, String pattern){
 		Pattern p=Pattern.compile(pattern); 
 		Matcher m = p.matcher(s);
-		m.find();
-		int[] locs = new int[2];
+		int[] locs = null;
+		if (m.find()){
+		locs = new int[2];
 		locs[0] = m.start();
 		locs[1] = m.end();
+		}
 		return locs;
 	}
 	
@@ -72,26 +74,28 @@ public class Parser {
 	}
 	
 	private void Joins(String s){
-		int on_condition =find(s, "\\s+on\\s+")[0];
-		int tid;
-		String JInfo = s.substring(on_condition);
-		s = s.substring(5, on_condition);
-		String[] rs = s.split("\\s*,\\s*");
-		for (String rname : rs){
-			Relation r = new Relation();
-			r.setRelation_name(rname);
-			try{
-				tid = DBTool.tabNameToID(dbm,rname);
-				if (tid >= 0){
-				r.setRelation_id(tid);
-				Relations.add(r);
-				int[] infoloc = this.find(JInfo, "\\s+"+rname+".\\w+");
-				String info = JInfo.substring(infoloc[0], infoloc[1]);
-				String[] tmp = info.split("\\.");
-				On_Conditions.add(new Pair<Integer,String>(tid, tmp[1]));
+		int on_condition,tid;
+		int[] f = find(s, "\\s+on\\s+");
+		if (f !=null){
+			on_condition = f[0];
+			String JInfo = s.substring(on_condition);
+			s = s.substring(5, on_condition);
+			String[] rs = s.split("\\s*,\\s*");
+			for (String rname : rs){
+				Relation r = new Relation(rname);
+				try{
+					tid = DBTool.tabNameToID(dbm,rname);
+					if (tid >= 0){
+					r.setRelation_id(tid);
+					Relations.add(r);
+					int[] infoloc = this.find(JInfo, "\\s+"+rname+".\\w+");
+					String info = JInfo.substring(infoloc[0], infoloc[1]);
+					String[] tmp = info.split("\\.");
+					On_Conditions.add(new Pair<Integer,String>(tid, tmp[1]));
+					}
+				}catch(Exception e){
+					e.printStackTrace();
 				}
-			}catch(Exception e){
-				e.printStackTrace();
 			}
 		}
 	}
@@ -100,9 +104,9 @@ public class Parser {
 		Pair newTermpair,newExprpair;
 		s = s.substring(6);
 		//Splitting the where clause into a set of sub conditions
-        or_conditions=s.split("\\sor\\s");
+        or_conditions=s.split("\\sor\\s(?=([^\"]*\"[^\"]*\")*[^\"]*$)");
         for(int ii=0;ii<or_conditions.length;ii++){
-            and_conditions.add(or_conditions[ii].split("\\sand\\s"));
+            and_conditions.add(or_conditions[ii].split("\\sand\\s(?=([^\"]*\"[^\"]*\")*[^\"]*$)"));
         }
         //Dispatching Attributes and Parsing sub-conditions
         try{

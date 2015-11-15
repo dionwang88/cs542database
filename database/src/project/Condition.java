@@ -17,7 +17,7 @@ public class Condition {
     //initial the statement and sub-conditions
     public Condition(String s) {
         this.statement=removeExtraSpace(s);
-        or_conditions=statement.split("\\sor\\s");
+        or_conditions=statement.split("\\sor\\s(?=([^\"]*\"[^\"]*\")*[^\"]*$)");
         for (String or_condition : or_conditions) {
             and_conditions.add(or_condition.split("\\sand\\s"));
         }

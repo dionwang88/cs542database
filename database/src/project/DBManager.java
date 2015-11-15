@@ -267,8 +267,8 @@ public class DBManager {
 			// Writing the database onto the disk
 			DBStorage.writeData(DB_NAME, this.data);
 			set_DATA_USED(get_DATA_USED() + data.length);
-			System.out.println("Data related to key is " + key + ", and size is "
-					+ data.length + " have written to " + DB_NAME);
+			//System.out.println("Data related to key is " + key + ", and size is "
+			//		+ data.length + " have written to " + DB_NAME);
 
 			DBStorage.writeMetaData(DB_NAME, dbManager);
 			logger.info("Metadata updated on disk");
