@@ -445,7 +445,7 @@ public class IndexHelperImpl implements IndexHelper {
 				offset+=7;
 				t_offset+=7;
 			}
-			else offset++;
+			else offset+=7;
 		}
 		int len=byteToInt(transformed_data,3);
 		if (len==0) return new Hashtable<>();
