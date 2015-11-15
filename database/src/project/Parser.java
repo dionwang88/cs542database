@@ -83,7 +83,7 @@ public class Parser {
 				try{
 					tid = DBTool.tabNameToID(dbm,rname);
 					if (tid >= 0){
-					r.setRelation_id(tid);
+					//r.setRelation_id(tid);
 					Relations.add(r);
 					int[] infoloc = this.find(JInfo, "[^0-9a-zA-Z]+"+rname+".\\w+");
 					String info = JInfo.substring(infoloc[0], infoloc[1]);

@@ -13,14 +13,14 @@ public class SelectOperator implements AlgebraNode {
 	private boolean isOpen;
     private static String operator_name = "Select";
     private List<AlgebraNode> publishers;
-    private Map<Integer,List<Pair>> SingleTBCdt;
+    private List<Pair> SingleTBCdt;
     private Map<Pair<Integer,Integer>, Pair<String,Pair>> CrossTbCdt;
     private int CNode;
 
 	public String toString(){
 		return operator_name+" : publisher-"+publishers.toString();
 	}
-    public SelectOperator(Map<Integer, List<Pair>> singTB, Map<Pair<Integer,Integer>, Pair<String,Pair>> CrossTB){
+    public SelectOperator(List<Pair> singTB, Map<Pair<Integer,Integer>, Pair<String,Pair>> CrossTB){
     	publishers = new ArrayList<AlgebraNode>();
     	CrossTbCdt = CrossTB;
     	//Pre-processing single TB info;Currently do not support or conditions
@@ -74,13 +74,11 @@ public class SelectOperator implements AlgebraNode {
     		int rID = receivedData.get(0).getRight();
     		if (SingleTBCdt != null){
     			//Single Table Selection
-    			for (List<Pair> Cond : SingleTBCdt.values()){
     				try{
-        				if (handleCondition(Cond, dbm, rID, rID)) l.add(new Pair<Integer,Integer>(tID,rID));
+        				if (handleCondition(SingleTBCdt, dbm, rID, rID)) l.add(new Pair<Integer,Integer>(tID,rID));
     				}catch (Exception e){
     					e.printStackTrace();
     				}
-    			}
     			if (l.size() == 0) return this.getNext();
     		}else{
     			//Cross Table Selection
@@ -99,7 +97,6 @@ public class SelectOperator implements AlgebraNode {
     			}
     		if (l.size() == 0) return this.getNext();
     		}
-    	close();
 		return l;
     }
     
@@ -196,39 +193,5 @@ public class SelectOperator implements AlgebraNode {
 		return CNode < publishers.size();
 	}
 	
-    public static void main(String[] args) {
-    	DBManager dbm = DBManager.getInstance();
-    	AlgebraNode r1 = new Relation("country");
-    	AlgebraNode r2 = new Relation("city");
-    	Parser p = new Parser("select Country.code from Country, City on Country.code = city.CountryCode"
-    			+ " where 0.4 * Country.population <= city.population ");
-    	JoinOperator j1 = new JoinOperator(p.getJInfo(),p.getCrossTable());
-    	j1.attach(r1);
-    	j1.attach(r2);
-    	SelectOperator s1 = new SelectOperator(null,p.getCrossTable());
-    	//if Single Table
-    	Map<Integer,List<Pair>> Dispatched = p.getDispatched().get(0);
-    	for (int tid : Dispatched.keySet()){
-    		SelectOperator sI = new SelectOperator(Dispatched,null);
-    	}
-
-    	s1.attach(j1);
-    	s1.open();
-    	List<Pair<Integer,Integer>> l;
-    	int counter = 1;
-    	while( (l = s1.getNext()) != null){
-    		byte[] t1 = dbm.Get(0,l.get(0).getRight());
-    		byte[] t2 = dbm.Get(1,l.get(1).getRight());
-    		int tid1 = l.get(0).getLeft();
-    		int tid2 = l.get(1).getLeft();
-    		System.out.println("Same Code:"+ dbm.getAttribute(tid1, t1, "code") + " " +
-    				dbm.getAttribute(tid1, t1, "Name")+" "+dbm.getAttribute(tid1, t1, "Population")+ " " +" "+
-    				dbm.getAttribute(tid2, t2, "Name") + " "+ dbm.getAttribute(tid2, t2, "Population"));
-    		if (counter % 100 ==0) System.out.println(counter);
-    		counter++;
-    		
-    	}
-    	System.out.println("Done!");
-    }
 
 }

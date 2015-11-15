@@ -152,7 +152,6 @@ public class JoinOperator implements AlgebraNode {
     		if (!Results.isEmpty()) return Results.poll();
     		else return this.getNext();
     	}
-    	close();
     	return receivedData;
     }
 
