@@ -615,7 +615,7 @@ public class DBManager {
 		}
 	}
 
-	private AttrIndex<?> getIndex(int tid, ArrayList<String> attrNames){
+	private AttrIndex<?> getIndex(int tid, List<String> attrNames){
 		String attrs = "";
 		if (attrNames.size() > 1) {
 			for (String s : attrNames){
@@ -629,7 +629,7 @@ public class DBManager {
 	}
 	
 	//attribute has index or not
-	public boolean isAttrIndex(int tid,ArrayList<String> attrNames){
+	public boolean isAttrIndex(int tid,List<String> attrNames){
 		String attrs = "";
 		if (attrNames.size() > 1) {
 			for (String s : attrNames){
@@ -652,7 +652,8 @@ public class DBManager {
 	}
 	
 	//Returns a sorted List of List<Integers> based on the attributes
-	public Map<String,List<Integer>> Indexsort(int tid, ArrayList<String> attrNames){
+	public List<Integer> Indexsort(int tid, List<String> attrNames){
+		ArrayList<Integer> sortedRIDs = new ArrayList<Integer>();
 		TreeMap<String,List<Integer>> t= new TreeMap<String,List<Integer>>();
 		AttrIndex Aindex = getIndex(tid,attrNames);
 		for (Object hashval : Aindex.table.keySet()){
@@ -664,6 +665,9 @@ public class DBManager {
 			}
 			t.put(toSearch, keys);
 			}
-		return t;
+		for (List<Integer> subl : t.values()){
+			sortedRIDs.addAll(subl);
+		}
+		return sortedRIDs;
 	}
 }

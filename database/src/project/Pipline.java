@@ -34,7 +34,7 @@ public class Pipline {
         ProjectOperator ProjNode=new ProjectOperator(attrnames);
         JoinOperator joinNode=new JoinOperator(On_Conditions, crosstab);
         for(Relation r:this.Relations){
-            SelectOperator SlctNode=new SelectOperator(Dispatched,null);
+            SelectOperator SlctNode=new SelectOperator(Dispatched.get(r.getRelation_id()),null);
             SlctNode.attach(r);
             joinNode.attach(SlctNode);
         }

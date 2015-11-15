@@ -89,6 +89,9 @@ public class Parser {
 					String info = JInfo.substring(infoloc[0], infoloc[1]);
 					String[] tmp = info.split("\\.");
 					On_Conditions.add(new Pair<Integer,String>(tid, tmp[1]));
+					for (Relation rr : Relations){
+						if (rr.getRelation_id() == tid) rr.addSortattrs(tmp[1]);
+					}
 					}
 				}catch(Exception e){
 					e.printStackTrace();
@@ -205,6 +208,9 @@ public class Parser {
 	    }
 	    public Map<Integer,List<String>> getAttrnames(){
 	    	return this.attrnames;
+	    }
+	    public List<Relation> getRelations(){
+	    	return this.Relations;
 	    }
 	
     

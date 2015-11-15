@@ -1,8 +1,7 @@
 package project.relations;
 
-import java.util.*;
 
-import project.Condition;
+import java.util.*;
 import project.DBManager;
 import project.Pair;
 import project.ExpressionParser;
@@ -11,6 +10,7 @@ import project.Parser;
  * Created by wangqian on 11/9/15.
  */
 public class SelectOperator implements AlgebraNode {
+	private boolean isOpen;
     private static String operator_name = "Select";
     private List<AlgebraNode> publishers;
     private Map<Integer,List<Pair>> SingleTBCdt;
@@ -20,20 +20,22 @@ public class SelectOperator implements AlgebraNode {
 	public String toString(){
 		return operator_name+" : publisher-"+publishers.toString();
 	}
-    public SelectOperator(Map<Integer, Map<Integer,List<Pair>>> singTB, Map<Pair<Integer,Integer>, Pair<String,Pair>> CrossTB){
+    public SelectOperator(Map<Integer, List<Pair>> singTB, Map<Pair<Integer,Integer>, Pair<String,Pair>> CrossTB){
     	publishers = new ArrayList<AlgebraNode>();
     	CrossTbCdt = CrossTB;
-    	//Pre-processing single TB info;
+    	//Pre-processing single TB info;Currently do not support or conditions
     	if (singTB != null){
-        	SingleTBCdt = new HashMap<Integer,List<Pair>>();
-    		for (Map.Entry<Integer, Map<Integer,List<Pair>>> Entry : singTB.entrySet()){
-    			int groupno = Entry.getKey();
-    			if (!SingleTBCdt.containsKey(groupno)) SingleTBCdt.put(groupno, new ArrayList<Pair>());
-    			for (List<Pair> lp : Entry.getValue().values()){
-    				SingleTBCdt.get(groupno).addAll(lp);
-    			}
-    		}
+        	SingleTBCdt = singTB;
+        	
+    		//for (Map.Entry<Integer, Map<Integer,List<Pair>>> Entry : singTB.entrySet()){
+    		//	int groupno = Entry.getKey();
+    		//	if (!SingleTBCdt.containsKey(groupno)) SingleTBCdt.put(groupno, new ArrayList<Pair>());
+    		//	for (List<Pair> lp : Entry.getValue().values()){
+    		//		SingleTBCdt.get(groupno).addAll(lp);
+    		//	}
+    		//}
     	}
+    	isOpen = false;
     }
 
 
@@ -51,6 +53,7 @@ public class SelectOperator implements AlgebraNode {
     		CNode = 0;
         	publishers.get(CNode).open();
     	}
+    	isOpen = true;
     }
 
     @Override
@@ -65,7 +68,7 @@ public class SelectOperator implements AlgebraNode {
     	//}
     	DBManager dbm = DBManager.getInstance();
     	List<Pair<Integer,Integer>> receivedData = publishers.get(CNode).getNext();
-    	if (receivedData != null){
+    	if (receivedData != null && isOpen){
         	l = new ArrayList<Pair<Integer,Integer>>();
     		int tID = receivedData.get(0).getLeft();
     		int rID = receivedData.get(0).getRight();
@@ -96,6 +99,7 @@ public class SelectOperator implements AlgebraNode {
     			}
     		if (l.size() == 0) return this.getNext();
     		}
+    	close();
 		return l;
     }
     
@@ -175,6 +179,10 @@ public class SelectOperator implements AlgebraNode {
 
     @Override
     public void close() {
+    	for (AlgebraNode Node : publishers){
+    		Node.close();
+    	}
+    	isOpen = false;
 
     }
     
@@ -183,7 +191,10 @@ public class SelectOperator implements AlgebraNode {
     public static String getOperator_name() {
         return operator_name;
     }
-
+	//Useless Method here
+	public boolean hasNext() {
+		return CNode < publishers.size();
+	}
 	
     public static void main(String[] args) {
     	DBManager dbm = DBManager.getInstance();
@@ -195,6 +206,12 @@ public class SelectOperator implements AlgebraNode {
     	j1.attach(r1);
     	j1.attach(r2);
     	SelectOperator s1 = new SelectOperator(null,p.getCrossTable());
+    	//if Single Table
+    	Map<Integer,List<Pair>> Dispatched = p.getDispatched().get(0);
+    	for (int tid : Dispatched.keySet()){
+    		SelectOperator sI = new SelectOperator(Dispatched,null);
+    	}
+
     	s1.attach(j1);
     	s1.open();
     	List<Pair<Integer,Integer>> l;
@@ -213,8 +230,5 @@ public class SelectOperator implements AlgebraNode {
     	}
     	System.out.println("Done!");
     }
-    //Useless Method here
-	public boolean hasNext() {
-		return CNode < publishers.size();
-	}
+
 }
