@@ -18,14 +18,17 @@ public class JoinOperator implements AlgebraNode {
     private List<AlgebraNode> publishers; // Here this list's size is said to be max 2.
     private List<List<Pair<Integer,Integer>>> TuplesofLeft; //Now let's assume only one join happens
 	private Map<Integer,String> JoinInfo;
+	private Map<Pair<Integer,Integer>, Pair<String,Pair>> CrossTbCdt;
 	private static DBManager dbm = DBManager.getInstance();
 	private LinkedList<List<Pair<Integer,Integer>>> Results;
 
 
-    public JoinOperator(List<Pair<Integer,String>> Info){
+    public JoinOperator(List<Pair<Integer,String>> Info
+    		,Map<Pair<Integer,Integer>, Pair<String,Pair>> Cross){
     	publishers = new ArrayList<AlgebraNode>();
     	TuplesofLeft = new ArrayList<List<Pair<Integer,Integer>>>();
     	Results = new LinkedList<List<Pair<Integer,Integer>>>();
+    	CrossTbCdt = Cross;
     	JoinInfo = new HashMap<Integer, String>();
     	for (Pair<Integer,String> p : Info){
         	int corTID = p.getLeft();
@@ -100,43 +103,44 @@ public class JoinOperator implements AlgebraNode {
 
     @Override
     public List<Pair<Integer,Integer>> getNext() {
+    	List<Pair<Integer,Integer>> r = null;
     	List<Pair<Integer,Integer>> receivedData = publishers.get(1).getNext();
     	if (receivedData != null){
     		int tID = receivedData.get(0).getLeft();
     		int rID = receivedData.get(0).getRight();
     		byte[] tupleR = dbm.Get(tID, rID);
     		Object val1 = dbm.getAttribute(tID, tupleR, JoinInfo.get(tID));
-    		int counter = 0;
     		for (List<Pair<Integer,Integer>> left : TuplesofLeft){
     	    	List<Pair<Integer,Integer>> l = new ArrayList<Pair<Integer,Integer>>();
     			int lrID = left.get(0).getRight();
     			int ltID = left.get(0).getLeft();
         		byte[] tupleL = dbm.Get(ltID,lrID);
         		Object val = dbm.getAttribute(ltID, tupleL, JoinInfo.get(ltID));
-        		if (val.equals(val1)){
+        		List<Pair> listed = new ArrayList<Pair>();
+        		Pair p = CrossTbCdt.get(new Pair(ltID,tID));
+        		if (p == null) p = CrossTbCdt.get(new Pair(tID,ltID));
+        		listed.add(CrossTbCdt.get(new Pair(ltID,tID)));
+        		try{
+        		if (val.equals(val1) 
+        				&& SelectOperator.handleCondition(listed, dbm, lrID, rID)){
         			l.add(left.get(0));
         			l.add(receivedData.get(0));
         			Results.offer(l);
         		}
-        		counter ++;
+        		}catch (Exception e){
+        			e.printStackTrace();
+        		}
+        		
     		}
-    		
+    		if (!Results.isEmpty()) return Results.poll();
+    		else return this.getNext();
     	}
-    	if (!Results.isEmpty())return Results.poll();
-    	else	return null;
+    	return receivedData;
     }
 
     @Override
     public void close() {
 
-    }
-    
-    public void setCondition(List<Pair<Integer,String>> Info){
-    	for (Pair<Integer,String> p : Info){
-        	int corTID = p.getLeft();
-        	String attr = p.getRight();
-        	JoinInfo.put(corTID, attr);
-    	}
     }
 
 
@@ -150,8 +154,8 @@ public class JoinOperator implements AlgebraNode {
     	AlgebraNode r1 = new Relation("country");
     	AlgebraNode r2 = new Relation("city");
     	Parser p = new Parser("select Country.code from Country, City on Country.code = city.CountryCode"
-    			+ " where city.population > 0.4 * Country.population ");
-    	JoinOperator j1 = new JoinOperator(p.getJInfo());
+    			+ " where 0.4 * Country.population <= city.population");
+    	JoinOperator j1 = new JoinOperator(p.getJInfo(),p.getCrossTable());
     	j1.attach(r1);
     	j1.attach(r2);
     	j1.open();
@@ -161,7 +165,9 @@ public class JoinOperator implements AlgebraNode {
     		byte[] t2 = dbm.Get(1,l.get(1).getRight());
     		int tid1 = l.get(0).getLeft();
     		int tid2 = l.get(1).getLeft();
-    		System.out.println("Same Code:"+ dbm.getAttribute(tid1, t1, "code") + " " + dbm.getAttribute(tid1, t1, "Name")+ " " + dbm.getAttribute(tid2, t2, "Name"));
+    		System.out.println("Same Code:"+ dbm.getAttribute(tid1, t1, "code") + " " +
+    				dbm.getAttribute(tid1, t1, "Name")+" "+dbm.getAttribute(tid1, t1, "Population")+ " " +" "+
+    				dbm.getAttribute(tid2, t2, "Name") + " "+ dbm.getAttribute(tid2, t2, "Population"));
     	}
     }
 

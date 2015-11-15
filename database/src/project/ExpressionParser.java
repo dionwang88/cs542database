@@ -42,6 +42,7 @@ public class ExpressionParser {
 		  vals = new Stack<Double>();
 		  Operands = new Stack<String>();
 		  tID = -1;
+		  finalval = null;
 		  //output = new ArrayList<String>();
 		 }
 		 public String getExprString(){
@@ -96,7 +97,7 @@ public class ExpressionParser {
 		  while(Operands.size() != 0){
 			  doOperator(Operands.pop());
 			  }
-		  finalval = vals.get(0);
+		  finalval = vals.pop();
 		  
 		  //if (output.isEmpty()){
 			//  output.add(vals.pop());
@@ -125,7 +126,6 @@ public class ExpressionParser {
 			this.type = "Value";
 			return Double.parseDouble(attr);
 		}
-		p = Pattern.compile("/s*//./s*");
 		result = dbm.getAttribute(tID, tuple, attr);
 		if (result == null){
 			this.type = "String";
@@ -203,10 +203,10 @@ public class ExpressionParser {
 		 
 	public static void main(String[] args) {
 		DBManager dbm = DBManager.getInstance();
-		ExpressionParser ep = new ExpressionParser("Year / 2");
+		ExpressionParser ep = new ExpressionParser("0.1 * population");
 		ep.setID(0);
 		try{
-		ep.parse(dbm.Get(0,1),dbm);
+		ep.parse(dbm.Get(0,9),dbm);
 		}catch (Exception e){
 			e.printStackTrace();
 		}

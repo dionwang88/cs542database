@@ -11,4 +11,5 @@ public interface AlgebraNode{
     void open();
     List<Pair<Integer,Integer>> getNext();
     void close();
+    
 }
