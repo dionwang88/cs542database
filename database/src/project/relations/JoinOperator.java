@@ -14,6 +14,7 @@ import java.util.LinkedList;
  * Created by wangqian on 11/9/15.
  */
 public class JoinOperator implements AlgebraNode {
+	private boolean isOpen;
     private static String operator_name = "Join";
     private List<AlgebraNode> publishers; // Here this list's size is said to be max 2.
     private List<List<Pair<Integer,Integer>>> TuplesofLeft; //Now let's assume only one join happens
@@ -21,6 +22,8 @@ public class JoinOperator implements AlgebraNode {
 	private Map<Pair<Integer,Integer>, Pair<String,Pair>> CrossTbCdt;
 	private static DBManager dbm = DBManager.getInstance();
 	private LinkedList<List<Pair<Integer,Integer>>> Results;
+	private int next,start;
+	private Object oldval;
 
 
     public JoinOperator(List<Pair<Integer,String>> Info
@@ -35,6 +38,7 @@ public class JoinOperator implements AlgebraNode {
         	String attr = p.getRight();
         	JoinInfo.put(corTID, attr);
     	}
+    	isOpen = false;
     }
 
     public void attach(AlgebraNode node){
@@ -44,6 +48,8 @@ public class JoinOperator implements AlgebraNode {
         this.publishers.remove(node);
     }
     
+    
+    //currently useless. Maybe used by selection operator through index.
     private class AttrComparator implements Comparator<List<Pair<Integer,Integer>>>{
 
 		@Override
@@ -81,13 +87,11 @@ public class JoinOperator implements AlgebraNode {
     		TuplesofLeft.add(l);
     	}
     	//Pre-sorting based on to-join attributes
-    	TuplesofLeft.sort(new AttrComparator());
-    	//Testing Sort
-    	for (List<Pair<Integer,Integer>> a : TuplesofLeft){
-    		int key = a.get(0).getRight();
-    		byte[] tuple = dbm.Get(a.get(0).getLeft(),key);
-    	}
+    	//TuplesofLeft.sort(new AttrComparator());
     	right.open();
+    	isOpen = true;
+    	start = next = 0;
+    	oldval = null;
     }
     
     private List<String> union(List<String> l1, List<Pair> l2){
@@ -103,19 +107,28 @@ public class JoinOperator implements AlgebraNode {
 
     @Override
     public List<Pair<Integer,Integer>> getNext() {
-    	List<Pair<Integer,Integer>> r = null;
     	List<Pair<Integer,Integer>> receivedData = publishers.get(1).getNext();
-    	if (receivedData != null){
+    	if (receivedData != null && isOpen){
     		int tID = receivedData.get(0).getLeft();
     		int rID = receivedData.get(0).getRight();
     		byte[] tupleR = dbm.Get(tID, rID);
     		Object val1 = dbm.getAttribute(tID, tupleR, JoinInfo.get(tID));
-    		for (List<Pair<Integer,Integer>> left : TuplesofLeft){
+    		if (oldval !=null){
+    		if (val1.toString().compareTo(oldval.toString()) > 0) start = next;
+    		else next = start;
+    		}
+    		for (int i = start; i < TuplesofLeft.size(); i++){
+    			List<Pair<Integer,Integer>> left = TuplesofLeft.get(i);
     	    	List<Pair<Integer,Integer>> l = new ArrayList<Pair<Integer,Integer>>();
     			int lrID = left.get(0).getRight();
     			int ltID = left.get(0).getLeft();
         		byte[] tupleL = dbm.Get(ltID,lrID);
         		Object val = dbm.getAttribute(ltID, tupleL, JoinInfo.get(ltID));
+        		if (oldval == null) oldval = val;
+        		//Pre-break if it has passed the sorted value. Test needed
+        		if (val.toString().compareTo(val1.toString()) > 0) {
+        			break;
+        		}
         		List<Pair> listed = new ArrayList<Pair>();
         		Pair p = CrossTbCdt.get(new Pair(ltID,tID));
         		if (p == null) p = CrossTbCdt.get(new Pair(tID,ltID));
@@ -130,17 +143,22 @@ public class JoinOperator implements AlgebraNode {
         		}catch (Exception e){
         			e.printStackTrace();
         		}
-        		
+        		next ++;
     		}
+    		oldval = val1;
     		if (!Results.isEmpty()) return Results.poll();
     		else return this.getNext();
     	}
+    	close();
     	return receivedData;
     }
 
     @Override
     public void close() {
-
+    	for (AlgebraNode Node : publishers){
+    		Node.close();
+    	}
+    	isOpen = false;
     }
 
 
@@ -151,13 +169,12 @@ public class JoinOperator implements AlgebraNode {
 
     public static void main(String[] args) {
     	DBManager dbm = DBManager.getInstance();
-    	AlgebraNode r1 = new Relation("country");
-    	AlgebraNode r2 = new Relation("city");
     	Parser p = new Parser("select Country.code from Country, City on Country.code = city.CountryCode"
     			+ " where 0.4 * Country.population <= city.population");
     	JoinOperator j1 = new JoinOperator(p.getJInfo(),p.getCrossTable());
-    	j1.attach(r1);
-    	j1.attach(r2);
+    	for (Relation r : p.getRelations()){
+    		j1.attach(r);
+    	}
     	j1.open();
     	List<Pair<Integer,Integer>> l;
     	while( (l = j1.getNext()) != null){
