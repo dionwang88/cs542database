@@ -17,6 +17,9 @@ public class Relation implements AlgebraNode{
     List<Integer> rIDs;
     int current;
 
+    public String toString(){
+        return "current: "+current+" | "+rIDs.toString();
+    }
 
     public Relation(String rname){
     	DBManager dbm = DBManager.getInstance();
