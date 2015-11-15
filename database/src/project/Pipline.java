@@ -60,7 +60,6 @@ public class Pipline {
         }
         ProjNode.attach(top);
         root=ProjNode;
-
     }
     public void exec(){
     	DBManager dbm = DBManager.getInstance();
@@ -77,8 +76,8 @@ public class Pipline {
 
         try {
             Pipline p= new Pipline(par);
-            System.out.println(((ProjectOperator)p.root).publisher);
-            ((ProjectOperator)p.root).publisher.open();
+            System.out.println((ProjectOperator)p.root);
+           p.exec();
         } catch (Exception e) {
             e.printStackTrace();
         }
