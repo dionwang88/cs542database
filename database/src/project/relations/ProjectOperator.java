@@ -11,7 +11,7 @@ import project.Pair;
  */
 public class ProjectOperator implements AlgebraNode {
     private static String operator_name = "Project";
-    private AlgebraNode publisher;
+    public AlgebraNode publisher;
     private DBManager dbm=DBManager.getInstance();
     private Map<Integer, List<String>>attrNames;
 

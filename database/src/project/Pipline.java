@@ -34,17 +34,17 @@ public class Pipline {
         ProjectOperator ProjNode=new ProjectOperator(attrnames);
         JoinOperator joinNode=new JoinOperator(On_Conditions, crosstab);
         for(Relation r:this.Relations){
-            SelectOperator SlctNode=new SelectOperator(Dispatched.get(r.getRelation_id()),null);
+            SelectOperator SlctNode=new SelectOperator(Dispatched.get(0),null);
             SlctNode.attach(r);
             joinNode.attach(SlctNode);
         }
         ProjNode.attach(joinNode);
         root=ProjNode;
-        System.out.println(root);
+
     }
     public void exec(){
         root.open();
-        for(int i=0;i<5;i++)
+        for(int i=0;i<1;i++)
             root.getNext();
     }
     public static void main(String[] args){
@@ -53,7 +53,8 @@ public class Pipline {
 
         try {
             Pipline p= new Pipline(par);
-            p.exec();
+            System.out.println(((ProjectOperator)p.root).publisher);
+            ((ProjectOperator)p.root).publisher.open();
         } catch (Exception e) {
             e.printStackTrace();
         }
