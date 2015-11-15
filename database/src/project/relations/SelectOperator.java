@@ -73,7 +73,7 @@ public class SelectOperator implements AlgebraNode {
     			//Single Table Selection
     			for (List<Pair> Cond : SingleTBCdt.values()){
     				try{
-        				if (handleCondition(Cond, dbm, rID, tID, tID)) l.add(new Pair<Integer,Integer>(tID,rID));
+        				if (handleCondition(Cond, dbm, rID, rID)) l.add(new Pair<Integer,Integer>(tID,rID));
     				}catch (Exception e){
     					e.printStackTrace();
     				}
@@ -86,7 +86,7 @@ public class SelectOperator implements AlgebraNode {
         		List<Pair> listed = new ArrayList<Pair>();
         		listed.add(CrossTbCdt.get(new Pair(tID,tID2)));
     			try{
-        			if (handleCondition(listed, dbm, rID, tID,tID)){
+        			if (handleCondition(listed, dbm, rID, rID2)){
         				l.add(new Pair<Integer,Integer>(tID,rID));
         				l.add(new Pair<Integer,Integer>(tID2,rID2));	
         				}
@@ -152,19 +152,18 @@ public class SelectOperator implements AlgebraNode {
     	return result;
     }
 
-    public static boolean handleCondition(List<Pair> conditions, DBManager dbm,int key,int tid1, int tid2) throws Exception {
+    public static boolean handleCondition(List<Pair> conditions, 
+    		DBManager dbm,int key1,int key2) throws Exception {
         //if (conditions.get(0).length<4) return true;
     	byte[] tuple1, tuple2;
-    	if (tid1 == tid2){
-    		tuple1 = tuple2 = dbm.Get(tid1,key);
-    	}else{
-    		tuple1 = dbm.Get(tid1,key);
-    		tuple2 = dbm.Get(tid2,key);
-    	}
         for (Pair<String,Pair> exprp : conditions){
         	String operand = (String)exprp.getLeft();
         	ExpressionParser leftval = (ExpressionParser)exprp.getRight().getLeft();
+        	int ltID = leftval.getID();
+        	tuple1 = dbm.Get(ltID,key1);
         	ExpressionParser rightval = (ExpressionParser)exprp.getRight().getRight();
+        	int rtID = rightval.getID();
+        	tuple2 = dbm.Get(rtID,key2);
         	leftval.parse(tuple1, dbm);
         	rightval.parse(tuple2, dbm);
         	if (!isValid(operand,leftval.getExpr(),rightval.getExpr())) return false;
@@ -187,16 +186,32 @@ public class SelectOperator implements AlgebraNode {
 
 	
     public static void main(String[] args) {
-    	AlgebraNode r1 = new Relation("Country");
-    	Parser p = new Parser("select Country.x1 from Country"
-    			+ " where Country.REgion = \"Southern and Central Asia\"");
-    	SelectOperator s1 = new SelectOperator(p.getDispatched(),null);
-    	s1.attach(r1);
+    	DBManager dbm = DBManager.getInstance();
+    	AlgebraNode r1 = new Relation("country");
+    	AlgebraNode r2 = new Relation("city");
+    	Parser p = new Parser("select Country.code from Country, City on Country.code = city.CountryCode"
+    			+ " where 0.4 * Country.population <= city.population ");
+    	JoinOperator j1 = new JoinOperator(p.getJInfo(),p.getCrossTable());
+    	j1.attach(r1);
+    	j1.attach(r2);
+    	SelectOperator s1 = new SelectOperator(null,p.getCrossTable());
+    	s1.attach(j1);
     	s1.open();
     	List<Pair<Integer,Integer>> l;
+    	int counter = 1;
     	while( (l = s1.getNext()) != null){
-    		System.out.println(l.get(0).getRight());
+    		byte[] t1 = dbm.Get(0,l.get(0).getRight());
+    		byte[] t2 = dbm.Get(1,l.get(1).getRight());
+    		int tid1 = l.get(0).getLeft();
+    		int tid2 = l.get(1).getLeft();
+    		System.out.println("Same Code:"+ dbm.getAttribute(tid1, t1, "code") + " " +
+    				dbm.getAttribute(tid1, t1, "Name")+" "+dbm.getAttribute(tid1, t1, "Population")+ " " +" "+
+    				dbm.getAttribute(tid2, t2, "Name") + " "+ dbm.getAttribute(tid2, t2, "Population"));
+    		if (counter % 100 ==0) System.out.println(counter);
+    		counter++;
+    		
     	}
+    	System.out.println("Done!");
     }
     //Useless Method here
 	public boolean hasNext() {
