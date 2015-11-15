@@ -1,12 +1,10 @@
 package project;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import project.relations.*;
-import project.Pair;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -27,7 +25,6 @@ public class Parser {
 		Relations = new ArrayList<Relation>();
 		On_Conditions = new ArrayList<Pair<Integer,String>>();
 		query = query.trim().toLowerCase();
-		int l1 =find(query, "\\s*select\\s+")[0];
 		int l2 =find(query, "\\s+from\\s+")[0];
 		int l3 =find(query, "\\s+where\\s+")[0];
 		String selection = query.substring(0, l2).trim();
@@ -88,7 +85,7 @@ public class Parser {
 					if (tid >= 0){
 					r.setRelation_id(tid);
 					Relations.add(r);
-					int[] infoloc = this.find(JInfo, "\\s+"+rname+".\\w+");
+					int[] infoloc = this.find(JInfo, "[^0-9a-zA-Z]+"+rname+".\\w+");
 					String info = JInfo.substring(infoloc[0], infoloc[1]);
 					String[] tmp = info.split("\\.");
 					On_Conditions.add(new Pair<Integer,String>(tid, tmp[1]));

@@ -18,7 +18,7 @@ public class Relation implements AlgebraNode{
     int current;
 
     public String toString(){
-        return "current: "+current+" | "+rIDs.toString();
+        return "Relation: "+relation_name+"-"+relation_id;
     }
 
     public Relation(String rname){
@@ -79,7 +79,7 @@ public class Relation implements AlgebraNode{
     public void setRelation_name(String relation_name) {
 
     }
-    
+
     public static void main(String[] args) {
     	Relation r1 = new Relation("Country");
     	r1.open();

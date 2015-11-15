@@ -23,6 +23,9 @@ public class JoinOperator implements AlgebraNode {
 	private LinkedList<List<Pair<Integer,Integer>>> Results;
 
 
+	public String toString(){
+		return operator_name+" : publisher-"+publishers.toString();
+	}
     public JoinOperator(List<Pair<Integer,String>> Info
     		,Map<Pair<Integer,Integer>, Pair<String,Pair>> Cross){
     	publishers = new ArrayList<AlgebraNode>();

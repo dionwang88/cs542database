@@ -1,13 +1,11 @@
 package project.relations;
 
-import java.util.List;
-import java.util.ArrayList;
+import java.util.*;
+
 import project.Condition;
 import project.DBManager;
 import project.Pair;
 import project.ExpressionParser;
-import java.util.Map;
-import java.util.HashMap;
 import project.Parser;
 /**
  * Created by wangqian on 11/9/15.
@@ -18,7 +16,10 @@ public class SelectOperator implements AlgebraNode {
     private Map<Integer,List<Pair>> SingleTBCdt;
     private Map<Pair<Integer,Integer>, Pair<String,Pair>> CrossTbCdt;
     private int CNode;
-    
+
+	public String toString(){
+		return operator_name+" : publisher-"+publishers.toString();
+	}
     public SelectOperator(Map<Integer, Map<Integer,List<Pair>>> singTB, Map<Pair<Integer,Integer>, Pair<String,Pair>> CrossTB){
     	publishers = new ArrayList<AlgebraNode>();
     	CrossTbCdt = CrossTB;
@@ -46,7 +47,6 @@ public class SelectOperator implements AlgebraNode {
 
     @Override
     public void open(){
-    	DBManager dbm = DBManager.getInstance();
     	if (publishers.size() > 0){
     		CNode = 0;
         	publishers.get(CNode).open();

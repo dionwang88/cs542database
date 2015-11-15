@@ -1,7 +1,9 @@
 package project;
 
 
-import project.relations.Relation;
+import project.relations.*;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -12,38 +14,48 @@ public class Pipline {
 	//Single Table Selection.The Integer in the outer Map is the groupno.
 	//Pair<Operator,Pair<Expr,Expr>> Operator:" >, < >=, <=, !=, ="
     private List<Relation> Relations;
+    private Map<Pair<Integer,Integer>,Pair<String,Pair>> crosstab;
     private Map<Integer, Map<Integer,List<Pair>>> Dispatched;
     private Map<Integer,List<String>> attrnames; //Projection Info. Integer for tID, List<String> for corresponding attrs
     private List<Pair<Integer,String>> On_Conditions; // Join info. Integer for tID, String for Attrname
-    public Pipline(Parser p){
+    private AlgebraNode root;
+    public Pipline(Parser p) throws Exception {
     	Dispatched = p.getDispatched();
     	attrnames = p.getAttrnames();
     	On_Conditions = p.getJInfo();
         Relations=p.Relations;
+        crosstab=p.getCrossTable();
         construct();
     }
-    private void construct(){
+    private void construct() throws Exception {
+        if(On_Conditions.size()!=2){
+            throw new Exception("Not two tables join!");
+        }
+        ProjectOperator ProjNode=new ProjectOperator(attrnames);
+        JoinOperator joinNode=new JoinOperator(On_Conditions, crosstab);
         for(Relation r:this.Relations){
-            System.out.println(r);
-
+            SelectOperator SlctNode=new SelectOperator(Dispatched,null);
+            SlctNode.attach(r);
+            joinNode.attach(SlctNode);
         }
-        /*
-        for(int tid:this.Dispatched){
-
-        }
-        On_Conditions;
-        for(int tid:this.attrnames){
-
-        }
-        //*/
+        ProjNode.attach(joinNode);
+        root=ProjNode;
+        System.out.println(root);
     }
     public void exec(){
-
+        root.open();
+        for(int i=0;i<5;i++)
+            root.getNext();
     }
     public static void main(String[] args){
-        Parser par = new Parser("select Movies.x1,Movies.x3,Movies1.x4 from Movies, Movies1 on Movies.year = Movies1.year"
-                + " where Movies.year > 0.8 * Movies1.year and Movies.price > 1  and Movies.Title = \"dsdsdssd\" or Movies.country=\"usa\" ");
+        Parser par = new Parser("select country.code from country,city on country.code=city.countrycode "
+                +"where 0.4*country,population<=city.population and city.population<1000000");
 
-        Pipline p= new Pipline(par);
+        try {
+            Pipline p= new Pipline(par);
+            p.exec();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }
