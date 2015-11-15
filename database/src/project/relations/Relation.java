@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.ArrayList;
 import project.Index;
 import project.DBManager;
+import project.DBTool;
 import project.Pair;
 import java.util.Map;
 
@@ -17,13 +18,23 @@ public class Relation implements AlgebraNode{
     int current;
 
 
-    public Relation(){}
+    public Relation(String rname){
+    	DBManager dbm = DBManager.getInstance();
+        this.relation_name = rname;
+        try{
+        	int tID = DBTool.tabNameToID(dbm, rname);
+        	if (tID == -1) throw new Exception("No such table!");
+        this.relation_id = DBTool.tabNameToID(dbm, rname);
+        }catch(Exception e){
+        	e.printStackTrace();
+        }
+        this.rIDs = new ArrayList<Integer>();
+    }
 
     @Override
     public void open() {
     	//table-scan;pre-fetch everything
     	DBManager dbm = DBManager.getInstance();
-    	this.rIDs = new ArrayList<Integer>();
     	Map<Integer, Index> cIndex = dbm.getClusteredIndex();
     	for (int i =1; i < cIndex.size(); i ++){
     		int tID = cIndex.get(i).getTID();
@@ -63,12 +74,11 @@ public class Relation implements AlgebraNode{
     }
 
     public void setRelation_name(String relation_name) {
-        this.relation_name = relation_name;
+
     }
     
     public static void main(String[] args) {
-    	Relation r1 = new Relation();
-    	r1.setRelation_name("Country");
+    	Relation r1 = new Relation("Country");
     	r1.open();
     	List<Pair<Integer,Integer>> l;
     	while((l = r1.getNext()) != null){

@@ -15,15 +15,12 @@ import project.Parser;
 public class SelectOperator implements AlgebraNode {
     private static String operator_name = "Select";
     private List<AlgebraNode> publishers;
-    private Map<Integer,List<String[]>> FilteredC;
     private Map<Integer,List<Pair>> SingleTBCdt;
     private Map<Pair<Integer,Integer>, Pair<String,Pair>> CrossTbCdt;
-    private Condition c;
     private int CNode;
     
     public SelectOperator(Map<Integer, Map<Integer,List<Pair>>> singTB, Map<Pair<Integer,Integer>, Pair<String,Pair>> CrossTB){
     	publishers = new ArrayList<AlgebraNode>();
-    	FilteredC = new HashMap<Integer, List<String[]>>();
     	CrossTbCdt = CrossTB;
     	//Pre-processing single TB info;
     	if (singTB != null){
@@ -190,12 +187,9 @@ public class SelectOperator implements AlgebraNode {
 
 	
     public static void main(String[] args) {
-    	AlgebraNode r1 = new Relation();
-    	((Relation)r1).setRelation_name("movies");
-    	AlgebraNode r2 = new Relation();
-    	((Relation)r2).setRelation_name("movies1");
-    	Parser p = new Parser("select x1,x3,x4 from Movies, Movies1 on Movies.year = Movies1.year"
-    			+ " where Movies.year > 1960 and Movies.title = \"The Abyss\" or Movies.country=\"usa\" ");
+    	AlgebraNode r1 = new Relation("Country");
+    	Parser p = new Parser("select Country.x1 from Country"
+    			+ " where Country.REgion = \"Southern and Central Asia\"");
     	SelectOperator s1 = new SelectOperator(p.getDispatched(),null);
     	s1.attach(r1);
     	s1.open();

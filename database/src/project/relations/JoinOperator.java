@@ -22,11 +22,16 @@ public class JoinOperator implements AlgebraNode {
 	private LinkedList<List<Pair<Integer,Integer>>> Results;
 
 
-    public JoinOperator(){
+    public JoinOperator(List<Pair<Integer,String>> Info){
     	publishers = new ArrayList<AlgebraNode>();
     	TuplesofLeft = new ArrayList<List<Pair<Integer,Integer>>>();
     	Results = new LinkedList<List<Pair<Integer,Integer>>>();
     	JoinInfo = new HashMap<Integer, String>();
+    	for (Pair<Integer,String> p : Info){
+        	int corTID = p.getLeft();
+        	String attr = p.getRight();
+        	JoinInfo.put(corTID, attr);
+    	}
     }
 
     public void attach(AlgebraNode node){
@@ -142,24 +147,21 @@ public class JoinOperator implements AlgebraNode {
 
     public static void main(String[] args) {
     	DBManager dbm = DBManager.getInstance();
-    	AlgebraNode r1 = new Relation();
-    	((Relation)r1).setRelation_name("movies");
-    	AlgebraNode r2 = new Relation();
-    	((Relation)r2).setRelation_name("movies1");
-    	Parser p = new Parser("select x1,x3,x4 from Movies, Movies1 on Movies.year = Movies1.year"
-    			+ " where Movies.year > 1960 and Movies.title = \"The Abyss\" or Movies.country=\"usa\" ");
-    	JoinOperator j1 = new JoinOperator();
-    	j1.setCondition(p.getJInfo());
+    	AlgebraNode r1 = new Relation("country");
+    	AlgebraNode r2 = new Relation("city");
+    	Parser p = new Parser("select Country.code from Country, City on Country.code = city.CountryCode"
+    			+ " where city.population > 0.4 * Country.population ");
+    	JoinOperator j1 = new JoinOperator(p.getJInfo());
     	j1.attach(r1);
     	j1.attach(r2);
     	j1.open();
     	List<Pair<Integer,Integer>> l;
     	while( (l = j1.getNext()) != null){
     		byte[] t1 = dbm.Get(0,l.get(0).getRight());
-    		byte[] t2 = dbm.Get(0,l.get(1).getRight());
+    		byte[] t2 = dbm.Get(1,l.get(1).getRight());
     		int tid1 = l.get(0).getLeft();
     		int tid2 = l.get(1).getLeft();
-    		System.out.println("Same year:"+ dbm.getAttribute(tid1, t1, "year") + " " + dbm.getAttribute(tid1, t1, "title")+ " " + dbm.getAttribute(tid2, t2, "title"));
+    		System.out.println("Same Code:"+ dbm.getAttribute(tid1, t1, "code") + " " + dbm.getAttribute(tid1, t1, "Name")+ " " + dbm.getAttribute(tid2, t2, "Name"));
     	}
     }
 
