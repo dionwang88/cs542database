@@ -2,7 +2,6 @@ package project.relations;
 
 import java.util.List;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 
 import project.Index;
@@ -74,11 +73,12 @@ public class Relation implements AlgebraNode{
     	}
     	}
     	rIDs.sort(new AttrComparator());
-    	}
+    	}else{
     	Map<Integer, Index> cIndex = dbm.getClusteredIndex();
     	for (int i =1; i < cIndex.size(); i ++){
     		int tID = cIndex.get(i).getTID();
     		if (relation_id == tID) rIDs.add(i);
+    	}
     	}
     	current = 1;
     	isOpen = true;

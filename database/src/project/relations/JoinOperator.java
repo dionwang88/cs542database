@@ -97,17 +97,7 @@ public class JoinOperator implements AlgebraNode {
     	oldval = null;
     }
     
-    private List<String> union(List<String> l1, List<Pair> l2){
-    	for (Pair<String,Pair> p : l2){
-    		String tmp = p.getLeft();
-    		if (!l1.contains(tmp)){
-    			l1.add(tmp);
-    		}
-    	}
-    	return l1;
-    }
     
-
     @Override
     public List<Pair<Integer,Integer>> getNext() {
     	List<Pair<Integer,Integer>> receivedData = publishers.get(1).getNext();
