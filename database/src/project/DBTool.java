@@ -13,12 +13,14 @@ public class DBTool {
     private DBTool(){}
 
     private static void showTab(DBManager dbm){
+        if(dbm==null){System.out.println("No db file");}
         for(int tid:dbm.getTabMeta().keySet()){
             System.out.print(dbm.getTabMeta().get(tid).get(0).getRight()+" ");
         }
         System.out.print('\n');
     }
     private static void showSchema(DBManager dbm,String tName){
+        if(dbm==null){System.out.println("No db file");}
         int tid=tabNameToID(dbm,tName);
         for(int i=1;i<dbm.getTabMeta().get(tid).size();i++){
             System.out.print(dbm.getTabMeta().get(tid).get(i).getLeft()+" ");
@@ -143,7 +145,7 @@ public class DBTool {
                     case ".schema":case".s":        showSchema(DBManager.getInstance(),s[1]);
                     case "select":
                         if(s.length>3&&s[2].equals("from")){
-                            if(s[3].matches(",")){
+                            if(s[3].matches("[\\s\\S]+,[\\s\\S]+")){
                                 Pipline p=new Pipline(new Parser(input));
                                 p.exec();
                             }else {
@@ -196,8 +198,8 @@ public class DBTool {
                     default:System.out.println("Can't find the command '"+s[0]+"'\nyou may use 'help' command");
                 }
             } catch (Exception e) {
-                //e.printStackTrace();
-                System.out.print(e.getMessage()+'\n');
+                e.printStackTrace();
+                //System.out.print(e.getMessage()+'\n');
             }
         }
     }
