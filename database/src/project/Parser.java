@@ -97,6 +97,9 @@ public class Parser {
 					e.printStackTrace();
 				}
 			}
+		}else{
+			s = s.substring(5);
+			Relations.add(new Relation(s.trim()));
 		}
 	}
 	

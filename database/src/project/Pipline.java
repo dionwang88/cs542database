@@ -60,7 +60,6 @@ public class Pipline {
         }
         ProjNode.attach(top);
         root=ProjNode;
-        System.out.println(root);
     }
     public void exec(){
     	DBManager dbm = DBManager.getInstance();
@@ -72,12 +71,13 @@ public class Pipline {
     }
 
     public static void main(String[] args){
-        Parser par = new Parser("select Country.code,Country.name,city.name from Country, City on Country.code = city.CountryCode"
-    			+ " where 0.4 * Country.population <= city.population and city.population < 1000000");
+        Parser par = new Parser("select Country.code,Country.name from Country "
+    			+ " where 0.4 * Country.population < 1000000");
 
         try {
             Pipline p= new Pipline(par);
-            p.exec();
+            System.out.println((ProjectOperator)p.root);
+           p.exec();
         } catch (Exception e) {
             e.printStackTrace();
         }

@@ -177,6 +177,7 @@ public class JoinOperator implements AlgebraNode {
     	for (Relation r : p.getRelations()){
     		j1.attach(r);
     	}
+		System.out.println(j1);
     	j1.open();
     	List<Pair<Integer,Integer>> l;
     	while( (l = j1.getNext()) != null){
