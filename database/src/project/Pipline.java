@@ -69,11 +69,11 @@ public class Pipline {
     }
 
     public static void main(String[] args){
+    	
         String q="select Country.code,Country.name,city.name from Country, City on Country.code = city.CountryCode"
                 + " where 0.4 * Country.population <= city.population";
         System.out.println("Make sure read city and country tables first!\nThe pipeline Example SQL:\n"+Condition.removeExtraSpace(q));
         Parser par = new Parser(q);
-
         try {
             System.out.println("Please wait, calculating......");
             Pipline p= new Pipline(par);
