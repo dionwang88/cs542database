@@ -12,6 +12,20 @@ public class DBTool {
 
     private DBTool(){}
 
+    private static void showTab(DBManager dbm){
+        for(int tid:dbm.getTabMeta().keySet()){
+            System.out.print(dbm.getTabMeta().get(tid).get(0).getRight()+" ");
+        }
+        System.out.print('\n');
+    }
+    private static void showSchema(DBManager dbm,String tName){
+        int tid=tabNameToID(dbm,tName);
+        for(int i=1;i<dbm.getTabMeta().get(tid).size();i++){
+            System.out.print(dbm.getTabMeta().get(tid).get(i).getLeft()+" ");
+        }
+        System.out.print('\n');
+    }
+
     public static void showWrapped(DBManager dbmanager){
         if (dbmanager!=null) {
             int freeSize = Storage.DATA_SIZE - dbmanager.get_DATA_USED();
@@ -90,7 +104,7 @@ public class DBTool {
     }
 
     //find tid through table names
-    public static int tabNameToID(DBManager dbm, String tables) throws Exception {
+    public static int tabNameToID(DBManager dbm, String tables) {
         int tid=-1;
         for (int id : dbm.getTabMeta().keySet()) {
             if (dbm.getTabMeta().get(id).get(0).getRight().equals(tables.toLowerCase())) {
@@ -98,7 +112,6 @@ public class DBTool {
                 break;
             }
         }
-        if(tid==-1){throw new Exception("No such table");}
         return tid;
     }
 
@@ -125,13 +138,21 @@ public class DBTool {
                     case "clear":case "cl":         Clear.main(null);break;
                     case "readcsv":case"r":         TestReadCSV.main(null);break;
                     case "mtable":case"m":          TestMultab.main(null);break;
+                    case "pipeline":case"p":        Pipline.main(null);break;
+                    case ".table":case".t":         showTab(DBManager.getInstance());break;
+                    case ".schema":case".s":        showSchema(DBManager.getInstance(),s[1]);
                     case "select":
                         if(s.length>3&&s[2].equals("from")){
-                            dbmanager = DBManager.getInstance();
-                            if (s.length > 5 && s[4].equals("where")) {
-                                dbmanager.printQuery(tabNameToID(dbmanager,s[3]), dbmanager.tabProject(s[3],s[1]), new Condition(input.split("where")[1]));
-                            } else if (dbmanager != null) {
-                                dbmanager.printQuery(tabNameToID(dbmanager,s[3]), dbmanager.tabProject(s[3],s[1]), new Condition());
+                            if(s[3].matches(",")){
+                                Pipline p=new Pipline(new Parser(input));
+                                p.exec();
+                            }else {
+                                dbmanager = DBManager.getInstance();
+                                if (s.length > 5 && s[4].equals("where")) {
+                                    dbmanager.printQuery(tabNameToID(dbmanager, s[3]), dbmanager.tabProject(s[3], s[1]), new Condition(input.split("where")[1]));
+                                } else if (dbmanager != null) {
+                                    dbmanager.printQuery(tabNameToID(dbmanager, s[3]), dbmanager.tabProject(s[3], s[1]), new Condition());
+                                }
                             }
                         }break;
                     case "create":
@@ -165,14 +186,18 @@ public class DBTool {
                                 "concurrency|c\t\tvalidate concurrency control\n" +
                                 "clear|cl\t\t\tclear the database\n"+
                                 "readcsv|r\t\t\tread movies file and create table\n" +
+                                "mtable|m\t\t\tread city and country table\n" +
+                                "pipepline|p\t\t\tshow an pipeline example" +
                                 "\n------SQL-----\n"+
                                 "select <attribute(s)> from <table> [where <condition(s)>]\n" +
-                                "create index <table(attributeName[, ...])>\n");break;
+                                "create index <table(attributeName[, ...])>\n" +
+                                ".table|.t\t\t\t\t\tshow table name in database\n" +
+                                ".schema|.s <tablename>\t\tshow table attribute names");break;
                     default:System.out.println("Can't find the command '"+s[0]+"'\nyou may use 'help' command");
                 }
             } catch (Exception e) {
-                e.printStackTrace();
-                //System.out.print(e.getMessage()+'\n');
+                //e.printStackTrace();
+                System.out.print(e.getMessage()+'\n');
             }
         }
     }

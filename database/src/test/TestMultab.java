@@ -8,7 +8,6 @@ import project.DBManager;
 public class TestMultab {
     public static void main(String[] args){
         DBManager dbmanager = DBManager.getInstance();
-        dbmanager.clear();
 
         String schema="Code char 5,Name char 45,Continent char 20,Region char 30," +
                 "SurfaceArea int,IndepYear int,Population int,LifeExpectancy float," +

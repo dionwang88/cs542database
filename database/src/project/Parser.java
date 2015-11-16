@@ -24,9 +24,10 @@ public class Parser {
 		attrnames = new HashMap<Integer,List<String>>();
 		Relations = new ArrayList<Relation>();
 		On_Conditions = new ArrayList<Pair<Integer,String>>();
-		query = query.trim().toLowerCase();
-		int l2 =find(query, "\\s+from\\s+")[0];
-		int l3 =find(query, "\\s+where\\s+")[0];
+		int[] tmpl2=find(query, "\\s+from\\s+");
+		int[] tmpl3=find(query, "\\s+where\\s+");
+		int l2 =(tmpl2==null)?query.length():tmpl2[0];
+		int l3 =(tmpl3==null)?query.length():tmpl3[0];
 		String selection = query.substring(0, l2).trim();
 		String joins = query.substring(l2,l3).trim();
 		String where = query.substring(l3).trim();
@@ -85,7 +86,7 @@ public class Parser {
 					if (tid >= 0){
 					//r.setRelation_id(tid);
 					Relations.add(r);
-					int[] infoloc = this.find(JInfo, "[^0-9a-zA-Z]+"+rname+".\\w+");
+					int[] infoloc = this.find(JInfo.toLowerCase(), "[^0-9a-zA-Z]+"+rname.toLowerCase()+".\\w+");
 					String info = JInfo.substring(infoloc[0], infoloc[1]);
 					String[] tmp = info.split("\\.");
 					On_Conditions.add(new Pair<Integer,String>(tid, tmp[1]));

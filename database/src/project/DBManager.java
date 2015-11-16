@@ -479,15 +479,15 @@ public class DBManager {
 				if (!Condition.handleCondition(c.throwCondition(),dbManager,key,tid)
                         ||tuple == null) continue;
 				boolean isFirst = true;
-				System.out.print(key + ": ");
 				for (String attrName : attrNames) {
+					if(getAttribute(tid,tuple,attrName)==null) continue;
 					if (isFirst) {
 						System.out.print(getAttribute(tid,tuple,attrName));
 						isFirst = false;
 					} else
 						System.out.print("|" + getAttribute(tid,tuple,attrName));
 				}
-				System.out.print('\n');
+				if(!isFirst) System.out.print('\n');
 			}
 		}
 	}
@@ -513,6 +513,7 @@ public class DBManager {
 
 	//read csv file
 	public void ReadFile(String Filepath, int TabID, String regSep) {
+		System.out.print("Reading " + Filepath);
 		byte[] byteData;
 		BufferedReader br = null;
 		String line;
@@ -578,7 +579,7 @@ public class DBManager {
 				}
 			}
 		}
-		System.out.println("Reading " + Filepath + " is Done");
+		System.out.print(" is Done\n");
 	}
 
 	// create index on certain attribute names

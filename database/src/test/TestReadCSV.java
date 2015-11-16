@@ -6,6 +6,10 @@ import project.DBTool;
 public class TestReadCSV {
     public static void readcsv(String name,DBManager dbmanager,String regSep,String schema,String path){
         try {
+            if(dbmanager.getTabMeta().containsKey(DBTool.tabNameToID(dbmanager,name))) {
+                System.out.println("Table already exists!");
+                return;
+            }
             dbmanager.createTab(name, schema);
             dbmanager.ReadFile(path, DBTool.tabNameToID(dbmanager,name),regSep);
         } catch (Exception e) {
@@ -14,11 +18,7 @@ public class TestReadCSV {
     }
     public static void main(String[] args) {
         DBManager dbmanager = DBManager.getInstance();
-        dbmanager.clear();
         readcsv("movies",dbmanager,"@",
-                "Title char 80,year int,format char 30,genre char 30,director char 60,writer char 60,country char 30,Studio char 80,Price char 10,Catalogno char 10",
-                "data/movies.txt");
-        readcsv("movies1",dbmanager,"@",
                 "Title char 80,year int,format char 30,genre char 30,director char 60,writer char 60,country char 30,Studio char 80,Price char 10,Catalogno char 10",
                 "data/movies.txt");
         //readcsv("Country",dbmanager,"\\s*,(?=([^\"]*\"[^\"]*\")*[^\"]*$)",
