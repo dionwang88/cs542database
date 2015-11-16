@@ -71,13 +71,19 @@ public class Pipline {
     }
 
     public static void main(String[] args){
-        Parser par = new Parser("select Country.code,Country.name from Country "
+        Parser par = new Parser("select Country.code,Country.name,city.name from Country, City on Country.code = city.Countrycode "
+    			+ " where 0.4 * Country.population <= city.population and city.population < 1000000");
+        Parser par1 = new Parser("select Country.code,Country.name from Country"
     			+ " where 0.4 * Country.population < 1000000");
 
         try {
             Pipline p= new Pipline(par);
             System.out.println((ProjectOperator)p.root);
            p.exec();
+           System.out.println("Begins another query");
+           Pipline p1= new Pipline(par1);
+           System.out.println((ProjectOperator)p1.root);
+          p1.exec();
         } catch (Exception e) {
             e.printStackTrace();
         }

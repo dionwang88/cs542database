@@ -1,4 +1,4 @@
-#DataBase internal programming project
+﻿#DataBase internal programming project
 ###CS542-F15: database management system
 --
 #Contents	
@@ -21,14 +21,17 @@
 |------[Concurrency control](#15)
 [Further Assumptions](#16)
 
-**Project2**	
+**Project2**
 Table Metadata	
 Attribute Index	
 Relation&DBManager	
 Condition		
 Shell Validation
 
---
+**Project 3**
+AlgebraNode
+Parser
+Pipeline
 
 
 #Framework<span id = "0"\>：
@@ -235,7 +238,7 @@ As you can see, the put attempt with key 5 failed while key 6 and 7 succeeded.
 ##Concurrency control<span id = "15"\>
 
 ### Assumptions & decisions:
-1. Threads can only be read if no other threads has write accesses or in request of it.
+1. Threads can only be read if no other threads have write accesses or in request of it.
 2. Threads can write when no other threads are reading or writing the database.
 3. When a thread is writing, it also has access to read.
 4. Multiple read and write requests from a same thread is allowed.
@@ -264,7 +267,7 @@ Denied if :
 * This thread is not the current writing thread.
 * Has readers other than the current thread.
 
-Jusr like the Readlock, the thread waits until such criterion is met. Then it increments the number of itself writing the data, decrement the waiting threads and set the current writing thread to itself so as to ensure later re-entrance. After writing the data, it decreases its current writing access to the database and updates the current writing thread attribute if needed. Finally, it notifies other threads.
+Just like the Readlock, the thread waits until such criterion is met. Then it increments the number of itself writing the data, decrement the waiting threads and set the current writing thread to itself so as to ensure later re-entrance. After writing the data, it decreases its current writing access to the database and updates the current writing thread attribute if needed. Finally, it notifies other threads.
 
 ### Result
 
@@ -380,7 +383,7 @@ Assumption:
 ###validation instruction:
 Here are our shell commends listed in the tables. Although some of them are validation in the first project including fragment storage and concurrency control. Although our SQL is simple, it contains most common usages, which are projection and equality selection. More functions and commands will provide in the next several projects.
 
-In order to run the shell program, please run the DBTool.shell() function, or run the **DBTool.main()**. Type help will give you more help information.
+In order to run the shell program, please run the DBTool.shell() function, or run the DBTool.main(). Type help will give you more help information.
 
 |command|function|
 |---|---|
@@ -394,127 +397,179 @@ In order to run the shell program, please run the DBTool.shell() function, or ru
 
 |------SQL------||
 |---|---|
-|select \<attribute(s)\> from \<table\> \[where \<condition(s)\>\]|SELECT STATEMENT|
+|select \<attribute(s)\> from \<table\> on \[where \<condition(s)\>\]|SELECT STATEMENT|
 |create index \<table(attributeName\[, ...\])\>  |create index 	<table(attributeName[, ...])>|	
 
-Here is specific command in our shell:
 
-1) run DBTooL.main(). Type:
+---	
+# Further Assumptions in Project 3<span id = "16"\>
 
->help
- 
-will give more command details. Note that the command is **not case sensitive**.
+#Framework<span id = "0"\>：
+##Query Execution procedure<span id = "9"\>
+The SQL query will be parsed and processed by the Parser class. Then the pipeline class will construct the Relation Algebra Tree based on the Parser's data. Each AlgebraNode is linked with its children with a list of AlgebraNodes, and they are implemented like an Iterator so as to run query in a pipeline fashion. The ExpressionParser class helps each AlgebraNode to deal with Arithmetic expressions involving attributes and values.
+
+The requried functions--open, getNext and close -- are implemented within each of the AlgebraNode. The data is read only once from the DBManager in the Relation Class, and passed along via the  
+take information from the Parser class
+
+##AlgebraNode
+
+We added a new type of Data Structure - AlgebraNode to represent the Relational Algebra Nodes in the Parse Tree. In this project we have implemented three relational algebra Operator : Selection, Join and Projection. To utilize the pipeline Design, each Relation is also designed as an AlgebraNode.
+
+###Assumptions & Decisions:
+1. The rIDs, or clusteredIndex in previous projects are unique among all relations.
+1. There are no "OR"s in the where clause, which means currently we only support "AND" in the WHERE CLAUSE. 
+2. The number of relations in a query is at most 2. Multiple JOINs will be supported in the future.
+3. The supported attribute types are integer, char and float.
+4. Attributes must be pairred with its table name in terms of JOIN and SELECTION.
+5. The to-join attributes are specified in the ON CLAUSE. Cross-Table Selection Operations are merged with the join operation, but you have to specify them in the WHERE CLAUSE.
+5. Arithmetic Operations are supported in the where clause; That is to say, 400 + City.population >= Country.population / 100 is acceptable.
+6. Projection is always at the top of the parse tree.
+# Main classes<span id = "1"\>
+####*AlgebraNode*<span id = "2"\>
+This is an interface, which contains 3 methods required to make it an Iterator-like Class. Open() function prepares the node for data pipelining, like opening children nodes and pre-fetching or sorting the data. getNext() method returns the next processed tuple to its parents.Finally, Close() Method closes the node and cleans up the memory.
+#####method:
+|method name|description|
+|---|---|
+|void open ()|Prepare the node for Data Pipelining.
+|List<\Pair<\Integer,Integer>> getNext();|Returns the next tuple.
+|void close()|Clean and close the node.	
 
 
-2) Read csv from movies data file. Type "readcsv" or "r" for short.
->readcsv
+###*Relation*
 
-3) CREATE INDEX movieInd ON Movie(year, format). In our SQL grammer, please type:
->create index movies(year,format)
+This class is the leaf of the parsed tree. It will pre-fetch the corresponding data from the database, and pre-sort it based on the provided attribute names. The provided attribute names are usually the to-join attributes in the opstream AlgebraNodes so as to spped up the joining process. When all of its tuples are sent via getNext(), it will clean the memory and close the Node. Therefore, it will send its data only once.
+|attribute name|description|
+|---|---|
+|private boolean isOpen|Determines if its Open. Only Relations that are open are allowed for transmitting data.|
+|private int relation_id| The corresponding Table ID in the Database|
+|private String relation_name|The corresponding name of the relation|
+|private int current|Marks the current location of a tuple in the relation.|
+|private List<\String> Attrnames|Optional, provided for sorting the relation|
+|private List<\Integer> rIDs|A list of rIDs in this relation|
 
-Query:
-Find all DVD movies made in 1977.
->select * from movies where format="DVD" and year=1977
+#####method:
+|method name|description|
+|---|---|
+|void open ()|Prepare the node for Data Pipelining.
+|List<\Pair<\Integer,Integer>> getNext()|Returns the next tuple.
+|void close()|Clean and close the node.	
+|private boolean hasNext()|Returns if there still exists a tuple to be passed on| 
 
-Find all VHS movies made in 1990.
->select * from movies where format="VHS" and year=1990
+###*SelectOperator*
 
-Find all DVD movies made in 2001.
->select * from movies where format="DVD" and year=2001
+This class implements the selection operator in Relational Algebra. It will filter out all tuples that do not match the condition specified in the Query. Our SelectOperator supports single table and Multi-table selection operation, but currently it is only used for single relation selection so as to speed up query execution. "OR" Clause will be supported in the future.
+|attribute name|description|
+|---|---|
+|private boolean isOpen|Determines if its Open|
+|private List<\AlgebraNode> publishers|List of children Nodes.|
+|private Map<\Pair<\Integer,Integer>, Pair<String,Pair>> CrossTbCdt|Conditions for Multi-Table Selection|
+|private List<\Pair> SingleTBCdt|Conditions for a single table selection|
+|private int CNode|Variable for indicating the location of an currently opened children node|
 
-4) index yrInd ON Movie(year).
->create index movies(year)
+#####method:
+|method name|description|
+|---|---|
+|void open ()|Prepare the node for Data Pipelining. Open the first publisher
+|List<\Pair<\Integer,Integer>> getNext()|Returns the next filtered tuple.
+|void close()|Clean and close the node.	
+|public void attach|Adds an AlgebraNode to its publishers|
+|public void dettach|Removes an AlgebraNode to its publishers|
+|public static boolean handleCondition|Returns if the input tuple matches the condition|
 
-Find all movies made in 2000.
->select * from movies where year=2000
+###*JoinOperator*
 
-Find all movies made in 2005.
->select * from movies where year=2005
+This class implements the join operator in Relational Algebra. It will join the the data from both of its children nodes and produces a new tuple in the form of a list of pairs, where the left part is the tID and the right part is rID (Together they will represent one unique tuple in the database).If there exists cross-relation selection in the query, then this condition is checked here so as to speed up query execution.
+We read in one of the relation into the memory first. That is to say, we fetched every tuple from one of its children node, then join it with the tuple from the other children node one at a time. Since both relations are pre-sorted in their relation node, we do not to compare each possible combination of the tuples.
+|attribute name|description|
+|---|---|
+|private boolean isOpen|Determines if its Open|
+|private List<\AlgebraNode> publishers|List of children Nodes.|
+|private Map<\Pair<\Integer,Integer>, Pair<\String,Pair>> CrossTbCdt|Conditions for Multi-Table Selection|
+|private List<\Pair> SingleTBCdt|Conditions for a single table selection|
+|private List<\List<\Pair>> TuplesofLeft|Storing the information from the left join node|
+|private LinkedList<\List<\Pair<Integer,Integer>>> Results|A queue for storing multiple certified join results that are produced by one tuple.|
 
-Find all movies made in 2010.
->select * from movies where year=2010
+#####method:
+|method name|description|
+|---|---|
+|void open ()|Prepare the node for Data Pipelining. Read in tuples of one children node and opens the other
+|List<\Pair<\Integer,Integer>> getNext()|Returns the next joined tuple that matches the cross-table selection should it exists
+|void close()|Clean and close the node.	
+|public void attach|Adds an AlgebraNode to its publishers|
+|public void dettach|Removes an AlgebraNode to its publishers|
+###*ProjectOperator*
 
-Here is output sample:
+This class implements the projection operator in Relational Algebra. It will prints out the final query based on attributes mentioned in the query.
+|attribute name|description|
+|---|---|
+|private AlgebraNode publisher|Children node|
+|private Map<\Integer, List<\String>>attrNames|A Map Storing the to-project attributes. Integer is tID, mapped with a list of the attributes in that table|
 
-	>>help
-	Help Information:
-	q|Q|quit|Quit		quit the shell
-	show [<filename>]	show the space of the database, default file is 'cs542.db'.
-	fragment|f			validate fragment
-	concurrency|c		validate concurrency control
-	clear|cl			clear the database
-	readcsv|r			read movies file and create table
-	
-	------SQL-----
-	select <attribute(s)> from <table> [where <condition(s)>]
-	create index <table(attributeName[, ...])>
-	
-	>>r
-	Data related to key is 1, and size is 724 have written to cs542.db
-	Data related to key is 2, and size is 724 have written to cs542.db
-	Data related to key is 3, and size is 724 have written to cs542.db
-	Data related to key is 4, and size is 724 have written to cs542.db
-	Data related to key is 5, and size is 724 have written to cs542.db
-	Data related to key is 6, and size is 724 have written to cs542.db
-	Data related to key is 7, and size is 724 have written to cs542.db
-	Data related to key is 8, and size is 724 have written to cs542.db
-	Data related to key is 9, and size is 724 have written to cs542.db
-	Data related to key is 10, and size is 724 have written to cs542.db
-	Data related to key is 11, and size is 724 have written to cs542.db
-	Data related to key is 12, and size is 724 have written to cs542.db
-	Data related to key is 13, and size is 724 have written to cs542.db
-	Data related to key is 14, and size is 724 have written to cs542.db
-	Data related to key is 15, and size is 724 have written to cs542.db
-	Data related to key is 16, and size is 724 have written to cs542.db
-	Data related to key is 17, and size is 724 have written to cs542.db
-	Data related to key is 18, and size is 724 have written to cs542.db
-	Data related to key is 19, and size is 724 have written to cs542.db
-	Data related to key is 20, and size is 724 have written to cs542.db
-	Data related to key is 21, and size is 724 have written to cs542.db
-	Data related to key is 22, and size is 724 have written to cs542.db
-	Data related to key is 23, and size is 724 have written to cs542.db
-	Data related to key is 24, and size is 724 have written to cs542.db
-	Data related to key is 25, and size is 724 have written to cs542.db
-	Data related to key is 26, and size is 724 have written to cs542.db
-	Data related to key is 27, and size is 724 have written to cs542.db
-	Data related to key is 28, and size is 724 have written to cs542.db
-	Data related to key is 29, and size is 724 have written to cs542.db
-	Data related to key is 30, and size is 724 have written to cs542.db
-	Data related to key is 31, and size is 724 have written to cs542.db
-	Data related to key is 32, and size is 724 have written to cs542.db
-	Data related to key is 33, and size is 724 have written to cs542.db
-	Data related to key is 34, and size is 724 have written to cs542.db
-	Data related to key is 35, and size is 724 have written to cs542.db
-	Data related to key is 36, and size is 724 have written to cs542.db
-	Data related to key is 37, and size is 724 have written to cs542.db
-	Data related to key is 38, and size is 724 have written to cs542.db
-	Data related to key is 39, and size is 724 have written to cs542.db
-	Data related to key is 40, and size is 724 have written to cs542.db
-	Data related to key is 41, and size is 724 have written to cs542.db
-	Data related to key is 42, and size is 724 have written to cs542.db
-	Data related to key is 43, and size is 724 have written to cs542.db
-	Data related to key is 44, and size is 724 have written to cs542.db
-	Data related to key is 45, and size is 724 have written to cs542.db
-	Reading movies.txt is Done
-	
-	>>create index movies(year,format)
-	>>select * from movies where format="DVD" and year=1977
-	>>select * from movies where format="VHS" and year=1990
-	39: Pacific Heights|1990|VHS|Thriller|John Schlesinger|Daniel Pyne|USA|20th Century Fox|$15.00|0286
-	>>select * from movies where format="DVD" and year=2001
-	20: Moulin Rouge|2001|DVD|Musical|Baz Luhrmann|Craig Pearce|USA|20th Century Fox|$15.00|0260
-	16: The Lord of the Rings: The Fellowship of the Ring|2001|DVD|Action|Peter Jackson|Phillippa Boyens|USA|New Line Cinema|$13.81|0707
-	15: Legally Blonde|2001|DVD|Comedy|Robert Luketic|Karen McCullah Lutz|USA|MGM|$15.00|0231
-	5: A Beautiful Mind|2001|DVD|Drama|Ron Howard|Akiva Goldsman|USA|Universal Pictures|$15.00|0054
-	2: Amelie|2001|DVD|Comedy|Jean-Pierre Jeunet|Guillaume Laurant|France|Miramax|$15.00|0022
-	
-	>>create index movies(year)
-	>>select * from where year=2000
-	No table named where
-	>>select * from movies where year=2000
-	17: Malena|2000|DVD|Drama|Giuseppe Tornatore|Giuseppe Tornatore|Italy|Miramax|$15.00|0243
-	9: Gladiator|2000|DVD|Epic|Ridley Scott|John Logan|USA|DreamWorks / Universal  (Foreign)|$15.00|0169
-	7: Crouching Tiger, Hidden Dragon|2000|DVD|Action|Ang Lee|Du Lu Wang|Taiwan|Asia / Columbia Pictures / Good Machine / Sony Pic|$15.00|0528
-	>>select * from movies where year=2005
-	21: Mr. & Mrs. Smith|2005|DVD|Action|Doug Liman|Simon Kinberg|USA|20th Century Fox|$15.00|0261
-	>>select * from movies where year=2010
+#####method:
+|method name|description|
+|---|---|
+|void open ()|Prepare the node for Data Pipelining. Open its children and print out the to-print attribute names.
+|List<\Pair<\Integer,Integer>> getNext()|Returns the tuple and print out the results.
+|void close()|Clean and close the node.	
+|public void attach|Set its children node|
+|public void dettach|Remove its children node|
+
+## Parsers
+To translate SQL query into parsed trees and pipeline, we need to parse the input query.
+###*Parser*
+This class translates the original query into various data structures for building pipelines. It mainly uses REGEX to do the work.
+|attribute name|description|
+|---|---|
+|Map<\Integer,List<\String>> attrnames|A Map Storing the to-project attributes. Integer is tID, mapped with a list of the attributes in that table|
+|List<\Relation> Relations|A List of involved Relations
+|List<\Pair<Integer,String>> On_Conditions|A List of to-join attributes|
+|String[] or_conditions|Currently useless. Stores sub "OR" Conditions|
+|List<\String[]> and_conditions|Every branch of "AND" Conditions|
+|Map<\Integer, Map<\Integer,List<\Pair>>>|A Map Storing Single Table selection conditions|
+|Map<\Pair<\Integer,Integer>, Pair<\String,Pair>>|A Map Storing Cross-Table Selection conditions|
+
+
+#####method:
+|method name|description|
+|---|---|
+|public Map<\Integer, Map<\Integer,List<\Pair>>> getDispatched|Returns Single Table Selection conditions
+|public Map<\Pair<\Integer,Integer>, Pair<\String,Pair>> getCrossTable()|Returns Cross-Table Selection conditions|
+|public List<\Pair<Integer,String>> getJInfo()|Returns a list of to-join attributes|
+|public List<\Relation> getRelations()|Returns a list of Relations|
+
+###*ExpressionParser*
+This class handles the expressions that occurs in both sides of the comparing operators(i.e. ">","<") in the SQL Query. It uses Regex to split up expressions, and implemented arithmetic operations via two Stacks. The expressionparser does not evaluate when intantiated; Rather, it is not until the expression is called for in the selection or the join operator that it gives out the final value. Currently we do not allow expressions to appear in the Projection, but it can be easily modified to support it.
+
+Only numeric values supports arithmetic operations, and they are all evaled into a double number before resolving the final sub-condition. Currently, the supported operands are : "+", "-", "*", "/", "%", "(", ")".
+
+
+#####attributes:
+|attribute name|description|
+|---|---|
+|private String exprString|A String storing the expression|
+|private String type|A String indicating the type of the evaluated result|
+|private Stack<\Double> vals|A Stack for storing the values. Only Numerical values supports arithmetic operations.|
+|private Stack<\String> Operands|A Stack for storing the operands|
+|private Object finalval|The final value of the expression|
+|private OperatorPriority opsvr|A private class OperatorPriority that gives the operands' priority|
+|private int tID|Tid of the expression if attributes exist in the expression|   
+
+
+#####method:
+|method name|description|
+|---|---|
+|private boolean isOperand(String s)|Returns if the input String is an operand|
+|public void parse(byte[] tuple, DBManager dbm)|Parse and evaluates the expression|
+|public void setID(int ID)|Sets the tID attribute|
+|public int getID()|Returns tID|
+|public Pair<\String,Object> getExpr()|Returns a Pair Containing the Type and Value of the expression|
+
+
+##PipeLine
+
+The Query is executed via the top Projection Node in the Parsed Tree. Each Algrebra Node will open its children and start retrieving data, process the data after it is ready, and returns the processed data one tuple at a time to its parents unless the retrieved data is null (Not Found, which marks the end of the ).The relationship between parent node and children are stored as a list of Algebra Nodes in the parent. The leaves of the Parsed Tree are Relations involved in query, and they will read the corresponding rIDs and passed them to their parents.
+
+Information is passed between Nodes in the form of a List of Pair class, where the left part of the pair is the table ID, and the right part is the corresponding rID in that table.
+|Tuple from Table 1|Tuple from Table 2|.......|Tuple from Table N|
+|---|---|---|---|
+|Pair(TID of Table1, RID)|Pair(TID of Table2, RID)|.......|Pair(TID of Table N, RID)|
