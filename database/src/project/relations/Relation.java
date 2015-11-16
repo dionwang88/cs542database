@@ -63,6 +63,7 @@ public class Relation implements AlgebraNode{
     @Override
     public void open() {
     	//table-scan;pre-fetch everything
+    	if (Attrnames.size() > 0){
     	if (dbm.isAttrIndex(relation_id, Attrnames)){
     		rIDs = dbm.Indexsort(relation_id, Attrnames);
     	}else{
@@ -73,6 +74,12 @@ public class Relation implements AlgebraNode{
     	}
     	}
     	rIDs.sort(new AttrComparator());
+    	}
+    	Map<Integer, Index> cIndex = dbm.getClusteredIndex();
+    	for (int i =1; i < cIndex.size(); i ++){
+    		int tID = cIndex.get(i).getTID();
+    		if (relation_id == tID) rIDs.add(i);
+    	}
     	current = 1;
     	isOpen = true;
     }
