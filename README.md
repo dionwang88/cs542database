@@ -1,4 +1,4 @@
-﻿#DataBase internal programming project
+#DataBase internal programming project
 ###CS542-F15: database management system
 --
 #Contents	
@@ -575,3 +575,7 @@ Information is passed between Nodes in the form of a List of Pair class, where t
 |Tuple from Table 1|Tuple from Table 2|.......|Tuple from Table N|
 |---|---|---|---|
 |Pair(TID of Table1, RID)|Pair(TID of Table2, RID)|.......|Pair(TID of Table N, RID)|
+
+In our design, we did not implement the optimal pipeline structure. We handled all the query in the form below:
+
+![GitHub Logo](pipeline.png)
