@@ -28,7 +28,7 @@ public class Pipline {
         construct();
     }
     private void construct() throws Exception {
-    	AlgebraNode top = null;
+        AlgebraNode top = null;
         if(On_Conditions.size()>2 || On_Conditions.size()%2 !=0){
             throw new Exception("Not two tables join or currently not supported!");
         }
@@ -36,27 +36,25 @@ public class Pipline {
         ProjectOperator ProjNode=new ProjectOperator(attrnames);
         if (Relations.size() > 1){
             JoinOperator joinNode=new JoinOperator(On_Conditions, crosstab);
-            List<SelectOperator> Selections = new ArrayList<SelectOperator>();
             for (Relation r : Relations){
-            	if(Dispatched != null){
-            	if (Dispatched.containsKey(r.getRelation_id())){
-            		SelectOperator SlctNode=new SelectOperator(Dispatched.get(r.getRelation_id()),null);
-            		SlctNode.attach(r);
-            		top = SlctNode;
-            	}else{
-            		top = r;
-            	}
-            	}
-          		joinNode.attach(top);
+                if(Dispatched != null){
+                    if (Dispatched.containsKey(r.getRelation_id())){
+                        SelectOperator SlctNode=new SelectOperator(Dispatched.get(r.getRelation_id()),null);
+                        SlctNode.attach(r);
+                        top = SlctNode;
+                    }
+                }
+                else top=r;
+                joinNode.attach(top);
             }
             top = joinNode;
         }else{//Only one table
-        	Relation r= Relations.get(0);
-        	if (Dispatched.containsKey(r.getRelation_id())){
-            	SelectOperator SlctNode=new SelectOperator(Dispatched.get(r.getRelation_id()),null);
-            	SlctNode.attach(r);
-            	top = SlctNode;
-        	}
+            Relation r= Relations.get(0);
+            if (Dispatched.containsKey(r.getRelation_id())){
+                SelectOperator SlctNode=new SelectOperator(Dispatched.get(r.getRelation_id()),null);
+                SlctNode.attach(r);
+                top = SlctNode;
+            }
         }
         ProjNode.attach(top);
         root=ProjNode;
@@ -71,13 +69,16 @@ public class Pipline {
     }
 
     public static void main(String[] args){
-        Parser par = new Parser("select Country.code,Country.name,city.name from Country, City on Country.code = city.CountryCode"
-    			+ " where 0.4 * Country.population <= city.population and city.population < 1000000");
+        String q="select Country.code,Country.name,city.name from Country, City on Country.code = city.CountryCode"
+                + " where 0.4 * Country.population <= city.population";
+        System.out.println("Make sure read city and country tables first!\nThe pipeline Example SQL:\n"+Condition.removeExtraSpace(q));
+        Parser par = new Parser(q);
 
         try {
+            System.out.println("Please wait, calculating......");
             Pipline p= new Pipline(par);
-            System.out.println((ProjectOperator)p.root);
-           p.exec();
+            p.exec();
+            System.out.println("Done!");
         } catch (Exception e) {
             e.printStackTrace();
         }
