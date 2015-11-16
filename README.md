@@ -570,6 +570,8 @@ Only numeric values supports arithmetic operations, and they are all evaled into
 The Query is executed via the top Projection Node in the Parsed Tree. Each Algrebra Node will open its children and start retrieving data, process the data after it is ready, and returns the processed data one tuple at a time to its parents unless the retrieved data is null (Not Found, which marks the end of the ).The relationship between parent node and children are stored as a list of Algebra Nodes in the parent. The leaves of the Parsed Tree are Relations involved in query, and they will read the corresponding rIDs and passed them to their parents.
 
 Information is passed between Nodes in the form of a List of Pair class, where the left part of the pair is the table ID, and the right part is the corresponding rID in that table.
+
+
 |Tuple from Table 1|Tuple from Table 2|.......|Tuple from Table N|
 |---|---|---|---|
 |Pair(TID of Table1, RID)|Pair(TID of Table2, RID)|.......|Pair(TID of Table N, RID)|
