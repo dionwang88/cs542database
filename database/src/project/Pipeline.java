@@ -2,27 +2,22 @@ package project;
 
 
 import project.relations.*;
-
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Created by vincent on 11/14/15.
- */
-public class Pipline {
-	//Single Table Selection.The Integer in the outer Map is the groupno.
-	//Pair<Operator,Pair<Expr,Expr>> Operator:" >, < >=, <=, !=, ="
+public class Pipeline {
+    //Single Table Selection.The Integer in the outer Map is the groupno.
+    //Pair<Operator,Pair<Expr,Expr>> Operator:" >, < >=, <=, !=, ="
     private List<Relation> Relations;
     private Map<Pair<Integer,Integer>,Pair<String,Pair>> crosstab;
     private Map<Integer,List<Pair>> Dispatched;// Here Dispatched only supports and .
     private Map<Integer,List<String>> attrnames; //Projection Info. Integer for tID, List<String> for corresponding attrs
     private List<Pair<Integer,String>> On_Conditions; // Join info. Integer for tID, String for Attrname
     private AlgebraNode root;
-    public Pipline(Parser p) throws Exception {
-    	Dispatched = p.getDispatched().get(0);
-    	attrnames = p.getAttrnames();
-    	On_Conditions = p.getJInfo();
+    public Pipeline(Parser p) throws Exception {
+        Dispatched = p.getDispatched().get(0);
+        attrnames = p.getAttrnames();
+        On_Conditions = p.getJInfo();
         Relations=p.Relations;
         crosstab=p.getCrossTable();
         construct();
@@ -60,23 +55,23 @@ public class Pipline {
         root=ProjNode;
     }
     public void exec(){
-    	DBManager dbm = DBManager.getInstance();
+        DBManager dbm = DBManager.getInstance();
         root.open();
         List<Pair<Integer,Integer>> l;
-    	while( (l = root.getNext()) != null){
+        while( (l = root.getNext()) != null){
 
-    	}
+        }
     }
 
     public static void main(String[] args){
-    	
+
         String q="select Country.code,Country.name,city.name from Country, City on Country.code = city.CountryCode"
                 + " where 0.4 * Country.population <= city.population";
         System.out.println("Make sure read city and country tables first!\nThe pipeline Example SQL:\n"+Condition.removeExtraSpace(q));
         Parser par = new Parser(q);
         try {
             System.out.println("Please wait, calculating......");
-            Pipline p= new Pipline(par);
+            Pipeline p= new Pipeline(par);
             p.exec();
             System.out.println("Done!");
         } catch (Exception e) {

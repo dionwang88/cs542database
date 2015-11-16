@@ -6,9 +6,6 @@ import java.util.Map;
 import project.DBManager;
 import project.Pair;
 
-/**
- * Created by wangqian on 11/9/15.
- */
 public class ProjectOperator implements AlgebraNode {
     private static String operator_name = "Project";
     public AlgebraNode publisher;
@@ -19,7 +16,6 @@ public class ProjectOperator implements AlgebraNode {
         this.attrNames=attrNames;
     }
 
-
     public String toString(){
         return operator_name+" : publisher-{ "+ publisher.toString()+" }";
     }
@@ -29,28 +25,27 @@ public class ProjectOperator implements AlgebraNode {
     public void dettach(){
         this.publisher=null;
     }
-    
+
     @Override
     public void open() {
-    	publisher.open();
-    	String tbname;
-    	boolean isFirst = true;
-    	for (Map.Entry<Integer, List<String>> Entry : attrNames.entrySet()){
-    		int ID = Entry.getKey();
-    		if (ID ==0) tbname = "Country";
-    		else tbname = "City";
-    		for (String s : Entry.getValue()){
-        		if (isFirst){
-        			System.out.print(tbname +"."+s);
-        			isFirst = false;
-        		}else{
-        			System.out.print("|"+tbname +"."+s);
-        		}
-    		}
-
-    	}
-    	System.out.print('\n');
-    	}
+        publisher.open();
+        String tbname;
+        boolean isFirst = true;
+        for (Map.Entry<Integer, List<String>> Entry : attrNames.entrySet()){
+            int ID = Entry.getKey();
+            if (ID ==0) tbname = "Country";
+            else tbname = "City";
+            for (String s : Entry.getValue()){
+                if (isFirst){
+                    System.out.print(tbname +"."+s);
+                    isFirst = false;
+                }else{
+                    System.out.print("|"+tbname +"."+s);
+                }
+            }
+        }
+        System.out.print('\n');
+    }
 
     @Override
     public List<Pair<Integer, Integer>> getNext() {
@@ -64,14 +59,14 @@ public class ProjectOperator implements AlgebraNode {
                 if (tuple == null) continue;
                 List<String> names = attrNames.get(tid);
                 if (names != null){
-                for(String attrName : names) {
-                    if (isFirst) {
-                        System.out.print(dbm.getAttribute(tid, tuple, attrName));
-                        isFirst = false;
-                    } else
-                        System.out.print("|" + dbm.getAttribute(tid, tuple, attrName));
+                    for(String attrName : names) {
+                        if (isFirst) {
+                            System.out.print(dbm.getAttribute(tid, tuple, attrName));
+                            isFirst = false;
+                        } else
+                            System.out.print("|" + dbm.getAttribute(tid, tuple, attrName));
+                    }
                 }
-            }else continue;
             }
             System.out.print('\n');
             return new ArrayList<>();

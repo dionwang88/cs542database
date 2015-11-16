@@ -132,19 +132,19 @@ public class Condition {
         }
         else throw new Exception("Can't determine the condition");
     }
-    
+
 
     private String[] AttrRetriever(String s){
-    	String[] results = new String[2];
-    	Pattern dot =Pattern.compile("\\."); 
-		Matcher m = dot.matcher(s);
-		if(m.find()){
-			int loc = m.start();
-			results[1] = s.substring(loc).trim();
-			results[0] = s.substring(0, loc).trim();
-			return results;
-		}
-		return null;
+        String[] results = new String[2];
+        Pattern dot =Pattern.compile("\\.");
+        Matcher m = dot.matcher(s);
+        if(m.find()){
+            int loc = m.start();
+            results[1] = s.substring(loc).trim();
+            results[0] = s.substring(0, loc).trim();
+            return results;
+        }
+        return null;
     }
     //is a word or digtal or * or "
     private static boolean is_W_or_D(char c){
@@ -183,7 +183,7 @@ public class Condition {
         while(m.find()) count++;
         return count;
     }
-    
+
     // for printing and testing
     public String toString(){return statement;}
     //some local test
@@ -191,7 +191,7 @@ public class Condition {
         Condition c=new Condition("dshjdkshdjksjdhsjhj sle from where a.attr1 > 2 * b.attr2 and a. attr < b.attr");
         System.out.println(removeExtraSpace(c.toString()));
         try {
-        	c.throwCondition();
+            c.throwCondition();
             System.out.println(handleCondition(c.throwCondition(), DBManager.getInstance(),1,0));
         } catch (Exception e) {
             e.printStackTrace();
