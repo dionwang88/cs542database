@@ -1,7 +1,9 @@
-*.db
 *.iml
 *.class
 .DS_Store
 *.log
 .gitignore
-database/.idea/*
+database/.classpath
+database/.project
+database/.settings/
+database/.idea/

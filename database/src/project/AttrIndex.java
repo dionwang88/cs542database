@@ -53,11 +53,11 @@ public class AttrIndex<K>implements Serializable {
 	public void Remove(K attrs){
 		table.remove(attrs.toString().hashCode());
 	}
-	
+
 	//for print and test
 	public String toString(){
 		return table.toString();
 	}
-	
-	
+
+
 }

@@ -88,14 +88,14 @@ public class DBManager {
 		set_METADATA_USED();
 	}
 	public void set_METADATA_USED(){
-        try {
-            METADATA_USED=indexHelper.hastabToBytes(attrIndexes.get(0)).length+
-                    indexHelper.indexToBytes(clusteredIndex).length+
-                    indexHelper.tabMetaToBytes(tabMetadata).length;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
+		try {
+			METADATA_USED=indexHelper.hastabToBytes(attrIndexes.get(0)).length+
+					indexHelper.indexToBytes(clusteredIndex).length+
+					indexHelper.tabMetaToBytes(tabMetadata).length;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
 	//public int get_METADATA_USED(){return METADATA_USED;}
 	public int getFreeSpace() {return DATA_SIZE - DATA_USED;}
 
@@ -150,45 +150,45 @@ public class DBManager {
 		}
 	}
 	public void createTab(String tableName, String attr_para) throws Exception {
-        List<Pair> pairs = new ArrayList<>();
+		List<Pair> pairs = new ArrayList<>();
 		//generate tid
-        int tid;
-        try {
-            tid = DBTool.tabNameToID(dbManager, tableName);
-        }catch (Exception e){
-            tid=-1;
-        }
-        if (tid>=0){
-            System.out.println("Table exists!");
-            return;
-        }
-        else tid++;
+		int tid;
+		try {
+			tid = DBTool.tabNameToID(dbManager, tableName);
+		}catch (Exception e){
+			tid=-1;
+		}
+		if (tid>=0){
+			System.out.println("Table exists!");
+			return;
+		}
+		else tid++;
 		while(tabMetadata.keySet().contains(tid))
-            tid++;
-        pairs.add(new Pair<>(tid,tableName.toLowerCase()));
-        String[] attr_and_types=attr_para.split(",");
-        for(String a_and_t:attr_and_types){
-            String[] a_t=a_and_t.split(" ");
-            int attr_type,len_attr;
-            if(a_t.length<2){
-                System.out.println("Need domain type!");
-                return;
-            }
-            if(a_t[1].toLowerCase().equals("int")){
-                attr_type=0;len_attr=Integer.BYTES;
-            }
-            else if(a_t[1].toLowerCase().equals("char")){
-                attr_type=1;len_attr= Integer.parseInt(a_t[2]);
-            }else if (a_t[1].toLowerCase().equals("float")){
-            	attr_type=2;len_attr=Float.BYTES;
-            }
-            else throw new Exception("Unknown type: "+a_t[1]);
-            pairs.add(new Pair<>(a_t[0].toLowerCase(),new Pair<>(attr_type,len_attr)));
-        }
+			tid++;
+		pairs.add(new Pair<>(tid,tableName.toLowerCase()));
+		String[] attr_and_types=attr_para.split(",");
+		for(String a_and_t:attr_and_types){
+			String[] a_t=a_and_t.split(" ");
+			int attr_type,len_attr;
+			if(a_t.length<2){
+				System.out.println("Need domain type!");
+				return;
+			}
+			if(a_t[1].toLowerCase().equals("int")){
+				attr_type=0;len_attr=Integer.BYTES;
+			}
+			else if(a_t[1].toLowerCase().equals("char")){
+				attr_type=1;len_attr= Integer.parseInt(a_t[2]);
+			}else if (a_t[1].toLowerCase().equals("float")){
+				attr_type=2;len_attr=Float.BYTES;
+			}
+			else throw new Exception("Unknown type: "+a_t[1]);
+			pairs.add(new Pair<>(a_t[0].toLowerCase(),new Pair<>(attr_type,len_attr)));
+		}
 
 		tabMetadata.put(tid, pairs);
 		attrIndexes.put(tid, new Hashtable<>());
-        DBStorage.writeMetaData(DB_NAME, dbManager);
+		DBStorage.writeMetaData(DB_NAME, dbManager);
 	}
 	public void clear() {
 		// for clearing the database
@@ -302,7 +302,7 @@ public class DBManager {
 			Locker.ReadLock();
 			logger.info("Attempting to Get data mapped to key :" + key);
 			if (clusteredIndex.containsKey(key)) {
-                if(clusteredIndex.get(key).getTID()!=tid) return null;
+				if(clusteredIndex.get(key).getTID()!=tid) return null;
 				List<Pair<Integer, Integer>> index = clusteredIndex.get(key).getIndexList();
 				//extracting the mapped data from the data in memory;
 				int start = 0;
@@ -361,7 +361,7 @@ public class DBManager {
 
 	}
 
-    public byte[] Get(int key){return Get(0,key);}
+	public byte[] Get(int key){return Get(0,key);}
 
 
 	//retrieve attribute value according to the rid and attribute name
@@ -453,31 +453,31 @@ public class DBManager {
 			}
 			AttrIndex attrIndex= attrIndexes.get(tid).get(attrs);
 			for(Object queryHashVal:attrIndex.table.keySet()) {
-                List keys = attrIndex.Get(queryHashVal);//Getting RIDs
-                if (!Condition.handleCondition(c.throwCondition(), dbManager, (int) keys.get(0), tid)) continue;
-                for (Object key1 : keys) {
-                    int key = (int) key1;
-                    boolean isFirst = true;
-                    System.out.print(key + ": ");
-                    byte[] tuple = dbManager.Get(tid, key);
-                    if (tuple == null) continue;
-                    for (String attrName : attrNames) {
-                        if (isFirst) {
-                            System.out.print(getAttribute(tid, tuple, attrName));
-                            isFirst = false;
-                        } else
-                            System.out.print("|" + getAttribute(tid, tuple, attrName));
-                    }
-                    System.out.print('\n');
-                }
-            }
+				List keys = attrIndex.Get(queryHashVal);//Getting RIDs
+				if (!Condition.handleCondition(c.throwCondition(), dbManager, (int) keys.get(0), tid)) continue;
+				for (Object key1 : keys) {
+					int key = (int) key1;
+					boolean isFirst = true;
+					System.out.print(key + ": ");
+					byte[] tuple = dbManager.Get(tid, key);
+					if (tuple == null) continue;
+					for (String attrName : attrNames) {
+						if (isFirst) {
+							System.out.print(getAttribute(tid, tuple, attrName));
+							isFirst = false;
+						} else
+							System.out.print("|" + getAttribute(tid, tuple, attrName));
+					}
+					System.out.print('\n');
+				}
+			}
 		}
 		//if nor, or no index on the attribute(s)
 		else {
 			for (int key : clusteredIndex.keySet()) {
-                byte[] tuple = dbManager.Get(tid, key);
+				byte[] tuple = dbManager.Get(tid, key);
 				if (!Condition.handleCondition(c.throwCondition(),dbManager,key,tid)
-                        ||tuple == null) continue;
+						||tuple == null) continue;
 				boolean isFirst = true;
 				for (String attrName : attrNames) {
 					if(getAttribute(tid,tuple,attrName)==null) continue;
@@ -533,39 +533,39 @@ public class DBManager {
 				byteData = null;
 				for (int j = 0; j < record.length; j ++){
 					switch(AttrType[j]){
-					case 0:
-						int v;
-						if(record[j].trim().equals("")) v=0;
-						else if (record[j].trim().equals("NULL")) v = -1;
-						else{
-							Double t = Double.parseDouble(record[j].trim());
-							v = t.intValue();
-						}
-						if (byteData == null) byteData = IndexHelperImpl.intToByte(v);
-						else byteData = IndexHelperImpl.concat(byteData, IndexHelperImpl.intToByte(v));
-						break;
-					case 1:
-						if (AttrLength[j] > record[j].length()){
-							for (; AttrLength[j]>record[j].length();){
-								record[j] = record[j] +" ";
+						case 0:
+							int v;
+							if(record[j].trim().equals("")) v=0;
+							else if (record[j].trim().equals("NULL")) v = -1;
+							else{
+								Double t = Double.parseDouble(record[j].trim());
+								v = t.intValue();
 							}
-						}else{
-							System.out.println("Attribute Size exceeded.");
-						}
-						if (byteData == null) byteData = record[j].getBytes();
-						else byteData = IndexHelperImpl.concat(byteData, record[j].getBytes());
-						break;
-					case 2:
-						float f;
-						if(record[j].trim().equals("")) f=0;
-						else if (record[j].trim().equals("NULL")) f = -1.0f;
-						else f = Float.parseFloat(record[j].trim());
-						if (byteData == null) byteData = IndexHelperImpl.floatToByte(f);
-						else byteData = IndexHelperImpl.concat(byteData, IndexHelperImpl.floatToByte(f));
-						break;
+							if (byteData == null) byteData = IndexHelperImpl.intToByte(v);
+							else byteData = IndexHelperImpl.concat(byteData, IndexHelperImpl.intToByte(v));
+							break;
+						case 1:
+							if (AttrLength[j] > record[j].length()){
+								for (; AttrLength[j]>record[j].length();){
+									record[j] = record[j] +" ";
+								}
+							}else{
+								System.out.println("Attribute Size exceeded.");
+							}
+							if (byteData == null) byteData = record[j].getBytes();
+							else byteData = IndexHelperImpl.concat(byteData, record[j].getBytes());
+							break;
+						case 2:
+							float f;
+							if(record[j].trim().equals("")) f=0;
+							else if (record[j].trim().equals("NULL")) f = -1.0f;
+							else f = Float.parseFloat(record[j].trim());
+							if (byteData == null) byteData = IndexHelperImpl.floatToByte(f);
+							else byteData = IndexHelperImpl.concat(byteData, IndexHelperImpl.floatToByte(f));
+							break;
 					}
 				}
-                while(clusteredIndex.keySet().contains(i)) i++;
+				while(clusteredIndex.keySet().contains(i)) i++;
 				this.Put(TabID,i++, byteData);
 			}
 		} catch (IOException e) {
@@ -584,14 +584,14 @@ public class DBManager {
 
 	// create index on certain attribute names
 	public void createIndex(String tableName,String str_AttrNames){
-        int tid= 0;
-        try {
-            tid = DBTool.tabNameToID(dbManager,tableName);
-        } catch (Exception e) {
-            System.out.print(e.getMessage()+"\n");
-        }
+		int tid= 0;
+		try {
+			tid = DBTool.tabNameToID(dbManager,tableName);
+		} catch (Exception e) {
+			System.out.print(e.getMessage()+"\n");
+		}
 
-        ArrayList<String> AttrNames = new ArrayList<>();
+		ArrayList<String> AttrNames = new ArrayList<>();
 		String[] strings = str_AttrNames.toLowerCase().split(",");
 		for (String s : strings)
 			AttrNames.add(s.trim());
@@ -628,7 +628,7 @@ public class DBManager {
 		}
 		return attrIndexes.get(tid).get(attrs);
 	}
-	
+
 	//attribute has index or not
 	public boolean isAttrIndex(int tid,List<String> attrNames){
 		String attrs = "";
@@ -651,7 +651,7 @@ public class DBManager {
 		}
 		return false;
 	}
-	
+
 	//Returns a sorted List of List<Integers> based on the attributes
 	public List<Integer> Indexsort(int tid, List<String> attrNames){
 		ArrayList<Integer> sortedRIDs = new ArrayList<Integer>();
@@ -665,7 +665,7 @@ public class DBManager {
 				toSearch = toSearch + this.getAttribute(tid, tuple, attr);
 			}
 			t.put(toSearch, keys);
-			}
+		}
 		for (List<Integer> subl : t.values()){
 			sortedRIDs.addAll(subl);
 		}

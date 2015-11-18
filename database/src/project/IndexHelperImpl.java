@@ -30,13 +30,13 @@ class Serializer {
 }
 
 public class IndexHelperImpl implements IndexHelper {
-	
+
 	Logger logger = (Logger) LogManager.getLogger();
-	
+
 	private DBManager dbmanager = DBManager.getInstance();
-	
+
 	private static IndexHelperImpl indexHelper = null;
-	
+
 	protected IndexHelperImpl() {logger.info("Create IndexHelper Object.");}
 
 	public static IndexHelperImpl getInstance(){
@@ -49,9 +49,9 @@ public class IndexHelperImpl implements IndexHelper {
 	 * find the indexes list of free spaces based on the data size Get all free space based on the delete sign and
 	 * amount blocks to find some enough space to save the data.
 	 * In pair object, left is start index, right is the size
-	 * 
+	 *
 	 * To solve the fragment problem:
-	 * 
+	 *
 	 * (1) public List<Integer> getSortedIndexList()
 	 * Get the Index Buffer from DBManager
 	 * Loop the indexes in the IndexBuffer Map to Get the index pairs list:
@@ -59,7 +59,7 @@ public class IndexHelperImpl implements IndexHelper {
 	 * 			Get the start-length index pair and change it to start-end index pair
 	 * 			add the start-end index into a start-end list
 	 * 		Sort the start-end list and return the list in order to find free space method
-	 * 
+	 *
 	 * (2) public List<Pair<Integer,Integer>> findFreeSpaceIndex(int size)
 	 * Loop the start-end list:
 	 * 		Get two start-end indexes once a time
@@ -72,16 +72,16 @@ public class IndexHelperImpl implements IndexHelper {
 	 * 				add the free space to free space list
 	 * 				saving size = saving size - this free size
 	 * 				next loop
-	 * 
+	 *
 	 * (3) public void splitDataBasedOnIndex(byte[] data_to_save, List<Pair<Integer,Integer>> indexes)
 	 * Loop the free (start,end) pair in free space list:
 	 * 		Get the free length = end - start
 	 * 		copy the same length in saving data to the (start, end) in the database
 	 * 		next loop
-	 * 
+	 *
 	 */
 	@Override
-	public List<Pair<Integer,Integer>> findFreeSpaceIndex(int size) {		
+	public List<Pair<Integer,Integer>> findFreeSpaceIndex(int size) {
 		// Temp variable to record the left size of the data
 		int left_size = size;
 		List<Pair<Integer, Integer>> list_freeSpace = new ArrayList<>();
@@ -95,7 +95,7 @@ public class IndexHelperImpl implements IndexHelper {
 			list_freeSpace.add(p);
 		}else{ // if the index list has more than one pair index
 			int i = 2;
-			
+
 			while( i < index_list.size()){
 				int pre_end = index_list.get(i-1);
 				int next_start = index_list.get(i); // the next position to the end index of first pair index 
@@ -125,7 +125,7 @@ public class IndexHelperImpl implements IndexHelper {
 				list_freeSpace.add(p);
 			}
 		}
-		
+
 		return list_freeSpace;
 	}
 	/**
@@ -176,7 +176,7 @@ public class IndexHelperImpl implements IndexHelper {
 		}
 		dbmanager.setData(db_data);
 	}
-	
+
 	public int getIndexSize(List<Pair<Integer,Integer>> pairs_list) {
 		return Index.getReservedSize()+1+1+ Index.getKeySize()+pairs_list.size()*2*Integer.BYTES;
 	}
@@ -215,22 +215,22 @@ public class IndexHelperImpl implements IndexHelper {
 			//covert key from int to byte[]
 			if(index.getKey()<0) throw new Error("Key value can't be negative!");
 			byte[] bytekey = intToByte(index.getKey());
-            for (byte aBytekey : bytekey) {
-                outbyte[offset++] = aBytekey;
-            }
+			for (byte aBytekey : bytekey) {
+				outbyte[offset++] = aBytekey;
+			}
 
-            //convert pairs to byte[]
-            List<Pair<Integer, Integer>> l= index.getIndexList();
-            for (Pair<Integer, Integer> aL : l) {
-                byte[] bpl = intToByte(aL.getLeft());
-                byte[] bpr = intToByte(aL.getRight());
-                for (int j = 0; j < bpl.length; j++) {
-                    outbyte[offset] = bpl[j];
-                    outbyte[offset+Integer.BYTES] = bpr[j];
-                    offset++;
-                }
-                offset+=Integer.BYTES;
-            }
+			//convert pairs to byte[]
+			List<Pair<Integer, Integer>> l= index.getIndexList();
+			for (Pair<Integer, Integer> aL : l) {
+				byte[] bpl = intToByte(aL.getLeft());
+				byte[] bpr = intToByte(aL.getRight());
+				for (int j = 0; j < bpl.length; j++) {
+					outbyte[offset] = bpl[j];
+					outbyte[offset+Integer.BYTES] = bpr[j];
+					offset++;
+				}
+				offset+=Integer.BYTES;
+			}
 		}
 		return outbyte;
 	}
@@ -464,9 +464,9 @@ public class IndexHelperImpl implements IndexHelper {
 		/**
 		 * convert integer into a 4 bytes byte array
 		 */
-        return ByteBuffer.allocate(Integer.BYTES).putInt(intnumb).array();
-    }
-	
+		return ByteBuffer.allocate(Integer.BYTES).putInt(intnumb).array();
+	}
+
 	static byte[] floatToByte(float floatnumb){
 		return ByteBuffer.allocate(Float.BYTES).putFloat(floatnumb).array();
 	}
@@ -499,8 +499,8 @@ public class IndexHelperImpl implements IndexHelper {
 	}
 
 	public static void main(String[] args){
-        byte[] b;
-     	b=IndexHelperImpl.floatToByte(-1.34f);
+		byte[] b;
+		b=IndexHelperImpl.floatToByte(-1.34f);
 		for (byte aB : b) System.out.println(aB);
 		System.out.print(IndexHelperImpl.byteToFloat(b));
 	}

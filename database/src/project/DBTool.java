@@ -140,13 +140,13 @@ public class DBTool {
                     case "clear":case "cl":         Clear.main(null);break;
                     case "readcsv":case"r":         TestReadCSV.main(null);break;
                     case "mtable":case"m":          TestMultab.main(null);break;
-                    case "pipeline":case"p":        Pipline.main(null);break;
+                    case "pipeline":case"p":        Pipeline.main(null);break;
                     case ".table":case".t":         showTab(DBManager.getInstance());break;
                     case ".schema":case".s":        showSchema(DBManager.getInstance(),s[1]);
                     case "select":
                         if(s.length>3&&s[2].equals("from")){
                             if(s[3].matches("[\\s\\S]+,[\\s\\S]+")){
-                                Pipline p=new Pipline(new Parser(input));
+                                Pipeline p=new Pipeline(new Parser(input));
                                 p.exec();
                             }else {
                                 dbmanager = DBManager.getInstance();

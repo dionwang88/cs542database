@@ -34,7 +34,7 @@ public class StorageImpl implements Storage {
 	//write given byte array data into the given file with
 	public void writeData(String fileName, byte[] data) throws Exception {
 		// Verify the data size cannot exceed the DATA_SIZE
-		if(data.length > DATA_SIZE) 
+		if(data.length > DATA_SIZE)
 			throw new Exception("The data size is exceed the requirement!");
 		writeIntoDataBase(fileName,data,true);
 	}
