@@ -5,7 +5,7 @@
 <12, name, "ddd", 'aaa'>
 <22, value, 1, 2>
 <32, value, 0.1, 0.3>
-start checkingpoint
+<CHK PNT>
 <1, name, "ddd", 'aaa'>
 <2, value, 1, 2>
 <3, value, 0.1, 0.3>
@@ -13,3 +13,12 @@ start checkingpoint
 <3, name, "ddd", 'aaa'>
 <5, value, 1, 2>
 <6, value, 0.1, 0.3>
+<0, title, 'oo7', '007'>
+<0, title, 'oo7', '007'>
+<0, title, 'oo7', '007'>
+<0, title, 'oo7', '007'>
+<0, title, 'oo7', '007'>
+<CHK PNT>
+<0, title, 'oo7', '007'>
+<0, title, 'oo7', '007'>
+<0, title, 'oo7', '007'>

@@ -1,56 +1,69 @@
 package project;
 
-import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
 import java.util.StringTokenizer;
 
-/**
- * Created by vincent on 11/22/15.
- */
 public class DBRecovery {
 	private static String BRACKET = "<";
-	private static String CHECKPOINT = "checkingpoint";
-	private static String INTEGER = "Ingeter";
+	private static String CHECKPOINT = "<CHK PNT>";
+	private static String INTEGER = "Integer";
 	private static String DOUBLE = "Double";
 	private static String STRING = "String";
-	
-	public static void logUpdate(int tid, String attrName, int type, Object oldVal,Object newVal){
-		writeIntoLog("","");
+	private String path;
+
+	public DBRecovery(String path){
+		this.path=path;
+		if(!new File(path).isFile()) clearLog();
 	}
 
-	/**
-	 * Read Logging file
-	 * @param path: logging file path
-	 * @return LogObj List
-	 */
-	public List<LogObj<?>> logLoad(String path){
+	public void Recover(){
+
+	}
+
+	public void clearLog(){
+		try {
+			PrintWriter writer = new PrintWriter(path);
+			writer.println();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
+	}
+
+	public void writeCHK(){writeIntoLog(CHECKPOINT);}
+
+	public void logUpdate(int tid, String attrName, int type, Object oldVal,Object newVal) throws Exception {
+		String row,oldV=null,newV=null;
+		switch (type){
+			case 0:oldV=Integer.toString((Integer) oldVal);newV=Integer.toString((Integer) newVal);break;
+			case 1:oldV= (String) oldVal;newV=(String)newVal;break;
+			case 2:oldV=Double.toString((Double) oldVal);newV=Double.toString((Double) newVal);break;
+			default:throw new Exception("Unknown type id");
+		}
+		row="<"+Integer.toString(tid)+", "+attrName+", '"+oldV+"', '"+newV+"'>";
+		writeIntoLog(row);
+	}
+
+	public List<LogObj<?>> logLoad(){
 		BufferedReader br = null;
 		Stack<String> stack_line = new Stack<>();
-		List<LogObj<?>> list_logObj = new ArrayList<LogObj<?>>();
+		List<LogObj<?>> list_logObj = new ArrayList<>();
 		try {
 			br = new BufferedReader(new InputStreamReader(new FileInputStream(path)));
-			String line = null;
+			String line;
 			while ((line = br.readLine()) != null) {
 				line = line.trim();
 				stack_line.push(line);
 			}
-			
 			// split the line into parts
 			while(!stack_line.isEmpty()){
-				line = stack_line.pop().toLowerCase();
-//				System.out.println(line);
-				if(line.indexOf(DBRecovery.CHECKPOINT) != -1){
+				line = stack_line.pop();
+				if(line.contains(DBRecovery.CHECKPOINT))
 					return list_logObj;
-				}
-				if(line.indexOf(BRACKET) != -1){
+				if(line.contains(BRACKET))
 					list_logObj.add(this.parseLog(line.substring(1, line.length()-1)));
-				}
 			}
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
@@ -65,7 +78,7 @@ public class DBRecovery {
 					e.printStackTrace();
 				}
 		}
-		return null;
+		return list_logObj;
 	}
 	
 	private LogObj<?> parseLog(String line){
@@ -74,15 +87,13 @@ public class DBRecovery {
 		String sign = DBRecovery.INTEGER;
 		while(st.hasMoreElements()){
 			String value = st.nextElement().toString().trim();
-			
-			if(value.indexOf(".") != -1) sign = DBRecovery.DOUBLE;
-			else if(value.indexOf("\"") != -1 || value.indexOf("'") != -1) sign = DBRecovery.STRING;
-			
+			if(value.contains(".")) sign = DBRecovery.DOUBLE;
+			else if(value.contains("'") || value.contains("\"")) sign = DBRecovery.STRING;
 			lst.add(value);
 		}
 		
 		if(sign.equals(DBRecovery.INTEGER)){
-			LogObj<Integer> lo = new LogObj<Integer>();
+			LogObj<Integer> lo = new LogObj<>();
 			lo.setTableId(Integer.parseInt(lst.get(0))); // TableID
 			lo.setVarName(lst.get(1)); //Variable Name
 			lo.setOldValue(Integer.parseInt(lst.get(2))); // Old Value
@@ -91,7 +102,7 @@ public class DBRecovery {
 			return lo;
 		}
 		if(sign.equals(DBRecovery.DOUBLE)){
-			LogObj<Double> lo = new LogObj<Double>();
+			LogObj<Double> lo = new LogObj<>();
 			lo.setTableId(Integer.parseInt(lst.get(0))); // TableID
 			lo.setVarName(lst.get(1)); //Variable Name
 			lo.setOldValue(Double.parseDouble(lst.get(2))); // Old Value
@@ -100,7 +111,7 @@ public class DBRecovery {
 			return lo;
 		}
 		if(sign.equals(DBRecovery.STRING)){
-			LogObj<String> lo = new LogObj<String>();
+			LogObj<String> lo = new LogObj<>();
 			lo.setTableId(Integer.parseInt(lst.get(0))); // TableID
 			lo.setVarName(lst.get(1)); //Variable Name
 			lo.setOldValue(lst.get(2).substring(1, lst.get(2).length()-1)); // Old Value
@@ -108,40 +119,37 @@ public class DBRecovery {
 			
 			return lo;
 		}
-
 		return null;
 	}
 
-    private static void writeIntoLog(String path,String row){
-
+    private void writeIntoLog(String row){
+		try {
+			BufferedWriter output = new BufferedWriter(new FileWriter(path, true));
+			output.write(row);
+			output.newLine();
+			output.flush();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
     }
 
-    public static void Recover(){
-
-    }
-    
-    /**
-     * @param args
-     */
     public static void main(String[] args){
-    		DBRecovery dbr = new DBRecovery();
-    		String path = "logging.txt";
-    		List<LogObj<?>> st = dbr.logLoad(path);
-    		for(LogObj<?> a: st){
-    			System.out.println(a.getNewVlaue());
-    		}
-    	
-//    		String log1 = "1, name, \"ddd\", 'aaa'";
-//    		String log2 = "2, value, 1, 2";
-//    		String log3 = "3, value, 0.1, 0.3";
-//    		
-//    		
-//    		LogObj<?> lo1 = dbr.parseLog(log1);
-//    		System.out.println(lo1);
-//    		LogObj<?> lo2 = dbr.parseLog(log2);
-//    		System.out.println(lo2);
-//    		LogObj<?> lo3 = dbr.parseLog(log3);
-//    		System.out.println(lo3);
-    		
-    }
+		String path = "logging2.txt";
+		DBRecovery dbr = new DBRecovery(path);
+
+		//dbr.clearLog();
+
+		try {
+			dbr.logUpdate(0,"title",1,"oo7","007");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		//dbr.writeCHK();
+
+		List<LogObj<?>> st = dbr.logLoad();
+		for(LogObj<?> a: st){
+			System.out.println(a.getNewVlaue());
+		}
+	}
 }
