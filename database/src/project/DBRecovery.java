@@ -128,7 +128,7 @@ public class DBRecovery {
     		String path = "logging.txt";
     		List<LogObj<?>> st = dbr.logLoad(path);
     		for(LogObj<?> a: st){
-    			System.out.println(a);
+    			System.out.println(a.getNewVlaue());
     		}
     	
 //    		String log1 = "1, name, \"ddd\", 'aaa'";
