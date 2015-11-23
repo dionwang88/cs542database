@@ -10,7 +10,7 @@ public class DBRecovery {
 	private static String BRACKET = "<";
 	private static String CHECKPOINT = "<CHK PNT>";
 	private static String INTEGER = "Integer";
-	private static String DOUBLE = "Double";
+	private static String FLOAT = "Float";
 	private static String STRING = "String";
 	private String path;
 
@@ -19,8 +19,19 @@ public class DBRecovery {
 		if(!new File(path).isFile()) clearLog();
 	}
 
-	public void Recover(){
-
+	public void Recover(DBManager dbm,String Redo_Undo) throws Exception {
+		List<LogObj<?>> list_logObj=logLoad();
+		for(LogObj alog:list_logObj){
+			int rid=alog.getRowId();
+			String attNames=alog.getVarName();
+			Object val;
+			switch (Redo_Undo.toLowerCase().trim()){
+				case "redo":val=alog.getNewVlaue();break;
+				case "undo":val=alog.getOldValue();break;
+				default:throw new Exception("Unknown redo/undo type!");
+			}
+			dbm.setAttribute(rid,attNames,val);
+		}
 	}
 
 	public void clearLog(){
@@ -34,19 +45,19 @@ public class DBRecovery {
 
 	public void writeCHK(){writeIntoLog(CHECKPOINT);}
 
-	public void logUpdate(int tid, String attrName, int type, Object oldVal,Object newVal) throws Exception {
-		String row,oldV=null,newV=null;
+	public void logUpdate(int rid, String attrName, int type, Object oldVal,Object newVal) throws Exception {
+		String row,oldV,newV;
 		switch (type){
 			case 0:oldV=Integer.toString((Integer) oldVal);newV=Integer.toString((Integer) newVal);break;
 			case 1:oldV= (String) oldVal;newV=(String)newVal;break;
-			case 2:oldV=Double.toString((Double) oldVal);newV=Double.toString((Double) newVal);break;
+			case 2:oldV= Float.toString((Float) oldVal);newV= Float.toString((Float) newVal);break;
 			default:throw new Exception("Unknown type id");
 		}
-		row="<"+Integer.toString(tid)+", "+attrName+", '"+oldV+"', '"+newV+"'>";
+		row="<"+Integer.toString(rid)+", "+attrName+", '"+oldV+"', '"+newV+"'>";
 		writeIntoLog(row);
 	}
 
-	public List<LogObj<?>> logLoad(){
+	private List<LogObj<?>> logLoad(){
 		BufferedReader br = null;
 		Stack<String> stack_line = new Stack<>();
 		List<LogObj<?>> list_logObj = new ArrayList<>();
@@ -87,32 +98,32 @@ public class DBRecovery {
 		String sign = DBRecovery.INTEGER;
 		while(st.hasMoreElements()){
 			String value = st.nextElement().toString().trim();
-			if(value.contains(".")) sign = DBRecovery.DOUBLE;
+			if(value.contains(".")) sign = DBRecovery.FLOAT;
 			else if(value.contains("'") || value.contains("\"")) sign = DBRecovery.STRING;
 			lst.add(value);
 		}
 		
 		if(sign.equals(DBRecovery.INTEGER)){
 			LogObj<Integer> lo = new LogObj<>();
-			lo.setTableId(Integer.parseInt(lst.get(0))); // TableID
+			lo.setRowId(Integer.parseInt(lst.get(0))); // TableID
 			lo.setVarName(lst.get(1)); //Variable Name
 			lo.setOldValue(Integer.parseInt(lst.get(2))); // Old Value
 			lo.setNewVlaue(Integer.parseInt(lst.get(3))); // New Value
 			
 			return lo;
 		}
-		if(sign.equals(DBRecovery.DOUBLE)){
-			LogObj<Double> lo = new LogObj<>();
-			lo.setTableId(Integer.parseInt(lst.get(0))); // TableID
+		if(sign.equals(DBRecovery.FLOAT)){
+			LogObj<Float> lo = new LogObj<>();
+			lo.setRowId(Integer.parseInt(lst.get(0))); // TableID
 			lo.setVarName(lst.get(1)); //Variable Name
-			lo.setOldValue(Double.parseDouble(lst.get(2))); // Old Value
-			lo.setNewVlaue(Double.parseDouble(lst.get(3))); // New Value
+			lo.setOldValue(Float.parseFloat(lst.get(2))); // Old Value
+			lo.setNewVlaue(Float.parseFloat(lst.get(3))); // New Value
 			
 			return lo;
 		}
 		if(sign.equals(DBRecovery.STRING)){
 			LogObj<String> lo = new LogObj<>();
-			lo.setTableId(Integer.parseInt(lst.get(0))); // TableID
+			lo.setRowId(Integer.parseInt(lst.get(0))); // TableID
 			lo.setVarName(lst.get(1)); //Variable Name
 			lo.setOldValue(lst.get(2).substring(1, lst.get(2).length()-1)); // Old Value
 			lo.setNewVlaue(lst.get(3).substring(1, lst.get(3).length()-1)); // New Value

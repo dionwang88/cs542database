@@ -363,6 +363,33 @@ public class DBManager {
 
 	public byte[] Get(int key){return Get(0,key);}
 
+	public void setAttribute(int rid,String Attr_name,Object value) throws Exception {
+		if(clusteredIndex.containsKey(rid)) {
+			Index index = clusteredIndex.get(rid);
+			int tid = index.getTID();
+			if (isAttribute(tid, Attr_name)) {
+				byte[] tmpByte=Get(tid,rid);
+				List<Pair> tabMate=tabMetadata.get(tid);
+				int type=-1,length=0,offset=0;
+				for(int i=1;i<tabMate.size();i++){
+					Pair p= (Pair) tabMate.get(i).getRight();
+					offset+=length;
+					type= (int) p.getLeft();
+					length= (int) p.getRight();
+					if(((String)tabMate.get(i).getLeft()).toLowerCase().equals(Attr_name.toLowerCase())) break;
+				}
+				if(type==0) System.arraycopy(IndexHelperImpl.intToByte((Integer) value),0,tmpByte,offset,length);
+				if(type==1){
+					byte[] str=((String)value).getBytes();
+					for(int i=0;i<length;i++)
+						if(i<str.length) tmpByte[offset+i]=str[i];
+						else tmpByte[offset+i]=32;
+				}
+				if(type==2) System.arraycopy(IndexHelperImpl.floatToByte((Float) value),0,tmpByte,offset,length);
+				Put(tid,rid,tmpByte);
+			} else throw new Exception("Unknown table or attributes");
+		}
+	}
 
 	//retrieve attribute value according to the rid and attribute name
 	public Object getAttribute(int tid,byte[] record, String Attr_name){

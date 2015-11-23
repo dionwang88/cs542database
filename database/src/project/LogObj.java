@@ -1,17 +1,17 @@
 package project;
 
 public class LogObj<T> {
-	private int tableId;
+	private int rowId;
 	private String varName;
 	private T oldValue;
 	private T newVlaue;
 	
-	public int getTableId() {
-		return tableId;
+	public int getRowId() {
+		return rowId;
 	}
 
-	public void setTableId(int tableId) {
-		this.tableId = tableId;
+	public void setRowId(int rowId) {
+		this.rowId = rowId;
 	}
 
 	public String getVarName() {
@@ -40,7 +40,7 @@ public class LogObj<T> {
 
 	@Override
 	public String toString() {
-		return "LogObj [tableId=" + tableId + ", varName=" + varName + ", oldValue=" + oldValue + ", newVlaue="
+		return "LogObj [rowId=" + rowId + ", varName=" + varName + ", oldValue=" + oldValue + ", newVlaue="
 				+ newVlaue + "]";
 	}
 
@@ -48,12 +48,12 @@ public class LogObj<T> {
 		LogObj<String> lo = new LogObj<>();
 		lo.setOldValue("Hello");
 		lo.setNewVlaue("World");
-		lo.setTableId(1);
+		lo.setRowId(1);
 		lo.setVarName("name");
 		System.out.println(lo);
 		
 		LogObj<Integer> lo1 = new LogObj<>();
-		lo1.setTableId(2);
+		lo1.setRowId(2);
 		lo1.setVarName("Desc");
 		lo1.setOldValue(1);
 		lo1.setNewVlaue(2);

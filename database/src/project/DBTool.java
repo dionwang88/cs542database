@@ -142,7 +142,10 @@ public class DBTool {
                     case "mtable":case"m":          TestMultab.main(null);break;
                     case "pipeline":case"p":        Pipeline.main(null);break;
                     case ".table":case".t":         showTab(DBManager.getInstance());break;
-                    case ".schema":case".s":        showSchema(DBManager.getInstance(),s[1]);
+                    case ".schema":case".s":        if(s.length>1)showSchema(DBManager.getInstance(),s[1]);
+                                                    else System.out.println(
+                                                    ".schema|.s <tablename>\t\tshow table attribute names");
+                                                    break;
                     case "select":
                         if(s.length>3&&s[2].equals("from")){
                             if(s[3].matches("[\\s\\S]+,[\\s\\S]+")){
