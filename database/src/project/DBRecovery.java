@@ -24,6 +24,11 @@ public class DBRecovery {
 		writeIntoLog("","");
 	}
 
+	/**
+	 * Read Logging file
+	 * @param path: logging file path
+	 * @return LogObj List
+	 */
 	public List<LogObj<?>> logLoad(String path){
 		BufferedReader br = null;
 		Stack<String> stack_line = new Stack<>();
