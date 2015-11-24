@@ -1,22 +1,166 @@
 package project;
 
-/**
- * Created by vincent on 11/22/15.
- */
+import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Stack;
+import java.util.StringTokenizer;
+
 public class DBRecovery {
-    public static void logUpdate(int tid, String attrName, int type, Object oldVal,Object newVal){
-        writeIntoLog();
+	private static String BRACKET = "<";
+	private static String CHECKPOINT = "<CHK PNT>";
+	private static String INTEGER = "Integer";
+	private static String FLOAT = "Float";
+	private static String STRING = "String";
+	private String path;
+
+	public DBRecovery(String path){
+		this.path=path;
+		if(!new File(path).isFile()) clearLog();
+	}
+
+	public void Recover(DBManager dbm,String Redo_Undo) throws Exception {
+		List<LogObj<?>> list_logObj=logLoad();
+		for(LogObj alog:list_logObj){
+			int rid=alog.getRowId();
+			String attNames=alog.getVarName();
+			Object val;
+			switch (Redo_Undo.toLowerCase().trim()){
+				case "redo":val=alog.getNewVlaue();break;
+				case "undo":val=alog.getOldValue();break;
+				default:throw new Exception("Unknown redo/undo type!");
+			}
+			dbm.setAttribute(rid,attNames,val);
+		}
+	}
+
+	public void clearLog(){
+		try {
+			PrintWriter writer = new PrintWriter(path);
+			writer.println();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
+	}
+
+	public void writeCHK(){writeIntoLog(CHECKPOINT);}
+
+	public void logUpdate(int rid, String attrName, int type, Object oldVal,Object newVal) throws Exception {
+		String row,oldV,newV;
+		switch (type){
+			case 0:oldV=Integer.toString((Integer) oldVal);newV=Integer.toString((Integer) newVal);break;
+			case 1:oldV= (String) oldVal;newV=(String)newVal;break;
+			case 2:oldV= Float.toString((Float) oldVal);newV= Float.toString((Float) newVal);break;
+			default:throw new Exception("Unknown type id");
+		}
+		row="<"+Integer.toString(rid)+", "+attrName+", '"+oldV+"', '"+newV+"'>";
+		writeIntoLog(row);
+	}
+
+	private List<LogObj<?>> logLoad(){
+		BufferedReader br = null;
+		Stack<String> stack_line = new Stack<>();
+		List<LogObj<?>> list_logObj = new ArrayList<>();
+		try {
+			br = new BufferedReader(new InputStreamReader(new FileInputStream(path)));
+			String line;
+			while ((line = br.readLine()) != null) {
+				line = line.trim();
+				stack_line.push(line);
+			}
+			// split the line into parts
+			while(!stack_line.isEmpty()){
+				line = stack_line.pop();
+				if(line.contains(DBRecovery.CHECKPOINT))
+					return list_logObj;
+				if(line.contains(BRACKET))
+					list_logObj.add(this.parseLog(line.substring(1, line.length()-1)));
+			}
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+			System.out.println("Log File '" + "'" + " didn't exist.");
+		} catch(Exception e){ 
+			e.printStackTrace();
+		} finally{
+			if(br != null)
+				try {
+					br.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+		}
+		return list_logObj;
+	}
+	
+	private LogObj<?> parseLog(String line){
+		StringTokenizer st = new StringTokenizer(line, ",");
+		List<String> lst = new ArrayList<>();
+		String sign = DBRecovery.INTEGER;
+		while(st.hasMoreElements()){
+			String value = st.nextElement().toString().trim();
+			if(value.contains(".")) sign = DBRecovery.FLOAT;
+			else if(value.contains("'") || value.contains("\"")) sign = DBRecovery.STRING;
+			lst.add(value);
+		}
+		
+		if(sign.equals(DBRecovery.INTEGER)){
+			LogObj<Integer> lo = new LogObj<>();
+			lo.setRowId(Integer.parseInt(lst.get(0))); // TableID
+			lo.setVarName(lst.get(1)); //Variable Name
+			lo.setOldValue(Integer.parseInt(lst.get(2))); // Old Value
+			lo.setNewVlaue(Integer.parseInt(lst.get(3))); // New Value
+			
+			return lo;
+		}
+		if(sign.equals(DBRecovery.FLOAT)){
+			LogObj<Float> lo = new LogObj<>();
+			lo.setRowId(Integer.parseInt(lst.get(0))); // TableID
+			lo.setVarName(lst.get(1)); //Variable Name
+			lo.setOldValue(Float.parseFloat(lst.get(2))); // Old Value
+			lo.setNewVlaue(Float.parseFloat(lst.get(3))); // New Value
+			
+			return lo;
+		}
+		if(sign.equals(DBRecovery.STRING)){
+			LogObj<String> lo = new LogObj<>();
+			lo.setRowId(Integer.parseInt(lst.get(0))); // TableID
+			lo.setVarName(lst.get(1)); //Variable Name
+			lo.setOldValue(lst.get(2).substring(1, lst.get(2).length()-1)); // Old Value
+			lo.setNewVlaue(lst.get(3).substring(1, lst.get(3).length()-1)); // New Value
+			
+			return lo;
+		}
+		return null;
+	}
+
+    private void writeIntoLog(String row){
+		try {
+			BufferedWriter output = new BufferedWriter(new FileWriter(path, true));
+			output.write(row);
+			output.newLine();
+			output.flush();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
     }
 
-    public static Object logLoad(String path){
-        return null;
-    }
+    public static void main(String[] args){
+		String path = "logging2.txt";
+		DBRecovery dbr = new DBRecovery(path);
 
-    private static void writeIntoLog(String path,String row){
+		//dbr.clearLog();
 
-    }
+		try {
+			dbr.logUpdate(0,"title",1,"oo7","007");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 
-    public static void Recover(){
+		//dbr.writeCHK();
 
-    }
+		List<LogObj<?>> st = dbr.logLoad();
+		for(LogObj<?> a: st){
+			System.out.println(a.getNewVlaue());
+		}
+	}
 }
