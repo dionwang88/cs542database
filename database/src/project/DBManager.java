@@ -12,6 +12,7 @@ import org.apache.logging.log4j.core.Logger;
  */
 public class DBManager {
 	Logger logger = (Logger) LogManager.getLogger();
+	DBRecovery dbr = new DBRecovery("logging.txt");
 
 	private static DBManager dbManager = null;
 
@@ -125,6 +126,7 @@ public class DBManager {
 	}
 
 	public void readDatabase(){
+		//Before reading , you will have to check the log to see if the last transaction is finished
 		//Read the database and upload the data into memory
 		byte[] metadata;
 		try{
@@ -141,10 +143,11 @@ public class DBManager {
 			attrIndexes = new Hashtable<>();
 			attrIndexes=indexHelper.bytesToHashtab(metadata);
 			indexToSize();
+			dbr.Recover(this, "redo");
 			logger.info("Free Space left is:" + (DATA_SIZE - DATA_USED));
 			logger.info("Free Meta Space left is:" + (METADATA_SIZE - METADATA_USED));
 			logger.info("Metadata read in Memory");
-		} catch (IOException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 			System.out.println("Failed to read MataData into memory");
 		}
@@ -263,15 +266,12 @@ public class DBManager {
 			clusteredIndex.put(key, tmpIndex);
 			set_INDEXES_USED(get_INDEXES_USED() + indexSize);
 			logger.info("Metadata buffer updated");
-
 			// Writing the database onto the disk
-			DBStorage.writeData(DB_NAME, this.data);
-			set_DATA_USED(get_DATA_USED() + data.length);
-			//System.out.println("Data related to key is " + key + ", and size is "
-			//		+ data.length + " have written to " + DB_NAME);
-
+			DBStorage.writeData(DB_NAME,this.data);
 			DBStorage.writeMetaData(DB_NAME, dbManager);
+			set_DATA_USED(get_DATA_USED() + data.length);
 			logger.info("Metadata updated on disk");
+			System.out.println("Data with key " + key + " is wrote to database");
 		} catch (Exception e1) {
 			e1.printStackTrace();
 		} finally{
@@ -282,6 +282,7 @@ public class DBManager {
 			}
 		}
 	}
+
 
 	public byte[] Get(int tid,int key) {
 		/**
@@ -378,14 +379,17 @@ public class DBManager {
 					length= (int) p.getRight();
 					if(((String)tabMate.get(i).getLeft()).toLowerCase().equals(Attr_name.toLowerCase())) break;
 				}
-				if(type==0) System.arraycopy(IndexHelperImpl.intToByte((Integer) value),0,tmpByte,offset,length);
+				if(type==0) System.arraycopy(IndexHelperImpl.intToByte(((Double)value).intValue()),0,tmpByte,offset,length);
 				if(type==1){
 					byte[] str=((String)value).getBytes();
 					for(int i=0;i<length;i++)
 						if(i<str.length) tmpByte[offset+i]=str[i];
 						else tmpByte[offset+i]=32;
 				}
-				if(type==2) System.arraycopy(IndexHelperImpl.floatToByte((Float) value),0,tmpByte,offset,length);
+				if(type==2) System.arraycopy(IndexHelperImpl.floatToByte(((Double) value).floatValue()),0,tmpByte,offset,length);
+				// Writing Logs
+				Object oldval = this.getAttribute(tid,Get(tid,rid),Attr_name);
+				dbr.logUpdate(rid, Attr_name, type, oldval, value);
 				Put(tid,rid,tmpByte);
 			} else throw new Exception("Unknown table or attributes");
 		}
@@ -697,5 +701,9 @@ public class DBManager {
 			sortedRIDs.addAll(subl);
 		}
 		return sortedRIDs;
+	}
+
+	public void Commit(){
+		dbr.writeCHK();
 	}
 }

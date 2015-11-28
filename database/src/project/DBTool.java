@@ -1,5 +1,6 @@
 package project;
 
+import project.relations.UpdateOperator;
 import test.*;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -149,7 +150,7 @@ public class DBTool {
                     case "select":
                         if(s.length>3&&s[2].equals("from")){
                             if(s[3].matches("[\\s\\S]+,[\\s\\S]+")){
-                                Pipeline p=new Pipeline(new Parser(input));
+                                Pipeline p=new Pipeline(new Parser("Query",input));
                                 p.exec();
                             }else {
                                 dbmanager = DBManager.getInstance();
@@ -160,6 +161,13 @@ public class DBTool {
                                 }
                             }
                         }break;
+                    case "update":
+                        Parser p = new Parser("update", input);
+                        UpdateOperator up = new UpdateOperator(p.getDispatched(),p.getUpinfo());
+                        up.attach(p.getRelations().get(0));
+                        up.open();
+                        up.getNext();
+                        break;
                     case "create":
                         dbmanager=DBManager.getInstance();
                         if(s.length>2)
@@ -195,6 +203,7 @@ public class DBTool {
                                 "pipepline|p\t\t\tshow an pipeline example" +
                                 "\n------SQL-----\n"+
                                 "select <attribute(s)> from <table> [where <condition(s)>]\n" +
+                                "update <table> set <attribute(s)> where [<condition(s)>]\n" +
                                 "create index <table(attributeName[, ...])>\n" +
                                 ".table|.t\t\t\t\t\tshow table name in database\n" +
                                 ".schema|.s <tablename>\t\tshow table attribute names");break;
