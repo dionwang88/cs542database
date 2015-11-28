@@ -19,6 +19,4 @@
 <0, title, 'oo7', '007'>
 <0, title, 'oo7', '007'>
 <CHK PNT>
-<0, title, 'oo7', '007'>
-<0, title, 'oo7', '007'>
-<0, title, 'oo7', '007'>
+

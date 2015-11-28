@@ -32,6 +32,7 @@ public class DBRecovery {
 			}
 			dbm.setAttribute(rid,attNames,val);
 		}
+		System.out.println("Data Recovered.");
 	}
 
 	public void clearLog(){
@@ -48,9 +49,9 @@ public class DBRecovery {
 	public void logUpdate(int rid, String attrName, int type, Object oldVal,Object newVal) throws Exception {
 		String row,oldV,newV;
 		switch (type){
-			case 0:oldV=Integer.toString((Integer) oldVal);newV=Integer.toString((Integer) newVal);break;
+			case 0:oldV=Integer.toString((Integer) oldVal);newV=Integer.toString(((Double) newVal).intValue());break;
 			case 1:oldV= (String) oldVal;newV=(String)newVal;break;
-			case 2:oldV= Float.toString((Float) oldVal);newV= Float.toString((Float) newVal);break;
+			case 2:oldV= Float.toString((Float) oldVal);newV= Float.toString(((Double) newVal).floatValue());break;
 			default:throw new Exception("Unknown type id");
 		}
 		row="<"+Integer.toString(rid)+", "+attrName+", '"+oldV+"', '"+newV+"'>";
