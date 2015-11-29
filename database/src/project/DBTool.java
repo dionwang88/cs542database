@@ -14,14 +14,14 @@ public class DBTool {
     private DBTool(){}
 
     private static void showTab(DBManager dbm){
-        if(dbm==null){System.out.println("No db file");}
+        if(dbm==null){System.out.println("No db file");return;}
         for(int tid:dbm.getTabMeta().keySet()){
             System.out.print(dbm.getTabMeta().get(tid).get(0).getRight()+" ");
         }
         System.out.print('\n');
     }
     private static void showSchema(DBManager dbm,String tName){
-        if(dbm==null){System.out.println("No db file");}
+        if(dbm==null){System.out.println("No db file");return;}
         int tid=tabNameToID(dbm,tName);
         for(int i=1;i<dbm.getTabMeta().get(tid).size();i++){
             System.out.print(dbm.getTabMeta().get(tid).get(i).getLeft()+" ");
@@ -194,7 +194,7 @@ public class DBTool {
                         else System.out.println("Not Enough parameters!");break;
                     case "help":case "h":
                         System.out.println("Help Information:\nq|Q|quit|Quit\t\tquit the shell\n" +
-                                "show [<filename>]\tshow the space of the database, default file is 'cs542.db'.\n" +
+                                "show [<file name>]\tshow the space of the database, default file is 'cs542.db'.\n" +
                                 "fragment|f\t\t\tvalidate fragment\n" +
                                 "concurrency|c\t\tvalidate concurrency control\n" +
                                 "clear|cl\t\t\tclear the database\n"+
@@ -204,9 +204,9 @@ public class DBTool {
                                 "\n------SQL-----\n"+
                                 "select <attribute(s)> from <table> [where <condition(s)>]\n" +
                                 "update <table> set <attribute(s)> where [<condition(s)>]\n" +
-                                "create index <table(attributeName[, ...])>\n" +
+                                "create index <table(attribute name[, ...])>\n" +
                                 ".table|.t\t\t\t\t\tshow table name in database\n" +
-                                ".schema|.s <tablename>\t\tshow table attribute names");break;
+                                ".schema|.s <table name>\t\tshow table attribute names");break;
                     default:System.out.println("Can't find the command '"+s[0]+"'\nyou may use 'help' command");
                 }
             } catch (Exception e) {

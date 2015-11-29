@@ -9,24 +9,20 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
-/**
- * Created by vincent on 11/22/15.
- */
+
 public class UpdateOperator  implements AlgebraNode{
     private boolean isOpen;
-    private static String operator_name = "Update";
+    //private static String operator_name = "Update";
     private AlgebraNode publisher;
     private Map<Integer,List<Pair>> SingleTBCdt;
     private List<Pair<String,ExpressionParser>> To_Update;
 
     public UpdateOperator(Map<Integer, Map<Integer,List<Pair>>> conditions, List<Pair<String,ExpressionParser>> updateinfo){
         publisher = null;
-        SingleTBCdt = new HashMap<Integer, List<Pair>>();
+        SingleTBCdt = new HashMap<>();
             for (Map.Entry<Integer, Map<Integer, List<Pair>>> entry : conditions.entrySet()) {
-                List<Pair> l = new ArrayList<Pair>();
-                for (List<Pair> ll : entry.getValue().values()) {
-                    l.addAll(ll);
-                }
+                List<Pair> l = new ArrayList<>();
+                entry.getValue().values().forEach(l::addAll);
                 SingleTBCdt.put(entry.getKey(), l);
             }
         To_Update = updateinfo;
@@ -47,7 +43,7 @@ public class UpdateOperator  implements AlgebraNode{
     @Override
     public List<Pair<Integer,Integer>> getNext(){
         DBManager dbm = DBManager.getInstance();
-        List<Pair<Integer,Integer>> receivedData = null;
+        List<Pair<Integer,Integer>> receivedData;
         while ((receivedData = publisher.getNext()) != null){
             int tID = receivedData.get(0).getLeft();
             int rID = receivedData.get(0).getRight();

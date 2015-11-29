@@ -151,27 +151,20 @@ public class DBRecovery {
 		}
     }
 
+	public void writeFailure() {writeIntoLog("Failed!");}
+
     public static void main(String[] args){
 		String path = "logging2.txt";
 		DBRecovery dbr = new DBRecovery(path);
-
 		//dbr.clearLog();
-
 		try {
 			dbr.logUpdate(0,"title",1,"oo7","007");
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-
 		//dbr.writeCHK();
-
 		List<LogObj<?>> st = dbr.logLoad();
-		for(LogObj<?> a: st){
+		for(LogObj<?> a: st)
 			System.out.println(a.getNewVlaue());
-		}
-	}
-
-	public void writeFailure() {
-		writeIntoLog("Failed!");
 	}
 }

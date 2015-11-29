@@ -431,7 +431,7 @@ public class DBManager {
 	}
 
 	//fetch the key according to the attributes by using index. Return a List of RIDs.
-	public List getKeyFromAttr(List<String> AttrNames,List<String> AttrValues) throws Exception {
+	/*public List getKeyFromAttr(List<String> AttrNames,List<String> AttrValues) throws Exception {
 		int tid=0;
 		String attrs = "";
 		if (AttrNames.size() > 1) {
@@ -449,7 +449,7 @@ public class DBManager {
 		else{
 			throw new Exception("No Attribute Index!");
 		}
-	}
+	}*/
 
 	public void printQuery(int tid,List<String> attrNames,Condition c) throws Exception {
 		//not table found
@@ -471,7 +471,7 @@ public class DBManager {
 
 		//if all the attr are Index or No where-condition
 		boolean all_in=!addedAttrNames.isEmpty();
-		if(!isAttrIndex(tid,(ArrayList<String>) attrNames)) all_in=false;
+		if(!isAttrIndex(tid, attrNames)) all_in=false;
 		//if so
 		if(all_in){
 			String attrs = "";
@@ -683,11 +683,17 @@ public class DBManager {
 		}
 		return false;
 	}
+	public void Commit(){
+		dbr.writeCHK();
+	}
+	public void Failure(){
+		dbr.writeFailure();
+	}
 
 	//Returns a sorted List of List<Integers> based on the attributes
 	public List<Integer> Indexsort(int tid, List<String> attrNames){
-		ArrayList<Integer> sortedRIDs = new ArrayList<Integer>();
-		TreeMap<String,List<Integer>> t= new TreeMap<String,List<Integer>>();
+		ArrayList<Integer> sortedRIDs = new ArrayList<>();
+		TreeMap<String,List<Integer>> t= new TreeMap<>();
 		AttrIndex Aindex = getIndex(tid,attrNames);
 		for (Object hashval : Aindex.table.keySet()){
 			List<Integer> keys = Aindex.Get(hashval);
@@ -698,16 +704,7 @@ public class DBManager {
 			}
 			t.put(toSearch, keys);
 		}
-		for (List<Integer> subl : t.values()){
-			sortedRIDs.addAll(subl);
-		}
+		t.values().forEach(sortedRIDs::addAll);
 		return sortedRIDs;
-	}
-
-	public void Commit(){
-		dbr.writeCHK();
-	}
-	public void Failure(){
-		dbr.writeFailure();
 	}
 }
