@@ -65,7 +65,6 @@ public class UpdateOperator  implements AlgebraNode{
                         String attr = p.getLeft();
                         ExpressionParser parser = p.getRight();
                         parser.parse(tuple, dbm);
-                        String type = parser.getExpr().getLeft();
                         Object newval = parser.getExpr().getRight();
                         dbm.setAttribute(rID, attr, newval);
                     }
@@ -75,7 +74,6 @@ public class UpdateOperator  implements AlgebraNode{
                 e.printStackTrace();
             }
         }
-        dbm.Commit();
         return null;
     }
 
@@ -88,11 +86,9 @@ public class UpdateOperator  implements AlgebraNode{
         DBManager dbm = DBManager.getInstance();
         Parser p = new Parser("update", "Update Country set population = population * 1.2");
         UpdateOperator up = new UpdateOperator(p.getDispatched(),p.getUpinfo());
-        for (Relation r : p.getRelations()){
-            up.attach(r);
-        }
+        p.getRelations().forEach(up::attach);
         up.open();
         up.getNext();
-
+        dbm.Failure();
     }
 }

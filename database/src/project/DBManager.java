@@ -143,7 +143,7 @@ public class DBManager {
 			attrIndexes = new Hashtable<>();
 			attrIndexes=indexHelper.bytesToHashtab(metadata);
 			indexToSize();
-			dbr.Recover(this, "redo");
+			dbr.Recover(this, "undo");
 			logger.info("Free Space left is:" + (DATA_SIZE - DATA_USED));
 			logger.info("Free Meta Space left is:" + (METADATA_SIZE - METADATA_USED));
 			logger.info("Metadata read in Memory");
@@ -271,7 +271,7 @@ public class DBManager {
 			DBStorage.writeMetaData(DB_NAME, dbManager);
 			set_DATA_USED(get_DATA_USED() + data.length);
 			logger.info("Metadata updated on disk");
-			System.out.println("Data with key " + key + " is wrote to database");
+			logger.info("Data with key " + key + " is wrote to database");
 		} catch (Exception e1) {
 			e1.printStackTrace();
 		} finally{
@@ -348,7 +348,7 @@ public class DBManager {
 				logger.info("Metadata buffer updated");
 				DBStorage.writeMetaData(DB_NAME, dbManager);
 				logger.info("Metadata updated on disk");
-				System.out.println("Data with key " + key + " is removed.");
+				logger.info("Data with key " + key + " is removed.");
 			}
 		} catch (Exception e1) {
 			e1.printStackTrace();
@@ -365,6 +365,7 @@ public class DBManager {
 	public byte[] Get(int key){return Get(0,key);}
 
 	public void setAttribute(int rid,String Attr_name,Object value) throws Exception {
+		String str_val=String.valueOf(value);
 		if(clusteredIndex.containsKey(rid)) {
 			Index index = clusteredIndex.get(rid);
 			int tid = index.getTID();
@@ -379,17 +380,17 @@ public class DBManager {
 					length= (int) p.getRight();
 					if(((String)tabMate.get(i).getLeft()).toLowerCase().equals(Attr_name.toLowerCase())) break;
 				}
-				if(type==0) System.arraycopy(IndexHelperImpl.intToByte(((Double)value).intValue()),0,tmpByte,offset,length);
+				if(type==0) System.arraycopy(IndexHelperImpl.intToByte(((Double)(Double.parseDouble(str_val))).intValue()),0,tmpByte,offset,length);
 				if(type==1){
-					byte[] str=((String)value).getBytes();
+					byte[] str=str_val.getBytes();
 					for(int i=0;i<length;i++)
 						if(i<str.length) tmpByte[offset+i]=str[i];
 						else tmpByte[offset+i]=32;
 				}
-				if(type==2) System.arraycopy(IndexHelperImpl.floatToByte(((Double) value).floatValue()),0,tmpByte,offset,length);
+				if(type==2) System.arraycopy(IndexHelperImpl.floatToByte(((Double)(Double.parseDouble(str_val))).floatValue()),0,tmpByte,offset,length);
 				// Writing Logs
 				Object oldval = this.getAttribute(tid,Get(tid,rid),Attr_name);
-				dbr.logUpdate(rid, Attr_name, type, oldval, value);
+				dbr.logUpdate(rid, Attr_name, type, oldval, str_val);
 				Put(tid,rid,tmpByte);
 			} else throw new Exception("Unknown table or attributes");
 		}
@@ -705,5 +706,8 @@ public class DBManager {
 
 	public void Commit(){
 		dbr.writeCHK();
+	}
+	public void Failure(){
+		dbr.writeFailure();
 	}
 }

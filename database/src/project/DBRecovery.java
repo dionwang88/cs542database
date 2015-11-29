@@ -1,12 +1,10 @@
 package project;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Stack;
-import java.util.StringTokenizer;
+import java.util.*;
 
 public class DBRecovery {
+	private static String RCV_FLAG = "<RCV PNT>";
 	private static String BRACKET = "<";
 	private static String CHECKPOINT = "<CHK PNT>";
 	private static String INTEGER = "Integer";
@@ -21,6 +19,10 @@ public class DBRecovery {
 
 	public void Recover(DBManager dbm,String Redo_Undo) throws Exception {
 		List<LogObj<?>> list_logObj=logLoad();
+		if(Redo_Undo.equals("redo")) Collections.reverse(list_logObj);
+		if (list_logObj.size()==0) return;
+		System.out.println("Database failed previously, \nNow recovering . . .");
+		writeIntoLog("\n"+RCV_FLAG+"\n");
 		for(LogObj alog:list_logObj){
 			int rid=alog.getRowId();
 			String attNames=alog.getVarName();
@@ -32,6 +34,7 @@ public class DBRecovery {
 			}
 			dbm.setAttribute(rid,attNames,val);
 		}
+		writeCHK();
 		System.out.println("Data Recovered.");
 	}
 
@@ -46,12 +49,12 @@ public class DBRecovery {
 
 	public void writeCHK(){writeIntoLog(CHECKPOINT);}
 
-	public void logUpdate(int rid, String attrName, int type, Object oldVal,Object newVal) throws Exception {
-		String row,oldV,newV;
+	public void logUpdate(int rid, String attrName, int type, Object oldVal,String newV) throws Exception {
+		String row,oldV;
 		switch (type){
-			case 0:oldV=Integer.toString((Integer) oldVal);newV=Integer.toString(((Double) newVal).intValue());break;
-			case 1:oldV= (String) oldVal;newV=(String)newVal;break;
-			case 2:oldV= Float.toString((Float) oldVal);newV= Float.toString(((Double) newVal).floatValue());break;
+			case 0:oldV=Integer.toString((Integer) oldVal);break;
+			case 1:oldV= (String) oldVal;break;
+			case 2:oldV= Float.toString((Float) oldVal);break;
 			default:throw new Exception("Unknown type id");
 		}
 		row="<"+Integer.toString(rid)+", "+attrName+", '"+oldV+"', '"+newV+"'>";
@@ -74,8 +77,11 @@ public class DBRecovery {
 				line = stack_line.pop();
 				if(line.contains(DBRecovery.CHECKPOINT))
 					return list_logObj;
-				if(line.contains(BRACKET))
+				else if(line.contains(RCV_FLAG))
+					list_logObj = new ArrayList<>();
+				else if(line.contains(BRACKET))
 					list_logObj.add(this.parseLog(line.substring(1, line.length()-1)));
+
 			}
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
@@ -163,5 +169,9 @@ public class DBRecovery {
 		for(LogObj<?> a: st){
 			System.out.println(a.getNewVlaue());
 		}
+	}
+
+	public void writeFailure() {
+		writeIntoLog("Failed!");
 	}
 }
