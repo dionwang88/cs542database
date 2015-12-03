@@ -21,17 +21,17 @@
 |------[Concurrency control](#15)
 [Further Assumptions](#16)
 
-**Project2**
-Table Metadata	
-Attribute Index	
-Relation&DBManager	
-Condition		
-Shell Validation
+**Project2**		
+Table Metadata		
+Attribute Index		
+Relation&DBManager		
+Condition			
+Shell Validation		
 
-**Project 3**
-AlgebraNode
-Parser
-Pipeline
+**Project 3**		
+AlgebraNode		
+Parser		
+Pipeline		
 
 
 #Framework<span id = "0"\>：
@@ -579,3 +579,17 @@ Information is passed between Nodes in the form of a List of Pair class, where t
 In our design, we did not implement the optimal pipeline structure. We handled all the query in the form below:
 
 ![GitHub Logo](pipeline.png)
+
+#Further Assumptions in Project 4
+
+##LogObject
+##DBRecovery
+##UpdateOperator
+##Validation Steps
+As for validation part, please run the TestDBRecvery.main().
+This function will lead the test to several steps as followed:
+
+1. Copy "cs542.db" to "cs542A.db"
+2. Open "cs542.db", update population by increasing 2% and keep track in log file.
+3. Open "cs542A.db", apply log to this database, and perform redo-recovery. At this time you can use SQL to query result. Then quit shell.
+4. Open "cs542.db", and compare the result.
