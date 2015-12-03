@@ -582,8 +582,32 @@ In our design, we did not implement the optimal pipeline structure. We handled a
 
 #Further Assumptions in Project 4
 
-##LogObject
+##LogObject & log file structure
 ##DBRecovery
+### recover process
+
+1.	Recovery class will read out the log records and put ones, which are not earlier than the most recent check point, into stack.
+2. Get out of records and arrange them in a list.
+2. If it's a redo recovery, the list will be reversed. If undo, keep the original order of the list.
+3. Scan the list, and apply every log record to recover the data in database.
+
+###methods list
+
+|Func Name|Description|		
+|---|---|		
+|Recover(DBManager dbm,String Redo_Undo)|recover database "dbm", String Redo_Undo, which is either "redo" or "undo", indicate how to recover the database|		
+|clearLog()|clean the log|		
+|writeCHK()|write a new line "CHK PNT", into the log file to indicate check point|		
+|logUpdate(int rid, String attrName, int type, Object oldVal,String newV)|This func will be called by update operator to generate a redo/undo log line|
+|logLoad()		
+|parseLog(String line)		
+|writeIntoLog(String line)	| Func will write a new line into log file|	
+|writeFailure()|write a failure flag into log file. Here we use this function to simulate a database failure|		
+### Write into log file
+Every times the update operator performs a value updating, a new line, who indicates rid(this rid is unique in our database), attribute name, old value and new value, will be written into the log file. If all updates are done, a commit will show up and check point will be put into the last line of log file. At the beginning of the recovery, a recovery point will be written into log, so that, if a failure happens during the recovering, then, in next times of recovery, database will make sure only execute the valid part in log.
+
+### read out log file
+
 ##UpdateOperator
 ##Validation Steps
 As for validation part, please run the TestDBRecvery.main().
