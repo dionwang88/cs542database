@@ -10,6 +10,7 @@ public class DBRecovery {
 	private static String INTEGER = "Integer";
 	private static String FLOAT = "Float";
 	private static String STRING = "String";
+	private static String REDO_FLAG = "REDO HERE";
 	private String path;
 
 	public DBRecovery(String path){
@@ -166,5 +167,9 @@ public class DBRecovery {
 		List<LogObj<?>> st = dbr.logLoad();
 		for(LogObj<?> a: st)
 			System.out.println(a.getNewVlaue());
+	}
+
+	public void writeRedoPoint() {
+		writeIntoLog(REDO_FLAG);
 	}
 }

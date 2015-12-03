@@ -118,9 +118,9 @@ public class DBTool {
         return tid;
     }
 
-    private static void shell(){
+    public static void shell(String dbfilename){
         System.out.println("Welcome! This is a group project of cs542 at WPI\nType help to see commands.");
-        DBManager dbmanager=DBManager.getInstance("cs542.db");
+        DBManager dbmanager=DBManager.getInstance(dbfilename);
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         String[] s;
         waiting_command:
@@ -218,5 +218,5 @@ public class DBTool {
         }
     }
 
-    public static void main(String[] args){shell();}
+    public static void main(String[] args){shell("cs542.db");}
 }

@@ -85,6 +85,11 @@ public class UpdateOperator  implements AlgebraNode{
         p.getRelations().forEach(up::attach);
         up.open();
         up.getNext();
-        dbm.Failure();
+        p = new Parser("update", "Update city set population = population * 1.02");
+        up = new UpdateOperator(p.getDispatched(),p.getUpinfo());
+        p.getRelations().forEach(up::attach);
+        up.open();
+        up.getNext();
+        dbm.Failure("redo");
     }
 }

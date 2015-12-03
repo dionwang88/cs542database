@@ -143,7 +143,7 @@ public class DBManager {
 			attrIndexes = new Hashtable<>();
 			attrIndexes=indexHelper.bytesToHashtab(metadata);
 			indexToSize();
-			dbr.Recover(this, "undo");
+			dbr.Recover(this, "redo");
 			logger.info("Free Space left is:" + (DATA_SIZE - DATA_USED));
 			logger.info("Free Meta Space left is:" + (METADATA_SIZE - METADATA_USED));
 			logger.info("Metadata read in Memory");
@@ -690,6 +690,7 @@ public class DBManager {
 	public void Failure(){
 		dbr.writeFailure();
 	}
+	public void Failure(String str){dbr.writeRedoPoint();}
 
 	//Returns a sorted List of List<Integers> based on the attributes
 	public List<Integer> Indexsort(int tid, List<String> attrNames){
