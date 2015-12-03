@@ -53,11 +53,11 @@ public class DBRecovery {
 		String row,oldV;
 		switch (type){
 			case 0:oldV=Integer.toString((Integer) oldVal);break;
-			case 1:oldV= (String) oldVal;break;
+			case 1:oldV= (String) oldVal;oldV="'"+oldV+"'";break;
 			case 2:oldV= Float.toString((Float) oldVal);break;
 			default:throw new Exception("Unknown type id");
 		}
-		row="<"+Integer.toString(rid)+", "+attrName+", '"+oldV+"', '"+newV+"'>";
+		row="<"+Integer.toString(rid)+", "+attrName+", "+oldV+", "+newV+">";
 		writeIntoLog(row);
 	}
 

@@ -120,7 +120,7 @@ public class DBTool {
 
     private static void shell(){
         System.out.println("Welcome! This is a group project of cs542 at WPI\nType help to see commands.");
-        DBManager dbmanager;
+        DBManager dbmanager=DBManager.getInstance("cs542.db");
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         String[] s;
         waiting_command:
@@ -132,8 +132,7 @@ public class DBTool {
                 switch (s[0]) {
                     case "quit":case "q":           System.out.println("Now Quit Shell.");break waiting_command;
                     case "show":
-                        if (s.length==1) dbmanager = DBManager.getInstance();
-                        else dbmanager=DBManager.getInstance(s[1]);
+                        if (s.length>1) dbmanager=DBManager.getInstance(s[1]);
                         showWrapped(dbmanager);
                         DBManager.close();break;
                     case "fragment":case "f":       TestFragmentation.main(null);break;
@@ -142,8 +141,8 @@ public class DBTool {
                     case "readcsv":case"r":         TestReadCSV.main(null);break;
                     case "mtable":case"m":          TestMultab.main(null);break;
                     case "pipeline":case"p":        Pipeline.main(null);break;
-                    case ".table":case".t":         showTab(DBManager.getInstance());break;
-                    case ".schema":case".s":        if(s.length>1)showSchema(DBManager.getInstance(),s[1]);
+                    case ".table":case".t":         showTab(dbmanager);break;
+                    case ".schema":case".s":        if(s.length>1)showSchema(dbmanager,s[1]);
                                                     else System.out.println(
                                                     ".schema|.s <tablename>\t\tshow table attribute names");
                                                     break;
@@ -155,9 +154,11 @@ public class DBTool {
                             }else {
                                 dbmanager = DBManager.getInstance();
                                 if (s.length > 5 && s[4].equals("where")) {
-                                    dbmanager.printQuery(tabNameToID(dbmanager, s[3]), dbmanager.tabProject(s[3], s[1]), new Condition(input.split("where")[1]));
+                                    dbmanager.printQuery(tabNameToID(dbmanager, s[3]),
+                                            dbmanager.tabProject(s[3], s[1]), new Condition(input.split("where")[1]));
                                 } else if (dbmanager != null) {
-                                    dbmanager.printQuery(tabNameToID(dbmanager, s[3]), dbmanager.tabProject(s[3], s[1]), new Condition());
+                                    dbmanager.printQuery(tabNameToID(dbmanager, s[3]),
+                                            dbmanager.tabProject(s[3], s[1]), new Condition());
                                 }
                             }
                         }break;
@@ -167,6 +168,7 @@ public class DBTool {
                         up.attach(p.getRelations().get(0));
                         up.open();
                         up.getNext();
+                        dbmanager.Commit();
                         break;
                     case "create":
                         dbmanager=DBManager.getInstance();

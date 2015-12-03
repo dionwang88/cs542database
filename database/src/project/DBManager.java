@@ -47,9 +47,9 @@ public class DBManager {
 	private IndexHelper indexHelper;
 
 	//---------------Method------------------------
-	private DBManager(String dbName) {DB_NAME=dbName;}
+	private DBManager(String dbName) {DBManager.DB_NAME=dbName;}
 	public static void close(){dbManager=null;}
-	public static String getDBName(){return DB_NAME;}
+	public String getDBName(){return DBManager.DB_NAME;}
 	public static DBManager getInstance(String dbName){
 		if (dbManager == null){
 			// Instantiate and Initialization of DBManager
@@ -58,7 +58,7 @@ public class DBManager {
 			dbManager.indexHelper = new IndexHelperImpl();
 			dbManager.Locker = new DbLocker();
 			if(!new File(dbName).isFile()) {
-				System.out.println("File "+DBManager.getDBName()
+				System.out.println("File "+dbManager.getDBName()
 						+" doesn't exist\nWould you like to create a new one now?(Y/N)");
 				BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 				String is_YorN;
@@ -70,16 +70,16 @@ public class DBManager {
 					return null;
 				}
 				if (is_YorN.toLowerCase().equals("y")){
-					dbManager.readDatabase();
+					dbManager.readDatabase(dbManager);
 				}
 				else dbManager=null;
 			}
-			else dbManager.readDatabase();
+			else dbManager.readDatabase(dbManager);
 		}
 
 		return dbManager;
 	}
-	public static DBManager getInstance(){return getInstance("cs542.db");}
+	public static DBManager getInstance(){return getInstance(DBManager.DB_NAME);}
 
 	public int get_DATA_USED() {return DATA_USED;}
 	public void set_DATA_USED(int size) {DATA_USED = size;}
@@ -125,19 +125,19 @@ public class DBManager {
 		this.set_INDEXES_USED(indexSize);
 	}
 
-	public void readDatabase(){
+	public void readDatabase(DBManager dbm){
 		//Before reading , you will have to check the log to see if the last transaction is finished
 		//Read the database and upload the data into memory
 		byte[] metadata;
 		try{
-			data = DBStorage.readData(DB_NAME);
+			data = DBStorage.readData(DBManager.DB_NAME,dbm);
 			logger.info("Data read in memory");
 		} catch (IOException e) {
 			e.printStackTrace();
 			System.out.println("Failed to read Data into memory");
 		}
 		try{
-			metadata = DBStorage.readMetaData(DB_NAME);
+			metadata = DBStorage.readMetaData(DBManager.DB_NAME, dbm);
 			clusteredIndex = indexHelper.bytesToIndex(metadata);
 			tabMetadata=indexHelper.bytesToTabMeta(metadata);
 			attrIndexes = new Hashtable<>();
@@ -191,7 +191,7 @@ public class DBManager {
 
 		tabMetadata.put(tid, pairs);
 		attrIndexes.put(tid, new Hashtable<>());
-		DBStorage.writeMetaData(DB_NAME, dbManager);
+		DBStorage.writeMetaData(DBManager.DB_NAME, dbManager);
 	}
 	public void clear() {
 		// for clearing the database
@@ -203,7 +203,7 @@ public class DBManager {
 			attrIndexes =new Hashtable<>();
 			logger.info("Clear : Metadata buffer updated");
 			set_METADATA_USED();
-			DBStorage.writeMetaData(DB_NAME, dbManager);
+			DBStorage.writeMetaData(DBManager.DB_NAME, dbManager);
 			logger.info("Metadata updated on disk");
 			set_DATA_USED(0);
 			tabMetadata.clear();
@@ -218,6 +218,7 @@ public class DBManager {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		dbr.clearLog();
 	}
 
 	//*******three main methods*********
@@ -267,8 +268,8 @@ public class DBManager {
 			set_INDEXES_USED(get_INDEXES_USED() + indexSize);
 			logger.info("Metadata buffer updated");
 			// Writing the database onto the disk
-			DBStorage.writeData(DB_NAME,this.data);
-			DBStorage.writeMetaData(DB_NAME, dbManager);
+			DBStorage.writeData(DBManager.DB_NAME,this.data,dbManager);
+			DBStorage.writeMetaData(DBManager.DB_NAME, dbManager);
 			set_DATA_USED(get_DATA_USED() + data.length);
 			logger.info("Metadata updated on disk");
 			logger.info("Data with key " + key + " is wrote to database");
@@ -346,7 +347,7 @@ public class DBManager {
 				this.set_DATA_USED(get_DATA_USED() - tmp[0]);
 				this.set_INDEXES_USED(get_INDEXES_USED() - tmp[1]);
 				logger.info("Metadata buffer updated");
-				DBStorage.writeMetaData(DB_NAME, dbManager);
+				DBStorage.writeMetaData(DBManager.DB_NAME, dbManager);
 				logger.info("Metadata updated on disk");
 				logger.info("Data with key " + key + " is removed.");
 			}
@@ -642,7 +643,7 @@ public class DBManager {
 		}
 		this.attrIndexes.get(tid).put(attrs, attrindex);
 		try {
-			DBStorage.writeMetaData(DB_NAME,dbManager);
+			DBStorage.writeMetaData(DBManager.DB_NAME,dbManager);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

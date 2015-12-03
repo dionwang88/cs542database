@@ -79,8 +79,8 @@ public class UpdateOperator  implements AlgebraNode{
     }
 
     public static void main(String[] args){
-        DBManager dbm = DBManager.getInstance();
-        Parser p = new Parser("update", "Update Country set population = population * 1.2");
+        DBManager dbm = DBManager.getInstance("cs542.db");
+        Parser p = new Parser("update", "Update Country set population = population * 1.02");
         UpdateOperator up = new UpdateOperator(p.getDispatched(),p.getUpinfo());
         p.getRelations().forEach(up::attach);
         up.open();
