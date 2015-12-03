@@ -582,7 +582,9 @@ In our design, we did not implement the optimal pipeline structure. We handled a
 
 #Further Assumptions in Project 4
 
-##LogObject & log file structure
+##LogObject
+First reading the log file into memory  and push every line<TableID, ColumnID, OldValue, NewValue> into a stack. Next in a loop popping the line in the stack and then checking whether the first appearance of line containing "<CHK PNT>" flag. If there has a  "<CHK PNT>" flag, then stop the loop. For every update or delete record, using parseLog function to parse the line from String to LogObj format and add this log object into a list. During the parsing process, based on the value type, we used Java Generic to save different variable types in the log line. For example, if the log line <1,1,0.3,0.5>, the parseLog function will automatically create a log object including a double type of old value and new value. Finally, we transfer this log object list to the upper layer to do the recovery.
+	
 ##DBRecovery
 ### recover process
 
