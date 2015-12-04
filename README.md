@@ -601,8 +601,8 @@ First reading the log file into memory  and push every line<TableID, ColumnID, O
 |clearLog()|clean the log|		
 |writeCHK()|write a new line "CHK PNT", into the log file to indicate check point|		
 |logUpdate(int rid, String attrName, int type, Object oldVal,String newV)|This func will be called by update operator to generate a redo/undo log line|
-|logLoad()		
-|parseLog(String line)		
+|logLoad()|This function will load the log file and get the log line records since the last checking point sign, and then parse every log line into log object and finally return a log object list.		
+|parseLog(String line)| This function will parse the log line into log object. It will automatically create correct value type when build a log object based on the values in the log line.		
 |writeIntoLog(String line)	| Func will write a new line into log file|	
 |writeFailure()|write a failure flag into log file. Here we use this function to simulate a database failure|		
 ### Write into log file
