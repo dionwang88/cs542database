@@ -608,8 +608,6 @@ First reading the log file into memory  and push every line<TableID, ColumnID, O
 ### Write into log file
 Every times the update operator performs a value updating, a new line, who indicates rid(this rid is unique in our database), attribute name, old value and new value, will be written into the log file. If all updates are done, a commit will show up and check point will be put into the last line of log file. At the beginning of the recovery, a recovery point will be written into log, so that, if a failure happens during the recovering, then, in next times of recovery, database will make sure only execute the valid part in log.
 
-### read out log file
-
 ##UpdateOperator
 The UpdateOperator is implemented as an implementation of AlgebraNode. It will update all corresponding tuples according to conditions specified by the user.
 
