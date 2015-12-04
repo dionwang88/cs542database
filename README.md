@@ -611,6 +611,23 @@ Every times the update operator performs a value updating, a new line, who indic
 ### read out log file
 
 ##UpdateOperator
+The UpdateOperator is implemented as an implementation of AlgebraNode. It will update all corresponding tuples according to conditions specified by the user.
+
+|attribute name|description|
+|---|---|
+|private boolean isOpen|Determines if its Open|
+|private List<\AlgebraNode> publishers|List of children Nodes.|
+|private  Map<\Integer,List<\Pair>> SingleTBCdt|Conditions to update|
+|private List<\Pair<\String,ExpressionParser>> To_Update|The to_Update attributes|
+
+#####method:
+|method name|description|
+|---|---|
+|void open ()|Prepare the node for Data Pipelining. Open the first publisher
+|List<\Pair<\Integer,Integer>> getNext()|Returns the next filtered tuple.
+|void close()|Clean and close the node.	
+|public void attach|Adds an AlgebraNode to its publishers|
+|public void dettach|Removes an AlgebraNode to its publishers|
 ##Validation Steps
 As for validation part, please run the TestDBRecvery.main().
 This function will lead the test to several steps as followed:
