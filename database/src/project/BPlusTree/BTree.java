@@ -1,6 +1,4 @@
-package BPlusTree;
-import BPlusTree.BNode;
-import BPlusTree.Lnode;
+package project.BPlusTree;
 import java.util.List;
 public class BTree<K extends Comparable<K>,V> {
 	static final int NUMBER_PER_ROOT = 2;
