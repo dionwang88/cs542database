@@ -412,8 +412,8 @@ In order to run the shell program, please run the DBTool.shell() function, or ru
 ##Query Execution procedure<span id = "9"\>
 The SQL query will be parsed and processed by the Parser class. Then the pipeline class will construct the Relation Algebra Tree based on the Parser's data. Each AlgebraNode is linked with its children with a list of AlgebraNodes, and they are implemented like an Iterator so as to run query in a pipeline fashion. The ExpressionParser class helps each AlgebraNode to deal with Arithmetic expressions involving attributes and values.
 
-The requried functions--open, getNext and close -- are implemented within each of the AlgebraNode. The data is read only once from the DBManager in the Relation Class, and passed along via the  
-take information from the Parser class
+The requried functions--open, getNext and close -- are implemented within each of the AlgebraNode. The data is read only once from the DBManager in the Relation Class, and passed along via the pipeline.
+
 
 ##AlgebraNode
 
@@ -428,6 +428,7 @@ We added a new type of Data Structure - AlgebraNode to represent the Relational 
 5. The to-join attributes are specified in the ON CLAUSE. Cross-Table Selection Operations are merged with the join operation, but you have to specify them in the WHERE CLAUSE.
 5. Arithmetic Operations are supported in the where clause; That is to say, 400 + City.population >= Country.population / 100 is acceptable.
 6. Projection is always at the top of the parse tree.
+
 # Main classes<span id = "1"\>
 ####*AlgebraNode*<span id = "2"\>
 This is an interface, which contains 3 methods required to make it an Iterator-like Class. Open() function prepares the node for data pipelining, like opening children nodes and pre-fetching or sorting the data. getNext() method returns the next processed tuple to its parents.Finally, Close() Method closes the node and cleans up the memory.
@@ -435,46 +436,48 @@ This is an interface, which contains 3 methods required to make it an Iterator-l
 |method name|description|
 |---|---|
 |void open ()|Prepare the node for Data Pipelining.
-|List<\Pair<\Integer,Integer>> getNext();|Returns the next tuple.
+|List\<Pair\<Integer,Integer>> getNext();|Returns the next tuple.
 |void close()|Clean and close the node.	
 
 
 ###*Relation*
 
 This class is the leaf of the parsed tree. It will pre-fetch the corresponding data from the database, and pre-sort it based on the provided attribute names. The provided attribute names are usually the to-join attributes in the opstream AlgebraNodes so as to spped up the joining process. When all of its tuples are sent via getNext(), it will clean the memory and close the Node. Therefore, it will send its data only once.
+
 |attribute name|description|
-|---|---|
-|private boolean isOpen|Determines if its Open. Only Relations that are open are allowed for transmitting data.|
-|private int relation_id| The corresponding Table ID in the Database|
-|private String relation_name|The corresponding name of the relation|
-|private int current|Marks the current location of a tuple in the relation.|
-|private List<\String> Attrnames|Optional, provided for sorting the relation|
-|private List<\Integer> rIDs|A list of rIDs in this relation|
+|----|---|
+|private boolean isOpen   |Determines if its Open. Only Relations that are open are allowed for transmitting data.|
+|private int relation_id   | The corresponding Table ID in the Database|
+|private String relation_name   |The corresponding name of the relation|
+|private int current   |Marks the current location of a tuple in the relation.|
+|private List\<String> Attrnames |Optional, provided for sorting the relation|
+|private List\<Integer> rIDs |A list of rIDs in this relation|
 
 #####method:
 |method name|description|
 |---|---|
 |void open ()|Prepare the node for Data Pipelining.
-|List<\Pair<\Integer,Integer>> getNext()|Returns the next tuple.
+|List\<Pair\<Integer,Integer>> getNext()|Returns the next tuple.
 |void close()|Clean and close the node.	
 |private boolean hasNext()|Returns if there still exists a tuple to be passed on| 
 
 ###*SelectOperator*
 
 This class implements the selection operator in Relational Algebra. It will filter out all tuples that do not match the condition specified in the Query. Our SelectOperator supports single table and Multi-table selection operation, but currently it is only used for single relation selection so as to speed up query execution. "OR" Clause will be supported in the future.
+
 |attribute name|description|
 |---|---|
 |private boolean isOpen|Determines if its Open|
-|private List<\AlgebraNode> publishers|List of children Nodes.|
-|private Map<\Pair<\Integer,Integer>, Pair<String,Pair>> CrossTbCdt|Conditions for Multi-Table Selection|
-|private List<\Pair> SingleTBCdt|Conditions for a single table selection|
+|private List\<AlgebraNode> publishers|List of children Nodes.|
+|private Map\<Pair\<Integer,Integer>, Pair<String,Pair>> CrossTbCdt|Conditions for Multi-Table Selection|
+|private List\<Pair> SingleTBCdt|Conditions for a single table selection|
 |private int CNode|Variable for indicating the location of an currently opened children node|
 
 #####method:
 |method name|description|
 |---|---|
 |void open ()|Prepare the node for Data Pipelining. Open the first publisher
-|List<\Pair<\Integer,Integer>> getNext()|Returns the next filtered tuple.
+|List\<Pair\<Integer,Integer>> getNext()|Returns the next filtered tuple.
 |void close()|Clean and close the node.	
 |public void attach|Adds an AlgebraNode to its publishers|
 |public void dettach|Removes an AlgebraNode to its publishers|
@@ -484,20 +487,21 @@ This class implements the selection operator in Relational Algebra. It will filt
 
 This class implements the join operator in Relational Algebra. It will join the the data from both of its children nodes and produces a new tuple in the form of a list of pairs, where the left part is the tID and the right part is rID (Together they will represent one unique tuple in the database).If there exists cross-relation selection in the query, then this condition is checked here so as to speed up query execution.
 We read in one of the relation into the memory first. That is to say, we fetched every tuple from one of its children node, then join it with the tuple from the other children node one at a time. Since both relations are pre-sorted in their relation node, we do not to compare each possible combination of the tuples.
+
 |attribute name|description|
 |---|---|
 |private boolean isOpen|Determines if its Open|
-|private List<\AlgebraNode> publishers|List of children Nodes.|
-|private Map<\Pair<\Integer,Integer>, Pair<\String,Pair>> CrossTbCdt|Conditions for Multi-Table Selection|
-|private List<\Pair> SingleTBCdt|Conditions for a single table selection|
-|private List<\List<\Pair>> TuplesofLeft|Storing the information from the left join node|
-|private LinkedList<\List<\Pair<Integer,Integer>>> Results|A queue for storing multiple certified join results that are produced by one tuple.|
+|private List\<AlgebraNode> publishers|List of children Nodes.|
+|private Map\<Pair\<Integer,Integer>, Pair\<String,Pair>> CrossTbCdt|Conditions for Multi-Table Selection|
+|private List\<Pair> SingleTBCdt|Conditions for a single table selection|
+|private List\<List\<Pair>> TuplesofLeft|Storing the information from the left join node|
+|private LinkedList\<List\<Pair<Integer,Integer>>> Results|A queue for storing multiple certified join results that are produced by one tuple.|
 
 #####method:
 |method name|description|
 |---|---|
 |void open ()|Prepare the node for Data Pipelining. Read in tuples of one children node and opens the other
-|List<\Pair<\Integer,Integer>> getNext()|Returns the next joined tuple that matches the cross-table selection should it exists
+|List\<Pair\<Integer,Integer>> getNext()|Returns the next joined tuple that matches the cross-table selection should it exists
 |void close()|Clean and close the node.	
 |public void attach|Adds an AlgebraNode to its publishers|
 |public void dettach|Removes an AlgebraNode to its publishers|
@@ -507,13 +511,13 @@ This class implements the projection operator in Relational Algebra. It will pri
 |attribute name|description|
 |---|---|
 |private AlgebraNode publisher|Children node|
-|private Map<\Integer, List<\String>>attrNames|A Map Storing the to-project attributes. Integer is tID, mapped with a list of the attributes in that table|
+|private Map\<Integer, List\<String>>attrNames|A Map Storing the to-project attributes. Integer is tID, mapped with a list of the attributes in that table|
 
 #####method:
 |method name|description|
 |---|---|
 |void open ()|Prepare the node for Data Pipelining. Open its children and print out the to-print attribute names.
-|List<\Pair<\Integer,Integer>> getNext()|Returns the tuple and print out the results.
+|List\<Pair\<Integer,Integer>> getNext()|Returns the tuple and print out the results.
 |void close()|Clean and close the node.	
 |public void attach|Set its children node|
 |public void dettach|Remove its children node|
@@ -522,24 +526,26 @@ This class implements the projection operator in Relational Algebra. It will pri
 To translate SQL query into parsed trees and pipeline, we need to parse the input query.
 ###*Parser*
 This class translates the original query into various data structures for building pipelines. It mainly uses REGEX to do the work.
+
+#####attributes:
 |attribute name|description|
 |---|---|
-|Map<\Integer,List<\String>> attrnames|A Map Storing the to-project attributes. Integer is tID, mapped with a list of the attributes in that table|
-|List<\Relation> Relations|A List of involved Relations
-|List<\Pair<Integer,String>> On_Conditions|A List of to-join attributes|
+|Map\<Integer,List\<String>> attrnames|A Map Storing the to-project attributes. Integer is tID, mapped with a list of the attributes in that table|
+|List\<Relation> Relations|A List of involved Relations
+|List\<Pair<Integer,String>> On_Conditions|A List of to-join attributes|
 |String[] or_conditions|Currently useless. Stores sub "OR" Conditions|
-|List<\String[]> and_conditions|Every branch of "AND" Conditions|
-|Map<\Integer, Map<\Integer,List<\Pair>>>|A Map Storing Single Table selection conditions|
-|Map<\Pair<\Integer,Integer>, Pair<\String,Pair>>|A Map Storing Cross-Table Selection conditions|
+|List\<String[]> and_conditions|Every branch of "AND" Conditions|
+|Map\<Integer, Map\<Integer,List\<Pair>>>|A Map storing Single Table selection conditions|
+|Map\<Pair\<Integer,Integer>, Pair\<String,Pair>>|A Map storing Cross-Table Selection conditions|
 
 
 #####method:
 |method name|description|
 |---|---|
-|public Map<\Integer, Map<\Integer,List<\Pair>>> getDispatched|Returns Single Table Selection conditions
-|public Map<\Pair<\Integer,Integer>, Pair<\String,Pair>> getCrossTable()|Returns Cross-Table Selection conditions|
-|public List<\Pair<Integer,String>> getJInfo()|Returns a list of to-join attributes|
-|public List<\Relation> getRelations()|Returns a list of Relations|
+|public Map\<Integer, Map\<Integer,List\<Pair>>> getDispatched|Returns Single Table Selection conditions
+|public Map\<Pair\<Integer,Integer>, Pair\<String,Pair>> getCrossTable()|Returns Cross-Table Selection conditions|
+|public List\<Pair<Integer,String>> getJInfo()|Returns a list of to-join attributes|
+|public List\<Relation> getRelations()|Returns a list of Relations|
 
 ###*ExpressionParser*
 This class handles the expressions that occurs in both sides of the comparing operators(i.e. ">","<") in the SQL Query. It uses Regex to split up expressions, and implemented arithmetic operations via two Stacks. The expressionparser does not evaluate when intantiated; Rather, it is not until the expression is called for in the selection or the join operator that it gives out the final value. Currently we do not allow expressions to appear in the Projection, but it can be easily modified to support it.
@@ -552,8 +558,8 @@ Only numeric values supports arithmetic operations, and they are all evaled into
 |---|---|
 |private String exprString|A String storing the expression|
 |private String type|A String indicating the type of the evaluated result|
-|private Stack<\Double> vals|A Stack for storing the values. Only Numerical values supports arithmetic operations.|
-|private Stack<\String> Operands|A Stack for storing the operands|
+|private Stack\<Double> vals|A Stack for storing the values. Only Numerical values supports arithmetic operations.|
+|private Stack\<String> Operands|A Stack for storing the operands|
 |private Object finalval|The final value of the expression|
 |private OperatorPriority opsvr|A private class OperatorPriority that gives the operands' priority|
 |private int tID|Tid of the expression if attributes exist in the expression|   
@@ -566,7 +572,7 @@ Only numeric values supports arithmetic operations, and they are all evaled into
 |public void parse(byte[] tuple, DBManager dbm)|Parse and evaluates the expression|
 |public void setID(int ID)|Sets the tID attribute|
 |public int getID()|Returns tID|
-|public Pair<\String,Object> getExpr()|Returns a Pair Containing the Type and Value of the expression|
+|public Pair\<String,Object> getExpr()|Returns a Pair Containing the Type and Value of the expression|
 
 
 ##PipeLine
@@ -615,12 +621,13 @@ Every times the update operator performs a value updating, a new line, who indic
 ##UpdateOperator
 The UpdateOperator is implemented as an implementation of AlgebraNode. It will update all corresponding tuples according to conditions specified by the user.
 
+#####attributes:
 |attribute name|description|
 |---|---|
 |private boolean isOpen|Determines if its Open|
-|private List<\AlgebraNode> publishers|List of children Nodes.|
-|private  Map<\Integer,List<\Pair>> SingleTBCdt|Conditions to update|
-|private List<\Pair<\String,ExpressionParser>> To_Update|The to_Update attributes|
+|private List\<AlgebraNode> publishers|List of children Nodes.|
+|private  Map\<Integer,List\<Pair>> SingleTBCdt|Conditions to update|
+|private List\<Pair\<String,ExpressionParser>> To_Update|The to_Update attributes|
 
 #####method:
 |method name|description|
